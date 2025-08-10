@@ -1,6 +1,4 @@
-// Em src/app/api/tarefas/route.ts
-
-import { NextResponse } from 'next/server';
+import { NextResponse, type NextRequest } from 'next/server';
 import { supabase } from '@/lib/supabaseClient';
 
 const corsHeaders = {
@@ -9,28 +7,26 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'Content-Type, Authorization, ngrok-skip-browser-warning',
 };
 
-// Handler de OPTIONS robusto e definitivo
-export async function OPTIONS(request: Request) {
-  // Retorna uma resposta vazia com status 204 "No Content" e os headers de permissão.
-  // Esta é a resposta padrão e correta para uma requisição de pre-flight.
+// Handler OPTIONS com parâmetro prefixado pra evitar warning
+export async function OPTIONS(_request: NextRequest) {
   return new NextResponse(null, {
     status: 204,
     headers: corsHeaders,
   });
 }
 
-export async function GET(request: Request) {
-  // ... sua função GET continua igual e funcionando ...
+export async function GET(_request: NextRequest) {
   const { data: tarefas, error } = await supabase.from('tarefas').select('*').order('created_at', { ascending: false });
-  if (error) { return NextResponse.json({ erro: 'Falha ao buscar tarefas.' }, { status: 500 }); }
+  if (error) {
+    return NextResponse.json({ erro: 'Falha ao buscar tarefas.' }, { status: 500, headers: corsHeaders });
+  }
   return NextResponse.json(tarefas, { headers: corsHeaders });
 }
 
-// ----- FUNÇÃO POST AJUSTADA -----
-export async function POST(request: Request) {
+export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    console.log('API recebeu no corpo (body) para criar:', body); // <-- PISTA IMPORTANTE
+    console.log('API recebeu no corpo (body) para criar:', body);
 
     const { texto, concluida } = body;
 
@@ -45,14 +41,18 @@ export async function POST(request: Request) {
       .single();
 
     if (error) {
-      console.error('Erro do Supabase ao criar:', error); // <-- PISTA IMPORTANTE
+      console.error('Erro do Supabase ao criar:', error);
       throw new Error(error.message);
     }
 
     return NextResponse.json(data, { status: 201, headers: corsHeaders });
 
-  } catch (err: any) {
+  } catch (err: unknown) {
+    if (err instanceof Error) {
+      console.error("Erro geral no método POST:", err);
+      return NextResponse.json({ erro: err.message }, { status: 500, headers: corsHeaders });
+    }
     console.error("Erro geral no método POST:", err);
-    return NextResponse.json({ erro: err.message || 'Falha ao processar a requisição.' }, { status: 500, headers: corsHeaders });
+    return NextResponse.json({ erro: 'Falha ao processar a requisição.' }, { status: 500, headers: corsHeaders });
   }
 }
