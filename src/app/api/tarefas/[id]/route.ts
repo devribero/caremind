@@ -9,7 +9,6 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'Content-Type, Authorization, ngrok-skip-browser-warning',
 };
 
-// Renomeamos 'request' para '_request' para limpar o aviso de variável não utilizada
 export async function OPTIONS(_request: Request) {
   return new NextResponse(null, {
     status: 204,
@@ -17,7 +16,6 @@ export async function OPTIONS(_request: Request) {
   });
 }
 
-// ----- FUNÇÃO PATCH COM A ASSINATURA CORRIGIDA -----
 export async function PATCH(request: Request, context: { params: { id: string } }) {
   try {
     const { id } = context.params;
@@ -42,16 +40,16 @@ export async function PATCH(request: Request, context: { params: { id: string } 
 
     return NextResponse.json(data[0], { headers: corsHeaders });
 
-  } catch (err: any) {
+  } catch (err: unknown) { // <-- MUDANÇA DE 'any' PARA 'unknown'
     console.error("Erro geral no método PATCH:", err);
-    return NextResponse.json(
-      { erro: err.message || 'Falha ao processar a requisição.' },
-      { status: 500, headers: corsHeaders }
-    );
+    // Adicionamos uma verificação para acessar 'err.message' de forma segura
+    if (err instanceof Error) {
+      return NextResponse.json({ erro: err.message }, { status: 500, headers: corsHeaders });
+    }
+    return NextResponse.json({ erro: 'Falha ao processar a requisição.' }, { status: 500, headers: corsHeaders });
   }
 }
 
-// ----- FUNÇÃO DELETE COM A ASSINATURA CORRIGIDA -----
 export async function DELETE(_request: Request, context: { params: { id: string } }) {
   try {
     const { id } = context.params;
@@ -62,11 +60,13 @@ export async function DELETE(_request: Request, context: { params: { id: string 
     }
 
     return new NextResponse(null, { status: 204, headers: corsHeaders });
-  } catch (err: any) {
+    
+  } catch (err: unknown) { // <-- MUDANÇA DE 'any' PARA 'unknown'
     console.error("Erro geral no método DELETE:", err);
-    return NextResponse.json(
-      { erro: err.message || 'Falha ao processar a requisição.' },
-      { status: 500, headers: corsHeaders }
-    );
+    // Adicionamos a mesma verificação aqui
+    if (err instanceof Error) {
+      return NextResponse.json({ erro: err.message }, { status: 500, headers: corsHeaders });
+    }
+    return NextResponse.json({ erro: 'Falha ao processar a requisição.' }, { status: 500, headers: corsHeaders });
   }
 }
