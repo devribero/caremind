@@ -49,11 +49,17 @@ export async function PATCH(request: NextRequest, { params }: { params: { id: st
   }
 }
 
-export async function DELETE(_request: NextRequest, { params }: { params: { id: string } }) {
-  const { id } = params;
+export async function DELETE(request: NextRequest) {
+  const id = request.nextUrl.pathname.split('/').pop();
+
+  if (!id) {
+    return new NextResponse(null, { status: 400 });
+  }
+
   const { error } = await supabase.from('tarefas').delete().eq('id', id);
   if (error) {
     return new NextResponse(null, { status: 500 });
   }
+
   return new NextResponse(null, { status: 204, headers: corsHeaders });
 }
