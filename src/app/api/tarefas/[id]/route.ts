@@ -50,6 +50,8 @@ export async function PATCH(request: Request, context: { params: { id: string } 
   }
 }
 
+
+
 export async function DELETE(_request: Request, context: { params: { id: string } }) {
   try {
     const { id } = context.params;
