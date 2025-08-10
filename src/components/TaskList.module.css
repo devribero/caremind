@@ -1,0 +1,89 @@
+/* Em: src/app/components/TaskList.module.css */
+
+.container {
+    width: 100%;
+    max-width: 600px;
+    margin: 0 auto;
+    background-color: #ffffff;
+    padding: 20px 30px;
+    border-radius: 12px;
+    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.12);
+  }
+  
+  /* --- ESTILOS DO FORMULÁRIO --- */
+  .addForm {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 30px;
+  }
+  
+  .addInput {
+    flex-grow: 1;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    padding: 12px;
+    font-size: 16px;
+    background-color: white;
+  }
+  
+  .addButton {
+    background-color: #007AFF;
+    color: white;
+    border: none;
+    border-radius: 8px;
+    padding: 12px 20px;
+    font-size: 16px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: background-color 0.2s;
+  }
+  
+  .addButton:hover {
+    background-color: #005ecb;
+  }
+  
+  /* --- ESTILOS DA LISTA --- */
+  .taskList {
+    list-style: none;
+    padding: 0;
+  }
+  
+  .tarefaContainer {
+    padding: 12px 8px;
+    border-bottom: 1px solid #eee;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  
+  .tarefaTexto {
+    font-size: 16px;
+    color: #333;
+    flex-grow: 1;
+  }
+  
+  .tarefaConcluida {
+    text-decoration: line-through;
+    color: #aaa;
+  }
+  
+  .iconButton {
+    background: none;
+    border: none;
+    cursor: pointer;
+    font-size: 22px;
+    padding: 8px;
+    line-height: 1;
+  }
+  
+  .errorText {
+    color: #d93025;
+    text-align: center;
+    margin-bottom: 15px;
+  }
+  
+  .emptyText {
+    text-align: center;
+    color: #888;
+    padding: 20px;
+  }
