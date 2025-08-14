@@ -1,0 +1,20 @@
+/* Em: src/app/page.module.css */
+/* Pode substituir tudo por isso, ou apenas garantir que o 'main' tenha essas propriedades */
+
+.main {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 4rem 1rem;
+  min-height: 100vh;
+  background-color: #f0f2f5; /* Cor de fundo suave */
+}
+
+.header {
+  text-align: center;
+  margin-bottom: 2rem;
+}
+
+.header h1 {
+  color: black;
+}

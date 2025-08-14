@@ -1,20 +1,452 @@
-/* Em: src/app/page.module.css */
-/* Pode substituir tudo por isso, ou apenas garantir que o 'main' tenha essas propriedades */
+@import url('https://fonts.googleapis.com/css2?family=League+Spartan:wght@100..900&display=swap');
 
 .main {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  padding: 4rem 1rem;
-  min-height: 100vh;
-  background-color: #f0f2f5; /* Cor de fundo suave */
+    font-family: "League Spartan", sans-serif;
 }
 
 .header {
-  text-align: center;
-  margin-bottom: 2rem;
+    background-color: white;
+    color: #0400BA;
+    font-weight: 700;
+    font-size: 20px;
+    border-radius: 30px;
+    width: 100%;
+    max-width: 1300px; 
+    margin: 0 auto;  
+    margin-top: 20px; 
+    padding: 15px 20px; 
+    box-shadow: 0 0 13px rgb(147, 155, 238);
+    box-sizing: border-box;
+    position: relative;
 }
 
-.header h1 {
-  color: black;
+@media (max-width: 1350px) {
+    .header {
+        margin-left: 20px;
+        margin-right: 20px;
+        max-width: calc(100% - 40px);
+    }
+}
+
+@media (max-width: 768px) {
+    .header {
+        font-size: 18px;
+        padding: 12px 15px;
+        border-radius: 20px;
+        margin-top: 15px;
+        margin-left: 15px;
+        margin-right: 15px;
+        max-width: calc(100% - 30px);
+    }
+}
+
+@media (max-width: 640px) {
+    .header {
+        font-size: 16px;
+        padding: 10px 15px;
+        border-radius: 15px;
+        margin-top: 10px;
+        margin-left: 10px;
+        margin-right: 10px;
+        max-width: calc(100% - 20px);
+    }
+}
+
+.header_list {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 30px;
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    width: 100%;
+}
+
+@media (max-width: 900px) {
+    .header_list {
+        flex-direction: column;
+        gap: 15px;
+        text-align: center;
+    }
+}
+
+@media (max-width: 640px) {
+    .header_list {
+        flex-direction: row;
+        justify-content: space-between;
+        align-items: center;
+        gap: 15px;
+    }
+}
+
+.header_text {
+    display: flex;
+    gap: 30px;
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    align-items: center;
+}
+
+@media (max-width: 768px) {
+    .header_text {
+        gap: 20px;
+    }
+}
+
+@media (max-width: 640px) {
+    .header_text {
+        display: none;
+    }
+}
+
+/* Menu Hambúrguer */
+.hamburger {
+    display: none;
+    flex-direction: column;
+    cursor: pointer;
+    padding: 5px;
+    z-index: 1001;
+}
+
+@media (max-width: 640px) {
+    .hamburger {
+        display: flex;
+    }
+}
+
+.hamburger span {
+    width: 25px;
+    height: 3px;
+    background-color: #0400BA;
+    margin: 2px 0;
+    transition: 0.3s;
+    border-radius: 2px;
+}
+
+/* Animação do hamburger quando ativo */
+.hamburger.active span:nth-child(1) {
+    transform: rotate(-45deg) translate(-5px, 6px);
+}
+
+.hamburger.active span:nth-child(2) {
+    opacity: 0;
+}
+
+.hamburger.active span:nth-child(3) {
+    transform: rotate(45deg) translate(-5px, -6px);
+}
+
+/* Menu Mobile */
+.mobile_menu {
+    position: fixed;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100vh;
+    background-color: white;
+    z-index: 1000;
+    transition: left 0.3s ease;
+    padding-top: 80px;
+    box-shadow: 2px 0 10px rgba(0,0,0,0.1);
+}
+
+.mobile_menu.active {
+    left: 0;
+}
+
+.mobile_menu_list {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 30px;
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    padding-top: 50px;
+}
+
+.mobile_menu_item {
+    font-size: 24px;
+    color: #0400BA;
+    text-decoration: none;
+    padding: 15px 0;
+    transition: opacity 0.3s ease;
+}
+
+.mobile_menu_item:hover {
+    opacity: 0.7;
+}
+
+.mobile_menu_btn {
+    background: linear-gradient(to right, #020054, #0400BA);
+    color: white; 
+    padding: 15px 30px;
+    border-radius: 8px;
+    font-weight: bold;
+    text-decoration: none;
+    font-size: 18px;
+    margin-top: 20px;
+    transition: 0.3s ease;
+}
+
+.mobile_menu_btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(4, 0, 186, 0.3);
+}
+
+/* Overlay para fechar o menu */
+.menu_overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100vh;
+    background-color: rgba(0,0,0,0.5);
+    z-index: 999;
+    opacity: 0;
+    visibility: hidden;
+    transition: all 0.3s ease;
+}
+
+.menu_overlay.active {
+    opacity: 1;
+    visibility: visible;
+}
+
+.header_a {
+    font-size: 23px;
+    text-decoration: none;
+    color: inherit;
+    transition: opacity 0.3s ease;
+    white-space: nowrap;
+}
+
+@media (max-width: 768px) {
+    .header_a {
+        font-size: 20px;
+    }
+}
+
+@media (max-width: 480px) {
+    .header_a {
+        font-size: 18px;
+    }
+}
+
+.header_a:hover {
+    opacity: 0.7;
+}
+
+.header_btn {
+    background: linear-gradient(to right, #020054, #0400BA);
+    color: white; 
+    padding: 20px 20px;
+    border-radius: 8px;
+    font-weight: bold;
+    text-decoration: none;
+    transition: 0.3s ease;
+    font-size: 20px;
+    white-space: nowrap;
+    text-align: center;
+    display: inline-block;
+}
+
+@media (max-width: 900px) {
+    .header_btn {
+        padding: 15px 25px;
+        font-size: 18px;
+        margin-top: 5px;
+    }
+}
+
+@media (max-width: 640px) {
+    .header_btn {
+        padding: 12px 20px;
+        font-size: 16px;
+        margin-top: 0;
+        white-space: nowrap;
+    }
+}
+
+@media (max-width: 480px) {
+    .header_btn {
+        padding: 10px 15px;
+        font-size: 15px;
+    }
+}
+
+.header_btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(4, 0, 186, 0.3);
+}
+
+.section {
+    padding: clamp(2rem, 8vw, 5rem) clamp(1rem, 4vw, 2rem);
+}
+
+.container {
+    max-width: min(64rem, 95%);
+    margin-left: auto;
+    margin-right: auto;
+    text-align: center;
+    padding: 0 1rem;
+}
+
+.logoWrapper {
+    margin-bottom: clamp(1rem, 4vw, 2rem);
+}
+
+.logo {
+    display: block;
+    margin: 0 auto clamp(1rem, 3vw, 1.5rem) auto;
+    height: clamp(4rem, 10vw, 6rem);
+    max-width: 100%;
+    object-fit: contain;
+}
+
+.title {
+    font-size: clamp(1.75rem, 6vw, 3.75rem);
+    font-weight: 700;
+    color: #0400ba;
+    margin-bottom: clamp(1rem, 3vw, 1.5rem);
+    line-height: 1.25;
+    word-wrap: break-word;
+}
+
+.description {
+    font-size: clamp(16px, 3vw, 24px);
+    color: #4a5568;
+    margin-bottom: clamp(1.5rem, 4vw, 2rem);
+    line-height: 1.625;
+    max-width: 800px;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+.buttonGroup {
+    display: flex;
+    flex-direction: row;
+    gap: 1rem;
+    justify-content: center;
+    align-items: center;
+    flex-wrap: wrap;
+}
+
+@media (max-width: 640px) {
+    .buttonGroup {
+        flex-direction: column;
+        gap: 1rem;
+        width: 100%;
+        padding: 0 20px;
+    }
+}
+
+.primaryButton {
+    background-color: #0400ba;
+    border: 2px solid #0400ba;
+    color: white;
+    padding: 12px 24px;
+    border-radius: 8px;
+    font-size: 16px;
+    text-decoration: none;
+    transition: all 0.3s ease;
+    text-align: center;
+    cursor: pointer;
+    font-family: inherit;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+}
+
+@media (max-width: 640px) {
+    .primaryButton {
+        width: 100%;
+        padding: 16px 24px;
+        font-size: 16px;
+        border-radius: 8px;
+    }
+}
+
+.primaryButton:hover {
+    background-color: #020054;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(4, 0, 186, 0.3);
+}
+
+.outlineButton {
+    border: 2px solid #0400ba;
+    background-color: white;
+    color: #0400ba;
+    padding: 12px 24px;
+    border-radius: 8px;
+    font-size: 16px;
+    text-decoration: none;
+    transition: all 0.3s ease;
+    text-align: center;
+    cursor: pointer;
+    font-family: inherit;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+}
+
+@media (max-width: 640px) {
+    .outlineButton {
+        width: 100%;
+        padding: 16px 24px;
+        font-size: 16px;
+        border-radius: 8px;
+    }
+}
+
+.outlineButton:hover {
+    background-color: #0400ba;
+    color: white;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(4, 0, 186, 0.2);
+}
+
+/* Responsive breakpoints adicionais */
+@media (max-width: 480px) {
+    .header {
+        margin-top: 10px;
+        border-radius: 15px;
+    }
+    
+    .header_btn {
+        width: 100%;
+        margin-top: 10px;
+    }
+    
+    .buttonGroup {
+        width: 100%;
+    }
+    
+    .primaryButton,
+    .outlineButton {
+        width: 100%;
+        max-width: 300px;
+    }
+}
+
+@media (min-width: 769px) and (max-width: 1024px) {
+    .header_list {
+        gap: 50px;
+    }
+    
+    .container {
+        padding: 0 2rem;
+    }
+}
+
+@media (min-width: 1025px) {
+    .header_list {
+        justify-content: space-around;
+    }
 }
