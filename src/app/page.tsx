@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { Button } from "@/components/ui/button"
 import styles from './page.module.css';    
 import Image from 'next/image'; 
+import Link from 'next/link';
 
 export default function Home() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -33,7 +34,7 @@ export default function Home() {
             <li><a className={styles.header_a} href="#">Funcionalidades</a></li>
             <li><a className={styles.header_a} href="#">Como Funciona</a></li>
             <li><a className={styles.header_a} href="#">Para Famílias</a></li>
-            <li><a className={styles.header_btn} href="#">Começar agora</a></li>
+            <li><Link className={styles.header_btn} href="/login">Começar agora</Link></li>
           </div>
 
           {/* Hambúrguer Button */}
@@ -60,7 +61,7 @@ export default function Home() {
           <li><a className={styles.mobile_menu_item} href="#" onClick={closeMenu}>Funcionalidades</a></li>
           <li><a className={styles.mobile_menu_item} href="#" onClick={closeMenu}>Como Funciona</a></li>
           <li><a className={styles.mobile_menu_item} href="#" onClick={closeMenu}>Para Famílias</a></li>
-          <li><a className={styles.mobile_menu_btn} href="#" onClick={closeMenu}>Começar agora</a></li>
+          <li><Link className={styles.mobile_menu_btn} href="/login" onClick={closeMenu}>Começar agora</Link></li>
         </ul>
       </div>
 
@@ -77,9 +78,11 @@ export default function Home() {
             Mais autonomia para eles, mais tranquilidade para a família.
           </p>
           <div className={styles.buttonGroup}>
-            <Button size="lg" className={styles.primaryButton}>
-              Experimente Grátis
-            </Button>
+            <Link href="/login">
+              <Button size="lg" className={styles.primaryButton}>
+                Experimente Grátis
+              </Button>
+            </Link>
             <Button size="lg" variant="outline" className={styles.outlineButton}>
               Agendar Demonstração
             </Button>

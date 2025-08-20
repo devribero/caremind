@@ -1,0 +1,261 @@
+@import url('https://fonts.googleapis.com/css2?family=League+Spartan:wght@100..900&display=swap');
+
+.main {
+    font-family: "League Spartan", sans-serif;
+}
+
+.header {
+    background-color: white;
+    color: #0400BA;
+    font-weight: 700;
+    font-size: 20px;
+    border-radius: 30px;
+    width: 100%;
+    max-width: 1300px; 
+    margin: 0 auto;  
+    margin-top: 20px; 
+    padding: 15px 20px; 
+    box-shadow: 0 0 13px rgb(147, 155, 238);
+    box-sizing: border-box;
+    position: relative;
+}
+
+@media (max-width: 1350px) {
+    .header {
+        margin-left: 20px;
+        margin-right: 20px;
+        max-width: calc(100% - 40px);
+    }
+}
+
+@media (max-width: 768px) {
+    .header {
+        font-size: 18px;
+        padding: 12px 15px;
+        border-radius: 20px;
+        margin-top: 15px;
+        margin-left: 15px;
+        margin-right: 15px;
+        max-width: calc(100% - 30px);
+    }
+}
+
+.header_list {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 30px;
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    width: 100%;
+}
+
+.header_text {
+    display: flex;
+    gap: 30px;
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    align-items: center;
+}
+
+.header_a {
+    font-size: 23px;
+    text-decoration: none;
+    color: inherit;
+    transition: opacity 0.3s ease;
+    white-space: nowrap;
+}
+
+.header_a:hover {
+    opacity: 0.7;
+}
+
+.section {
+    padding: clamp(2rem, 8vw, 5rem) clamp(1rem, 4vw, 2rem);
+}
+
+.container {
+    max-width: min(64rem, 95%);
+    margin-left: auto;
+    margin-right: auto;
+    text-align: center;
+    padding: 0 1rem;
+}
+
+.logoWrapper {
+    margin-bottom: clamp(1rem, 4vw, 2rem);
+}
+
+.logo {
+    display: block;
+    margin: 0 auto clamp(1rem, 3vw, 1.5rem) auto;
+    height: clamp(4rem, 10vw, 6rem);
+    max-width: 100%;
+    object-fit: contain;
+}
+
+.title {
+    font-size: clamp(1.75rem, 6vw, 3.75rem);
+    font-weight: 700;
+    color: #0400ba;
+    margin-bottom: clamp(1rem, 3vw, 1.5rem);
+    line-height: 1.25;
+    word-wrap: break-word;
+}
+
+.formContainer {
+    max-width: 400px;
+    margin: 0 auto;
+    background: white;
+    padding: 2rem;
+    border-radius: 16px;
+    box-shadow: 0 4px 20px rgba(4, 0, 186, 0.1);
+    border: 1px solid rgba(4, 0, 186, 0.1);
+}
+
+.form {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+}
+
+.inputGroup {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    text-align: left;
+    color: black;
+}
+
+.label {
+    font-size: 16px;
+    font-weight: 600;
+    color: #0400ba;
+    margin-bottom: 0.25rem;
+}
+
+.input {
+    padding: 12px 16px;
+    border: 2px solid #e2e8f0;
+    border-radius: 8px;
+    font-size: 16px;
+    font-family: inherit;
+    transition: all 0.3s ease;
+    background-color: white;
+}
+
+.input:focus {
+    outline: none;
+    border-color: #0400ba;
+    box-shadow: 0 0 0 3px rgba(4, 0, 186, 0.1);
+}
+
+.input::placeholder {
+    color: #a0aec0;
+}
+
+.error {
+    background-color: #fed7d7;
+    color: #c53030;
+    padding: 12px 16px;
+    border-radius: 8px;
+    font-size: 14px;
+    text-align: center;
+    border: 1px solid #feb2b2;
+}
+
+.submitButton {
+    background-color: #0400ba;
+    border: 2px solid #0400ba;
+    color: white;
+    padding: 16px 24px;
+    border-radius: 8px;
+    font-size: 16px;
+    font-weight: 600;
+    cursor: pointer;
+    font-family: inherit;
+    transition: all 0.3s ease;
+    margin-top: 1rem;
+}
+
+.submitButton:hover:not(:disabled) {
+    background-color: #020054;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(4, 0, 186, 0.3);
+}
+
+.submitButton:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+    transform: none;
+}
+
+.switchMode {
+    margin-top: 2rem;
+    padding-top: 1.5rem;
+    border-top: 1px solid #e2e8f0;
+}
+
+.switchText {
+    color: #4a5568;
+    margin-bottom: 1rem;
+    font-size: 14px;
+}
+
+.switchButton {
+    background: none;
+    border: none;
+    color: #0400ba;
+    font-size: 16px;
+    font-weight: 600;
+    cursor: pointer;
+    text-decoration: underline;
+    font-family: inherit;
+    transition: opacity 0.3s ease;
+}
+
+.switchButton:hover {
+    opacity: 0.7;
+}
+
+/* Responsive design */
+@media (max-width: 640px) {
+    .formContainer {
+        margin: 0 1rem;
+        padding: 1.5rem;
+    }
+    
+    .header {
+        font-size: 16px;
+        padding: 10px 15px;
+        border-radius: 15px;
+        margin-top: 10px;
+        margin-left: 15px;
+        margin-right: 15px;
+        max-width: calc(100% - 30px);
+    }
+    
+    .header_list {
+        flex-direction: row;
+        justify-content: space-between;
+        align-items: center;
+        gap: 15px;
+    }
+    
+    .header_text {
+        display: none;
+    }
+}
+
+@media (max-width: 480px) {
+    .formContainer {
+        padding: 1rem;
+        margin: 0 0.5rem;
+    }
+    
+    .title {
+        font-size: clamp(1.5rem, 5vw, 2.5rem);
+    }
+}

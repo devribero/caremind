@@ -1,20 +1,123 @@
-/* Em: src/app/page.module.css */
-/* Pode substituir tudo por isso, ou apenas garantir que o 'main' tenha essas propriedades */
+@import url('https://fonts.googleapis.com/css2?family=League+Spartan:wght@100..900&display=swap');
 
 .main {
   display: flex;
   flex-direction: column;
-  align-items: center;
-  padding: 4rem 1rem;
   min-height: 100vh;
-  background-color: #f0f2f5; /* Cor de fundo suave */
+  background-color: #f0f2f5;
+  font-family: "League Spartan", sans-serif;
 }
 
 .header {
-  text-align: center;
+  background-color: white;
+  color: #0400BA;
+  font-weight: 700;
+  border-radius: 0 0 30px 30px;
+  width: 100%;
+  padding: 20px;
+  box-shadow: 0 4px 20px rgba(4, 0, 186, 0.1);
   margin-bottom: 2rem;
 }
 
-.header h1 {
-  color: black;
+.headerContent {
+  max-width: 1200px;
+  margin: 0 auto;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 20px;
+}
+
+.headerLeft {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.title {
+  font-size: 2.5rem;
+  font-weight: 700;
+  color: #0400ba;
+  margin: 0;
+  line-height: 1.2;
+}
+
+.welcomeText {
+  font-size: 1.1rem;
+  color: #4a5568;
+  margin: 0;
+  font-weight: 500;
+}
+
+.headerRight {
+  display: flex;
+  align-items: center;
+}
+
+.logoutButton {
+  background: linear-gradient(to right, #020054, #0400BA);
+  color: white;
+  border: none;
+  padding: 12px 24px;
+  border-radius: 8px;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  font-family: inherit;
+  transition: all 0.3s ease;
+}
+
+.logoutButton:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(4, 0, 186, 0.3);
+}
+
+.content {
+  flex: 1;
+  max-width: 1200px;
+  width: 100%;
+  margin: 0 auto;
+  padding: 0 20px;
+}
+
+/* Responsive design */
+@media (max-width: 768px) {
+  .header {
+    padding: 15px;
+    border-radius: 0 0 20px 20px;
+  }
+  
+  .headerContent {
+    flex-direction: column;
+    gap: 15px;
+    text-align: center;
+  }
+  
+  .title {
+    font-size: 2rem;
+  }
+  
+  .welcomeText {
+    font-size: 1rem;
+  }
+  
+  .content {
+    padding: 0 15px;
+  }
+}
+
+@media (max-width: 480px) {
+  .header {
+    padding: 12px;
+    border-radius: 0 0 15px 15px;
+  }
+  
+  .title {
+    font-size: 1.75rem;
+  }
+  
+  .logoutButton {
+    padding: 10px 20px;
+    font-size: 14px;
+  }
 }

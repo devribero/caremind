@@ -1,31 +1,44 @@
+'use client';
+
+import { useAuth } from '@/contexts/AuthContext';
+import { useRouter } from 'next/navigation';
 import TaskList from '../../components/TaskList'; 
-import styles from './page.module.css';     
+import styles from './page.module.css';
+import ProtectedRoute from '@/components/ProtectedRoute';
+import Image from 'next/image';
 
-async function getTarefas() {
-  try {
-    const response = await fetch('http://localhost:3000/api/tarefas', {
-      cache: 'no-store',
-    });
-    if (!response.ok) {
-      throw new Error('Falha ao buscar os dados da API');
-    }
-    return response.json();
-  } catch (error) {
-    console.error(error);
-    return [];
-  }
-}
+export default function Dashboard() {
+  const { user, signOut } = useAuth();
+  const router = useRouter();
 
-export default async function Home() {
-  const tarefas = await getTarefas();
+  const handleLogout = async () => {
+    await signOut();
+    router.push('/');
+  };
 
   return (
-    <main className={styles.main}>
-      <div className={styles.header}>
-        <h1>Minhas Tarefas (Web)</h1>
-      </div>
+    <ProtectedRoute>
+      <main className={styles.main}>
+        <div className={styles.header}>
+          <div className={styles.headerContent}>
+            <div className={styles.headerLeft}>
+              <h1 className={styles.title}>Dashboard</h1>
+              <p className={styles.welcomeText}>
+                Bem-vindo, {user?.email}
+              </p>
+            </div>
+            <div className={styles.headerRight}>
+              <button onClick={handleLogout} className={styles.logoutButton}>
+                Sair
+              </button>
+            </div>
+          </div>
+        </div>
 
-      <TaskList initialTarefas={tarefas} />
-    </main>
+        <div className={styles.content}>
+          <TaskList initialTarefas={[]} />
+        </div>
+      </main>
+    </ProtectedRoute>
   );
 }
