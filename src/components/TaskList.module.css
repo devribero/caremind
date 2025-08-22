@@ -1,163 +1,448 @@
-/* Em: src/app/components/TaskList.module.css */
+/* TaskList.module.css */
+@import url('https://fonts.googleapis.com/css2?family=League+Spartan:wght@100..900&display=swap');
 
 .container {
-    width: 100%;
-    max-width: 600px;
-    margin: 0 auto;
-    background-color: #ffffff;
-    padding: 20px 30px;
-    border-radius: 12px;
-    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.12);
+  width: 100%;
+  max-width: 800px;
+  margin: 0 auto;
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  padding: 32px;
+  border-radius: 24px;
+  box-shadow: 
+    0 20px 25px -5px rgba(4, 0, 186, 0.1),
+    0 10px 10px -5px rgba(4, 0, 186, 0.04),
+    inset 0 1px 0 rgba(255, 255, 255, 0.6);
+  font-family: "League Spartan", sans-serif;
+  position: relative;
+  overflow: hidden;
+}
+
+.container::before {
+  content: '';
+  position: absolute;
+  top: -50%;
+  left: -50%;
+  width: 200%;
+  height: 200%;
+  background: radial-gradient(circle, rgba(4, 0, 186, 0.05) 0%, transparent 70%);
+  pointer-events: none;
+  animation: pulse 4s ease-in-out infinite;
+}
+
+/* Cabeçalho da seção */
+.header {
+  margin-bottom: 32px;
+  text-align: left;
+  position: relative;
+  z-index: 1;
+}
+
+.title {
+  font-size: 2rem;
+  font-weight: 700;
+  color: #0400BA;
+  margin: 0 0 8px 0;
+  line-height: 1.2;
+}
+
+.subtitle {
+  font-size: 1.1rem;
+  color: #4a5568;
+  margin: 0 0 16px 0;
+  font-weight: 500;
+}
+
+.taskCount {
+  display: inline-block;
+  background: linear-gradient(to right, #020054, #0400BA);
+  color: white;
+  padding: 6px 12px;
+  border-radius: 20px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  margin-left: 12px;
+}
+
+/* --- ESTILOS DO FORMULÁRIO --- */
+.addForm {
+  display: flex;
+  gap: 12px;
+  margin-bottom: 32px;
+  position: relative;
+  z-index: 1;
+  background: rgba(255, 255, 255, 0.8);
+  padding: 20px;
+  border-radius: 16px;
+  border: 1px solid rgba(4, 0, 186, 0.1);
+  box-shadow: 0 4px 12px rgba(4, 0, 186, 0.08);
+}
+
+.addInput {
+  flex-grow: 1;
+  border: 2px solid #e2e8f0;
+  border-radius: 12px;
+  padding: 16px 20px;
+  font-size: 16px;
+  font-family: inherit;
+  font-weight: 500;
+  background: white;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  color: #1a202c;
+  position: relative;
+}
+
+.addInput::placeholder {
+  color: #a0aec0;
+  font-weight: 400;
+}
+
+.addInput:focus {
+  outline: none;
+  border-color: #0400BA;
+  box-shadow: 0 0 0 3px rgba(4, 0, 186, 0.1);
+  transform: translateY(-1px);
+}
+
+.addInput:disabled {
+  background-color: #f7fafc;
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+.addButton {
+  background: linear-gradient(to right, #020054, #0400BA);
+  color: white;
+  border: none;
+  border-radius: 12px;
+  padding: 16px 28px;
+  font-size: 16px;
+  font-weight: 600;
+  font-family: inherit;
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  min-width: 120px;
+  position: relative;
+  overflow: hidden;
+  box-shadow: 0 4px 12px rgba(4, 0, 186, 0.3);
+}
+
+.addButton::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+  transition: left 0.5s;
+}
+
+.addButton:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 20px rgba(4, 0, 186, 0.4);
+}
+
+.addButton:hover:not(:disabled)::before {
+  left: 100%;
+}
+
+.addButton:active:not(:disabled) {
+  transform: translateY(0);
+}
+
+.addButton:disabled {
+  background: linear-gradient(to right, #a0aec0, #cbd5e0);
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
+}
+
+/* --- ESTILOS DA LISTA --- */
+.taskList {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  position: relative;
+  z-index: 1;
+}
+
+.tarefaContainer {
+  background: white;
+  padding: 20px;
+  margin-bottom: 12px;
+  border-radius: 16px;
+  border: 1px solid rgba(4, 0, 186, 0.08);
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 0 2px 8px rgba(4, 0, 186, 0.05);
+  position: relative;
+  overflow: hidden;
+}
+
+.tarefaContainer::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 4px;
+  height: 100%;
+  background: linear-gradient(to bottom, #020054, #0400BA);
+  transition: width 0.3s ease;
+}
+
+.tarefaContainer:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 24px rgba(4, 0, 186, 0.12);
+  border-color: rgba(4, 0, 186, 0.2);
+}
+
+.tarefaContainer:hover::before {
+  width: 6px;
+}
+
+/* Checkbox customizado */
+.checkboxButton {
+  width: 24px;
+  height: 24px;
+  border: 2px solid #cbd5e0;
+  border-radius: 8px;
+  background: white;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative;
+  overflow: hidden;
+}
+
+.checkboxButton:hover {
+  border-color: #0400BA;
+  transform: scale(1.05);
+}
+
+.checkboxChecked {
+  background: linear-gradient(135deg, #020054, #0400BA);
+  border-color: #0400BA;
+  color: white;
+}
+
+.checkboxChecked::before {
+  content: '✓';
+  font-size: 14px;
+  font-weight: 700;
+  animation: checkmark 0.3s ease;
+}
+
+.tarefaTexto {
+  font-size: 16px;
+  font-weight: 500;
+  color: #1a202c;
+  flex-grow: 1;
+  margin: 0;
+  line-height: 1.4;
+  transition: all 0.3s ease;
+}
+
+.tarefaConcluida {
+  text-decoration: line-through;
+  color: #a0aec0;
+  opacity: 0.7;
+}
+
+.taskMeta {
+  font-size: 12px;
+  color: #718096;
+  margin-top: 4px;
+  font-weight: 400;
+}
+
+.taskContent {
+  flex-grow: 1;
+}
+
+/* Botão de exclusão */
+.deleteButton {
+  background: none;
+  border: none;
+  color: #e53e3e;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 600;
+  padding: 8px 16px;
+  border-radius: 8px;
+  transition: all 0.3s ease;
+  opacity: 0.7;
+}
+
+.deleteButton:hover {
+  background: rgba(229, 62, 62, 0.1);
+  opacity: 1;
+  transform: scale(1.05);
+}
+
+/* --- ESTILOS DE MENSAGENS --- */
+.errorMessage {
+  background: linear-gradient(135deg, #fed7d7, #feb2b2);
+  border: 1px solid #fc8181;
+  border-radius: 12px;
+  padding: 16px 20px;
+  margin-bottom: 24px;
+  color: #c53030;
+  font-weight: 500;
+  position: relative;
+  z-index: 1;
+  box-shadow: 0 4px 12px rgba(197, 48, 48, 0.15);
+}
+
+.errorMessage button {
+  background: none;
+  border: none;
+  color: #c53030;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 600;
+  text-decoration: underline;
+  margin-left: 8px;
+  transition: opacity 0.3s ease;
+}
+
+.errorMessage button:hover {
+  opacity: 0.8;
+}
+
+.emptyMessage {
+  text-align: center;
+  color: #718096;
+  padding: 60px 20px;
+  background: rgba(255, 255, 255, 0.5);
+  border-radius: 16px;
+  border: 2px dashed #e2e8f0;
+  position: relative;
+  z-index: 1;
+}
+
+.emptyMessage p {
+  margin: 12px 0;
+  font-size: 16px;
+  line-height: 1.5;
+}
+
+.emptyMessage p:first-child {
+  font-size: 20px;
+  font-weight: 600;
+  color: #4a5568;
+  margin-bottom: 8px;
+}
+
+.emptyMessage::before {
+  content: '📝';
+  font-size: 48px;
+  display: block;
+  margin-bottom: 16px;
+  opacity: 0.5;
+}
+
+/* Animações */
+@keyframes checkmark {
+  0% {
+    transform: scale(0) rotate(45deg);
+  }
+  50% {
+    transform: scale(1.2) rotate(45deg);
+  }
+  100% {
+    transform: scale(1) rotate(45deg);
+  }
+}
+
+@keyframes pulse {
+  0%, 100% {
+    transform: scale(1) rotate(0deg);
+    opacity: 0.5;
+  }
+  50% {
+    transform: scale(1.1) rotate(180deg);
+    opacity: 0.3;
+  }
+}
+
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.tarefaContainer {
+  animation: slideIn 0.3s ease-out;
+}
+
+/* Responsive design */
+@media (max-width: 768px) {
+  .container {
+    padding: 24px;
+    border-radius: 20px;
   }
   
-  /* --- ESTILOS DO FORMULÁRIO --- */
   .addForm {
-    display: flex;
-    gap: 10px;
-    margin-bottom: 30px;
-  }
-  
-  .addInput {
-    flex-grow: 1;
-    border: 1px solid #ddd;
-    border-radius: 8px;
-    padding: 12px;
-    font-size: 16px;
-    background-color: white;
-    transition: border-color 0.2s;
-    color: black;
-  }
-  
-  .addInput:focus {
-    outline: none;
-    border-color: #007AFF;
-  }
-  
-  .addInput:disabled {
-    background-color: #f5f5f5;
-    cursor: not-allowed;
+    flex-direction: column;
+    gap: 16px;
+    padding: 16px;
   }
   
   .addButton {
-    background-color: #007AFF;
-    color: white;
-    border: none;
-    border-radius: 8px;
-    padding: 12px 20px;
-    font-size: 16px;
-    font-weight: bold;
-    cursor: pointer;
-    transition: background-color 0.2s;
-    min-width: 100px;
-  }
-  
-  .addButton:hover:not(:disabled) {
-    background-color: #005ecb;
-  }
-  
-  .addButton:disabled {
-    background-color: #ccc;
-    cursor: not-allowed;
-  }
-  
-  /* --- ESTILOS DA LISTA --- */
-  .taskList {
-    list-style: none;
-    padding: 0;
+    align-self: stretch;
   }
   
   .tarefaContainer {
-    padding: 12px 8px;
-    border-bottom: 1px solid #eee;
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    transition: background-color 0.2s;
+    padding: 16px;
+    gap: 12px;
   }
   
-  .tarefaContainer:hover {
-    background-color: #f9f9f9;
+  .title {
+    font-size: 1.75rem;
   }
   
-  .tarefaTexto {
-    font-size: 16px;
-    color: #333;
-    flex-grow: 1;
-    margin: 0;
+  .subtitle {
+    font-size: 1rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .container {
+    padding: 20px;
+    border-radius: 16px;
   }
   
-  .tarefaConcluida {
-    text-decoration: line-through;
-    color: #aaa;
-  }
-  
-  .iconButton {
-    background: none;
-    border: none;
-    cursor: pointer;
-    font-size: 22px;
-    padding: 8px;
-    line-height: 1;
-    border-radius: 6px;
-    transition: background-color 0.2s;
-  }
-  
-  .iconButton:hover {
-    background-color: #f0f0f0;
-  }
-  
-  /* --- ESTILOS DE MENSAGENS --- */
-  .errorMessage {
-    background-color: #fef2f2;
-    border: 1px solid #fecaca;
-    border-radius: 8px;
+  .addForm {
     padding: 12px;
-    margin-bottom: 20px;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    color: #dc2626;
   }
   
-  .errorMessage p {
-    margin: 0;
+  .addInput {
+    padding: 12px 16px;
     font-size: 14px;
   }
   
-  .errorMessage button {
-    background: none;
-    border: none;
-    color: #dc2626;
-    cursor: pointer;
-    font-size: 18px;
-    padding: 0;
-    width: 24px;
-    height: 24px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    border-radius: 4px;
-    transition: background-color 0.2s;
+  .addButton {
+    padding: 12px 20px;
+    font-size: 14px;
   }
   
-  .errorMessage button:hover {
-    background-color: #fecaca;
+  .tarefaContainer {
+    padding: 12px;
   }
   
-  .emptyMessage {
-    text-align: center;
-    color: #888;
-    padding: 40px 20px;
-    list-style: none;
+  .tarefaTexto {
+    font-size: 14px;
   }
-  
-  .emptyMessage p {
-    margin: 8px 0;
-    font-size: 16px;
-  }
-  
-  .emptyMessage p:first-child {
-    font-size: 18px;
-    font-weight: 500;
-    color: #666;
-  }
+}

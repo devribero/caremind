@@ -1,3 +1,5 @@
+// Pagina de Login
+
 'use client';
 
 import { useState } from 'react';
@@ -34,8 +36,8 @@ export default function Login() {
         if (error) {
           setError('Erro ao criar conta: ' + error.message);
         } else {
-          setError('Verifique seu email para confirmar a conta');
-          setIsLogin(true);
+          // Redireciona direto para o dashboard após criar a conta
+          router.push('/dashboard');
         }
       }
     } catch (err) {

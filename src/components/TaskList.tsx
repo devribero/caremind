@@ -1,190 +1,329 @@
-// Em: src/app/components/TaskList.tsx
+'use client';
 
-"use client";
-
-import React, { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { useAuth } from '@/contexts/AuthContext';
+import { supabase } from '@/lib/supabaseClient';
 import styles from './TaskList.module.css';
 
-// URL base da API
-const API_BASE_URL = '/api/tarefas';
-
-// Interface que define a estrutura de uma tarefa
 interface Tarefa {
   id: number;
   texto: string;
   concluida: boolean;
+  created_at: string;
+  user_id: string;
 }
 
-// Props que o componente recebe
 interface TaskListProps {
-  initialTarefas: Tarefa[];
+  initialTarefas?: Tarefa[];
 }
 
-export default function TaskList({ initialTarefas }: TaskListProps) {
-  // Estados do componente
-  const [tarefas, setTarefas] = useState(initialTarefas);
-  const [error, setError] = useState<string | null>(null);
-  const [newTaskText, setNewTaskText] = useState('');
-  const [isLoading, setIsLoading] = useState(false);
+export default function TaskList({ initialTarefas = [] }: TaskListProps) {
+  const { user } = useAuth();
+  const [tarefas, setTarefas] = useState<Tarefa[]>(initialTarefas);
+  const [novoTexto, setNovoTexto] = useState('');
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
 
-  // Função para adicionar nova tarefa
-  const handleAddTask = async (e: React.FormEvent) => {
-    e.preventDefault(); // Previne o recarregamento da página
-    
-    // Valida se o texto não está vazio
-    if (newTaskText.trim() === '') return;
+  // Função para obter o token de autenticação
+  const getAuthToken = async () => {
+    const { data: { session } } = await supabase.auth.getSession();
+    return session?.access_token || null;
+  };
 
-    setIsLoading(true);
-    setError(null);
+  // Carregar tarefas do usuário
+  const carregarTarefas = async () => {
+    if (!user) {
+      setTarefas([]);
+      return;
+    }
 
     try {
-      // Faz a requisição para criar a tarefa
-      const response = await fetch(API_BASE_URL, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ texto: newTaskText }),
-      });
-
-      // Verifica se a requisição foi bem-sucedida
-      if (!response.ok) {
-        throw new Error('Falha ao salvar a tarefa');
+      setLoading(true);
+      const token = await getAuthToken();
+      
+      if (!token) {
+        setError('Sessão expirada. Faça login novamente.');
+        return;
       }
 
-      // Pega a tarefa criada da resposta
-      const addedTask = await response.json();
-      
-      // Adiciona a nova tarefa no topo da lista
-      setTarefas([addedTask, ...tarefas]);
-      
-      // Limpa o campo de texto
-      setNewTaskText('');
-      
+      const response = await fetch('/api/tarefas', {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+      });
+
+      if (response.status === 401) {
+        setError('Sessão expirada. Faça login novamente.');
+        return;
+      }
+
+      if (response.ok) {
+        const data = await response.json();
+        setTarefas(data);
+        setError('');
+      } else {
+        const errorData = await response.json();
+        setError(errorData.erro || 'Erro ao carregar tarefas');
+      }
     } catch (err) {
-      setError("Não foi possível adicionar a tarefa.");
-      console.error('Erro ao adicionar tarefa:', err);
+      setError('Erro ao conectar com o servidor');
+      console.error('Erro ao carregar tarefas:', err);
     } finally {
-      setIsLoading(false);
+      setLoading(false);
     }
   };
 
-  // Função para deletar uma tarefa
-  const handleDeletarTarefa = async (id: number) => {
-    if (!confirm('Tem certeza que deseja excluir esta tarefa?')) return;
+  // Carregar tarefas quando o usuário estiver logado
+  useEffect(() => {
+    carregarTarefas();
+  }, [user]);
+
+  // Configurar real-time updates usando Supabase
+  useEffect(() => {
+    if (!user) return;
+
+    const subscription = supabase
+      .channel('tarefas_changes')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'tarefas',
+          filter: `user_id=eq.${user.id}`
+        },
+        () => {
+          // Recarregar tarefas quando há mudanças
+          carregarTarefas();
+        }
+      )
+      .subscribe();
+
+    return () => {
+      subscription.unsubscribe();
+    };
+  }, [user]);
+
+  // Adicionar nova tarefa
+  const adicionarTarefa = async (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    if (!novoTexto.trim() || !user) return;
 
     try {
-      // Faz a requisição para deletar a tarefa
-      const response = await fetch(`${API_BASE_URL}/${id}`, {
-        method: 'DELETE',
-      });
-
-      // Verifica se a requisição foi bem-sucedida
-      if (!response.ok) {
-        throw new Error('Falha ao deletar a tarefa');
+      const token = await getAuthToken();
+      
+      if (!token) {
+        setError('Sessão expirada. Faça login novamente.');
+        return;
       }
 
-      // Remove a tarefa da lista local
-      setTarefas(tarefas.filter(tarefa => tarefa.id !== id));
-      
+      const response = await fetch('/api/tarefas', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          texto: novoTexto.trim(),
+          concluida: false,
+        }),
+      });
+
+      if (response.status === 401) {
+        setError('Sessão expirada. Faça login novamente.');
+        return;
+      }
+
+      if (response.ok) {
+        const novaTarefa = await response.json();
+        setTarefas(prev => [novaTarefa, ...prev]);
+        setNovoTexto('');
+        setError('');
+      } else {
+        const errorData = await response.json();
+        setError(errorData.erro || 'Erro ao adicionar tarefa');
+      }
     } catch (err) {
-      setError("Não foi possível deletar a tarefa.");
-      console.error('Erro ao deletar tarefa:', err);
+      setError('Erro ao conectar com o servidor');
+      console.error('Erro ao adicionar tarefa:', err);
     }
   };
 
-  // Função para marcar/desmarcar tarefa como concluída
-  const handleConcluirTarefa = async (tarefa: Tarefa) => {
+  // Alternar status de conclusão
+  const alternarConclusao = async (id: number, concluida: boolean) => {
     try {
-      // Inverte o status da tarefa
-      const novoStatus = !tarefa.concluida;
+      const token = await getAuthToken();
       
-      // Faz a requisição para atualizar a tarefa
-      const response = await fetch(`${API_BASE_URL}/${tarefa.id}`, {
+      if (!token) {
+        setError('Sessão expirada. Faça login novamente.');
+        return;
+      }
+
+      const response = await fetch(`/api/tarefas/${id}`, {
         method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ concluida: novoStatus }),
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`,
+        },
+        body: JSON.stringify({ concluida: !concluida }),
       });
 
-      // Verifica se a requisição foi bem-sucedida
-      if (!response.ok) {
-        throw new Error('Falha ao atualizar a tarefa');
+      if (response.status === 401) {
+        setError('Sessão expirada. Faça login novamente.');
+        return;
       }
 
-      // Atualiza a tarefa na lista local
-      setTarefas(tarefas.map(t => 
-        t.id === tarefa.id ? { ...t, concluida: novoStatus } : t
-      ));
-      
+      if (response.ok) {
+        const tarefaAtualizada = await response.json();
+        setTarefas(prev => 
+          prev.map(tarefa => 
+            tarefa.id === id ? tarefaAtualizada : tarefa
+          )
+        );
+        setError('');
+      } else {
+        const errorData = await response.json();
+        setError(errorData.erro || 'Erro ao atualizar tarefa');
+      }
     } catch (err) {
-      setError("Não foi possível atualizar a tarefa.");
+      setError('Erro ao conectar com o servidor');
       console.error('Erro ao atualizar tarefa:', err);
     }
   };
 
+  // Excluir tarefa
+  const excluirTarefa = async (id: number) => {
+    if (!confirm('Tem certeza que deseja excluir esta tarefa?')) return;
+
+    try {
+      const token = await getAuthToken();
+      
+      if (!token) {
+        setError('Sessão expirada. Faça login novamente.');
+        return;
+      }
+
+      const response = await fetch(`/api/tarefas/${id}`, {
+        method: 'DELETE',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+        },
+      });
+
+      if (response.status === 401) {
+        setError('Sessão expirada. Faça login novamente.');
+        return;
+      }
+
+      if (response.ok) {
+        setTarefas(prev => prev.filter(tarefa => tarefa.id !== id));
+        setError('');
+      } else {
+        const errorData = await response.json();
+        setError(errorData.erro || 'Erro ao excluir tarefa');
+      }
+    } catch (err) {
+      setError('Erro ao conectar com o servidor');
+      console.error('Erro ao excluir tarefa:', err);
+    }
+  };
+
+  if (!user) {
+    return (
+      <div className={styles.container}>
+        <div className={styles.emptyMessage}>
+          <p>Você precisa estar logado para ver suas tarefas.</p>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className={styles.container}>
-      {/* Formulário para adicionar nova tarefa */}
-      <form onSubmit={handleAddTask} className={styles.addForm}>
+      <div className={styles.header}>
+        <h2 className={styles.title}>
+          Minhas Tarefas
+          <span className={styles.taskCount}>{tarefas.length}</span>
+        </h2>
+        <p className={styles.subtitle}>
+          Olá, {user.email}! Organize suas tarefas de forma simples e eficiente.
+        </p>
+      </div>
+      
+      {error && (
+        <div className={styles.errorMessage}>
+          {error}
+          {error.includes('Sessão expirada') && (
+            <button onClick={() => window.location.reload()}>
+              Recarregar página
+            </button>
+          )}
+        </div>
+      )}
+
+      {/* Formulário para adicionar tarefa */}
+      <form onSubmit={adicionarTarefa} className={styles.addForm}>
         <input
           type="text"
+          value={novoTexto}
+          onChange={(e) => setNovoTexto(e.target.value)}
+          placeholder="Digite uma nova tarefa..."
           className={styles.addInput}
-          placeholder="O que precisa ser feito?"
-          value={newTaskText}
-          onChange={(e) => setNewTaskText(e.target.value)}
-          disabled={isLoading}
+          disabled={loading}
         />
-        <button 
-          type="submit" 
+        <button
+          type="submit"
+          disabled={!novoTexto.trim() || loading}
           className={styles.addButton}
-          disabled={isLoading}
         >
-          {isLoading ? 'Adicionando...' : 'Adicionar'}
+          {loading ? 'Adicionando...' : 'Adicionar'}
         </button>
       </form>
 
-      {/* Mensagem de erro */}
-      {error && (
-        <div className={styles.errorMessage}>
-          <p>{error}</p>
-          <button onClick={() => setError(null)}>✕</button>
-        </div>
-      )}
-      
       {/* Lista de tarefas */}
-      <ul className={styles.taskList}>
-        {tarefas.length === 0 ? (
-          <li className={styles.emptyMessage}>
-            <p>Nenhuma tarefa cadastrada.</p>
-            <p>Adicione sua primeira tarefa acima!</p>
-          </li>
-        ) : (
-          tarefas.map(tarefa => (
+      {loading && tarefas.length === 0 ? (
+        <div className={styles.emptyMessage}>
+          <p>Carregando suas tarefas...</p>
+        </div>
+      ) : tarefas.length === 0 ? (
+        <div className={styles.emptyMessage}>
+          <p>Nenhuma tarefa encontrada</p>
+          <p>Adicione sua primeira tarefa acima para começar!</p>
+        </div>
+      ) : (
+        <ul className={styles.taskList}>
+          {tarefas.map((tarefa) => (
             <li key={tarefa.id} className={styles.tarefaContainer}>
-              {/* Botão para marcar como concluída */}
-              <button 
-                onClick={() => handleConcluirTarefa(tarefa)} 
-                className={styles.iconButton}
-                title={tarefa.concluida ? 'Desmarcar como concluída' : 'Marcar como concluída'}
-              >
-                {tarefa.concluida ? '✅' : '🔲'}
-              </button>
+              <button
+                onClick={() => alternarConclusao(tarefa.id, tarefa.concluida)}
+                className={`${styles.checkboxButton} ${
+                  tarefa.concluida ? styles.checkboxChecked : ''
+                }`}
+              />
               
-              {/* Texto da tarefa */}
-              <p className={`${styles.tarefaTexto} ${tarefa.concluida ? styles.tarefaConcluida : ''}`}>
-                {tarefa.texto}
-              </p>
+              <div className={styles.taskContent}>
+                <p className={`${styles.tarefaTexto} ${
+                  tarefa.concluida ? styles.tarefaConcluida : ''
+                }`}>
+                  {tarefa.texto}
+                </p>
+                <div className={styles.taskMeta}>
+                  Criada em: {new Date(tarefa.created_at).toLocaleString('pt-BR')}
+                </div>
+              </div>
               
-              {/* Botão para deletar */}
-              <button 
-                onClick={() => handleDeletarTarefa(tarefa.id)} 
-                className={styles.iconButton}
-                title="Excluir tarefa"
+              <button
+                onClick={() => excluirTarefa(tarefa.id)}
+                className={styles.deleteButton}
               >
-                🗑️
+                Excluir
               </button>
             </li>
-          ))
-        )}
-      </ul>
+          ))}
+        </ul>
+      )}
     </div>
   );
 }

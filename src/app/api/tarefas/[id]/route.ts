@@ -1,5 +1,3 @@
-// Em: src/app/api/tarefas/[id]/route.ts
-
 import { NextResponse } from 'next/server';
 import { supabase } from '@/lib/supabaseClient';
 
@@ -10,6 +8,28 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'Content-Type, Authorization',
 };
 
+// Função para obter o usuário autenticado a partir do token
+const getAuthenticatedUser = async (request: Request) => {
+  try {
+    const authHeader = request.headers.get('Authorization');
+    if (!authHeader || !authHeader.startsWith('Bearer ')) {
+      return null;
+    }
+
+    const token = authHeader.replace('Bearer ', '');
+    const { data: { user }, error } = await supabase.auth.getUser(token);
+    
+    if (error || !user) {
+      return null;
+    }
+
+    return user;
+  } catch (error) {
+    console.error('Erro ao autenticar usuário:', error);
+    return null;
+  }
+};
+
 // Função para lidar com requisições OPTIONS (necessário para CORS)
 export async function OPTIONS() {
   return new NextResponse(null, {
@@ -18,16 +38,25 @@ export async function OPTIONS() {
   });
 }
 
-// PATCH - Atualizar uma tarefa existente
+// PATCH - Atualizar uma tarefa do usuário autenticado
 export async function PATCH(request: Request, context: { params: { id: string } }) {
   try {
-    // Pega o ID da tarefa da URL
+    // Verificar autenticação
+    const user = await getAuthenticatedUser(request);
+    if (!user) {
+      return NextResponse.json(
+        { erro: 'Usuário não autenticado' }, 
+        { status: 401, headers: corsHeaders }
+      );
+    }
+
+    // Pegar o ID da tarefa da URL
     const { id } = context.params;
     
-    // Lê o corpo da requisição
+    // Ler o corpo da requisição
     const body = await request.json();
 
-    // Valida se o ID é um número válido
+    // Validar se o ID é um número válido
     if (!id || isNaN(Number(id))) {
       return NextResponse.json(
         { erro: 'ID da tarefa inválido.' }, 
@@ -35,14 +64,14 @@ export async function PATCH(request: Request, context: { params: { id: string } 
       );
     }
 
-    // Atualiza a tarefa no banco
+    // Atualizar apenas tarefas do usuário autenticado
     const { data, error } = await supabase
       .from('tarefas')
       .update(body)
       .eq('id', id)
+      .eq('user_id', user.id) // Garantir que só atualiza tarefas do próprio usuário
       .select();
 
-    // Se houver erro, retorna erro 500
     if (error) {
       console.error('Erro ao atualizar tarefa:', error);
       return NextResponse.json(
@@ -51,15 +80,14 @@ export async function PATCH(request: Request, context: { params: { id: string } 
       );
     }
 
-    // Se não encontrou a tarefa, retorna erro 404
+    // Se não encontrou a tarefa ou não pertence ao usuário
     if (!data || data.length === 0) {
       return NextResponse.json(
-        { erro: `Tarefa com ID ${id} não encontrada.` }, 
+        { erro: `Tarefa com ID ${id} não encontrada ou não pertence ao usuário.` }, 
         { status: 404, headers: corsHeaders }
       );
     }
 
-    // Retorna a tarefa atualizada
     return NextResponse.json(data[0], { headers: corsHeaders });
 
   } catch (error) {
@@ -71,13 +99,22 @@ export async function PATCH(request: Request, context: { params: { id: string } 
   }
 }
 
-// DELETE - Excluir uma tarefa
+// DELETE - Excluir uma tarefa do usuário autenticado
 export async function DELETE(request: Request, context: { params: { id: string } }) {
   try {
-    // Pega o ID da tarefa da URL
+    // Verificar autenticação
+    const user = await getAuthenticatedUser(request);
+    if (!user) {
+      return NextResponse.json(
+        { erro: 'Usuário não autenticado' }, 
+        { status: 401, headers: corsHeaders }
+      );
+    }
+
+    // Pegar o ID da tarefa da URL
     const { id } = context.params;
 
-    // Valida se o ID é um número válido
+    // Validar se o ID é um número válido
     if (!id || isNaN(Number(id))) {
       return NextResponse.json(
         { erro: 'ID da tarefa inválido.' }, 
@@ -85,13 +122,14 @@ export async function DELETE(request: Request, context: { params: { id: string }
       );
     }
 
-    // Exclui a tarefa do banco
-    const { error } = await supabase
+    // Excluir apenas tarefas do usuário autenticado
+    const { data, error } = await supabase
       .from('tarefas')
       .delete()
-      .eq('id', id);
+      .eq('id', id)
+      .eq('user_id', user.id) // Garantir que só exclui tarefas do próprio usuário
+      .select();
 
-    // Se houver erro, retorna erro 500
     if (error) {
       console.error('Erro ao excluir tarefa:', error);
       return NextResponse.json(
@@ -100,7 +138,14 @@ export async function DELETE(request: Request, context: { params: { id: string }
       );
     }
 
-    // Retorna sucesso sem conteúdo (status 204 - No Content)
+    // Verificar se a tarefa foi encontrada e excluída
+    if (!data || data.length === 0) {
+      return NextResponse.json(
+        { erro: `Tarefa com ID ${id} não encontrada ou não pertence ao usuário.` }, 
+        { status: 404, headers: corsHeaders }
+      );
+    }
+
     return new NextResponse(null, { status: 204, headers: corsHeaders });
     
   } catch (error) {

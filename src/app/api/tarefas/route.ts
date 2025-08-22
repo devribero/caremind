@@ -8,6 +8,31 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'Content-Type, Authorization',
 };
 
+// Função para obter o usuário autenticado a partir do token
+const getAuthenticatedUser = async (request: Request) => {
+  try {
+    const authHeader = request.headers.get('Authorization');
+    if (!authHeader || !authHeader.startsWith('Bearer ')) {
+      return null;
+    }
+
+    const token = authHeader.replace('Bearer ', '');
+    
+    // Criar um cliente Supabase com o token do usuário
+    const supabaseWithAuth = supabase.auth.admin;
+    const { data: { user }, error } = await supabase.auth.getUser(token);
+    
+    if (error || !user) {
+      return null;
+    }
+
+    return user;
+  } catch (error) {
+    console.error('Erro ao autenticar usuário:', error);
+    return null;
+  }
+};
+
 // Função para lidar com requisições OPTIONS (necessário para CORS)
 export async function OPTIONS() {
   return new NextResponse(null, {
@@ -16,16 +41,25 @@ export async function OPTIONS() {
   });
 }
 
-// GET - Buscar todas as tarefas
-export async function GET() {
+// GET - Buscar tarefas do usuário autenticado
+export async function GET(request: Request) {
   try {
-    // Busca todas as tarefas no banco, ordenadas por data de criação (mais recentes primeiro)
+    // Verificar autenticação
+    const user = await getAuthenticatedUser(request);
+    if (!user) {
+      return NextResponse.json(
+        { erro: 'Usuário não autenticado' }, 
+        { status: 401, headers: corsHeaders }
+      );
+    }
+
+    // Buscar apenas as tarefas do usuário autenticado
     const { data: tarefas, error } = await supabase
       .from('tarefas')
       .select('*')
+      .eq('user_id', user.id)
       .order('created_at', { ascending: false });
 
-    // Se houver erro, retorna erro 500
     if (error) {
       console.error('Erro ao buscar tarefas:', error);
       return NextResponse.json(
@@ -34,7 +68,6 @@ export async function GET() {
       );
     }
 
-    // Retorna as tarefas encontradas
     return NextResponse.json(tarefas, { headers: corsHeaders });
 
   } catch (error) {
@@ -46,16 +79,23 @@ export async function GET() {
   }
 }
 
-// POST - Criar nova tarefa
+// POST - Criar nova tarefa para o usuário autenticado
 export async function POST(request: Request) {
   try {
-    // Lê o corpo da requisição
+    // Verificar autenticação
+    const user = await getAuthenticatedUser(request);
+    if (!user) {
+      return NextResponse.json(
+        { erro: 'Usuário não autenticado' }, 
+        { status: 401, headers: corsHeaders }
+      );
+    }
+
+    // Ler o corpo da requisição
     const body = await request.json();
-    
-    // Extrai os dados da tarefa
     const { texto, concluida = false } = body;
 
-    // Valida se o texto foi fornecido
+    // Validar se o texto foi fornecido
     if (!texto || texto.trim() === '') {
       return NextResponse.json(
         { erro: "O campo 'texto' é obrigatório." }, 
@@ -63,17 +103,17 @@ export async function POST(request: Request) {
       );
     }
 
-    // Insere a nova tarefa no banco
+    // Inserir a nova tarefa no banco com o user_id
     const { data, error } = await supabase
       .from('tarefas')
       .insert([{ 
         texto: texto.trim(), 
-        concluida: concluida 
+        concluida: concluida,
+        user_id: user.id // Incluir o ID do usuário autenticado
       }])
       .select()
       .single();
 
-    // Se houver erro, retorna erro 500
     if (error) {
       console.error('Erro ao criar tarefa:', error);
       return NextResponse.json(
@@ -82,7 +122,6 @@ export async function POST(request: Request) {
       );
     }
 
-    // Retorna a tarefa criada com status 201 (Created)
     return NextResponse.json(data, { status: 201, headers: corsHeaders });
 
   } catch (error) {
