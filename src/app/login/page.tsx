@@ -1,5 +1,3 @@
-// Pagina de Login
-
 'use client';
 
 import { useState } from 'react';
@@ -9,38 +7,45 @@ import { Button } from "@/components/ui/button";
 import styles from './page.module.css';
 import Image from 'next/image';
 
-export default function Login() {
+export default function AuthPage() {
   const [isLogin, setIsLogin] = useState(true);
+  const [fullName, setFullName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [loading, setLoading] = useState(false);
+  const [confirmPassword, setConfirmPassword] = useState('');
+  const [acceptTerms, setAcceptTerms] = useState(false);
   const [error, setError] = useState('');
+  const [loading, setLoading] = useState(false);
+
   const { signIn, signUp } = useAuth();
   const router = useRouter();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setLoading(true);
     setError('');
 
+    if (!isLogin) {
+      // validações extras do registro
+      if (password !== confirmPassword) {
+        return setError('As senhas não coincidem');
+      }
+      if (!acceptTerms) {
+        return setError('Você precisa aceitar os Termos e a Política');
+      }
+    }
+
+    setLoading(true);
     try {
       if (isLogin) {
         const { error } = await signIn(email, password);
-        if (error) {
-          setError('Email ou senha incorretos');
-        } else {
-          router.push('/dashboard');
-        }
+        if (error) setError('Email ou senha incorretos');
+        else router.push('/dashboard');
       } else {
-        const { error } = await signUp(email, password);
-        if (error) {
-          setError('Erro ao criar conta: ' + error.message);
-        } else {
-          // Redireciona direto para o dashboard após criar a conta
-          router.push('/dashboard');
-        }
+        const { error } = await signUp(email, password, fullName);
+        if (error) setError('Erro ao criar conta: ' + error.message);
+        else router.push('/dashboard');
       }
-    } catch (err) {
+    } catch {
       setError('Ocorreu um erro inesperado');
     } finally {
       setLoading(false);
@@ -58,7 +63,6 @@ export default function Login() {
               </a>
             </li>
           </div>
-          
           <div className={styles.header_text}>
             <li><a className={styles.header_a} href="/">Voltar ao Início</a></li>
           </div>
@@ -66,18 +70,30 @@ export default function Login() {
       </div>
 
       <section className={styles.section}>
-        <div className={styles.container}>  
-          
+        <div className={styles.container}>
           <div className={styles.formContainer}>
             <h1 className={styles.title}>
               {isLogin ? 'Entrar na Sua Conta' : 'Criar Nova Conta'}
             </h1>
-            
+
             <form onSubmit={handleSubmit} className={styles.form}>
+              {!isLogin && (
+                <div className={styles.inputGroup}>
+                  <label htmlFor="fullName">Nome Completo</label>
+                  <input
+                    id="fullName"
+                    type="text"
+                    value={fullName}
+                    onChange={(e) => setFullName(e.target.value)}
+                    className={styles.input}
+                    placeholder="Seu nome"
+                    required
+                  />
+                </div>
+              )}
+
               <div className={styles.inputGroup}>
-                <label htmlFor="email" className={styles.label}>
-                  Email
-                </label>
+                <label htmlFor="email">Email</label>
                 <input
                   id="email"
                   type="email"
@@ -90,35 +106,69 @@ export default function Login() {
               </div>
 
               <div className={styles.inputGroup}>
-                <label htmlFor="password" className={styles.label}>
-                  Senha
-                </label>
+                <label htmlFor="password">{isLogin ? 'Senha' : 'Crie sua senha'}</label>
                 <input
                   id="password"
                   type="password"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   className={styles.input}
-                  placeholder="Sua senha"
                   required
                 />
               </div>
 
-              {error && (
-                <div className={styles.error}>
-                  {error}
+              {/* Botão de "Esqueci minha senha" só aparece no login */}
+              {isLogin && (
+                <div className={styles.forgotPassword}>
+                  <button 
+                    type="button" 
+                    className={styles.linkButton}
+                    onClick={() => router.push('/forgot-password')}
+                  >
+                    Esqueci minha senha
+                  </button>
                 </div>
               )}
 
-              <Button 
-                type="submit" 
-                size="lg" 
-                className={styles.submitButton}
-                disabled={loading}
-              >
-                {loading ? 'Carregando...' : (isLogin ? 'Entrar' : 'Criar Conta')}
+              {!isLogin && (
+                <div className={styles.inputGroup}>
+                  <label htmlFor="confirmPassword">Confirme sua senha</label>
+                  <input
+                    id="confirmPassword"
+                    type="password"
+                    value={confirmPassword}
+                    onChange={(e) => setConfirmPassword(e.target.value)}
+                    className={styles.input}
+                    required
+                  />
+                </div>
+              )}
+
+              {!isLogin && (
+                <div className={styles.checkboxGroup}>
+                  <input
+                    id="terms"
+                    type="checkbox"
+                    checked={acceptTerms}
+                    onChange={(e) => setAcceptTerms(e.target.checked)}
+                    required
+                  />
+                  <label htmlFor="terms">
+                    Li e aceito os 
+                    <button type="button" className={styles.link}> Termos de Serviço </button> 
+                    e a 
+                    <button type="button" className={styles.link}> Política de Privacidade </button>
+                  </label>
+                </div>
+              )}
+
+              {error && <div className={styles.error}>{error}</div>}
+
+              <Button type="submit" size="lg" disabled={loading}>
+                {loading ? 'Carregando...' : isLogin ? 'Entrar' : 'Registrar'}
               </Button>
             </form>
+
 
             <div className={styles.switchMode}>
               <p className={styles.switchText}>
@@ -130,6 +180,9 @@ export default function Login() {
                   setError('');
                   setEmail('');
                   setPassword('');
+                  setFullName('');
+                  setConfirmPassword('');
+                  setAcceptTerms(false);
                 }}
                 className={styles.switchButton}
               >
