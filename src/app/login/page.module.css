@@ -51,6 +51,11 @@
     width: 100%;
 }
 
+.header_image {
+    display: flex;
+    align-items: center;
+}
+
 .header_text {
     display: flex;
     gap: 30px;
@@ -126,10 +131,9 @@
     flex-direction: column;
     gap: 0.5rem;
     text-align: left;
-    color: black;
 }
 
-.label {
+.inputGroup label {
     font-size: 16px;
     font-weight: 600;
     color: #0400ba;
@@ -144,6 +148,7 @@
     font-family: inherit;
     transition: all 0.3s ease;
     background-color: white;
+    color: #2d3748;
 }
 
 .input:focus {
@@ -156,6 +161,42 @@
     color: #a0aec0;
 }
 
+.checkboxGroup {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.75rem;
+    text-align: left;
+}
+
+.checkboxGroup input[type="checkbox"] {
+    margin: 0;
+    flex-shrink: 0;
+    margin-top: 2px;
+}
+
+.checkboxGroup label {
+    font-size: 14px;
+    color: #4a5568;
+    line-height: 1.4;
+}
+
+.link {
+    background: none;
+    border: none;
+    color: #0400ba;
+    text-decoration: underline;
+    cursor: pointer;
+    font-size: inherit;
+    font-family: inherit;
+    padding: 0;
+    margin: 0;
+    transition: opacity 0.3s ease;
+}
+
+.link:hover {
+    opacity: 0.7;
+}
+
 .error {
     background-color: #fed7d7;
     color: #c53030;
@@ -166,6 +207,36 @@
     border: 1px solid #feb2b2;
 }
 
+/* Estilo para o botão do shadcn/ui */
+.form button[type="submit"] {
+    background-color: #0400ba !important;
+    border: 2px solid #0400ba !important;
+    color: white !important;
+    padding: 16px 24px !important;
+    border-radius: 8px !important;
+    font-size: 16px !important;
+    font-weight: 600 !important;
+    cursor: pointer !important;
+    font-family: inherit !important;
+    transition: all 0.3s ease !important;
+    margin-top: 1rem !important;
+    width: 100% !important;
+    height: auto !important;
+}
+
+.form button[type="submit"]:hover:not(:disabled) {
+    background-color: #020054 !important;
+    transform: translateY(-2px) !important;
+    box-shadow: 0 4px 12px rgba(4, 0, 186, 0.3) !important;
+}
+
+.form button[type="submit"]:disabled {
+    opacity: 0.6 !important;
+    cursor: not-allowed !important;
+    transform: none !important;
+}
+
+/* Mantendo a classe original para compatibilidade */
 .submitButton {
     background-color: #0400ba;
     border: 2px solid #0400ba;
@@ -247,6 +318,10 @@
     .header_text {
         display: none;
     }
+    
+    .header_a {
+        font-size: 16px;
+    }
 }
 
 @media (max-width: 480px) {
@@ -257,5 +332,41 @@
     
     .title {
         font-size: clamp(1.5rem, 5vw, 2.5rem);
+    }
+}
+
+.forgotPassword {
+    text-align: right;
+    margin-top: -0.5rem;
+    margin-bottom: 1rem;
+}
+
+.linkButton {
+    background: none;
+    border: none;
+    color: #0400ba;
+    text-decoration: underline;
+    cursor: pointer;
+    font-family: "League Spartan", sans-serif;
+    font-weight: 600;
+    font-size: 14px;
+    transition: opacity 0.3s ease, transform 0.2s ease;
+    padding: 0;
+}
+
+.linkButton:hover {
+    opacity: 0.8;
+    transform: translateY(-1px);
+}
+
+@media (max-width: 640px) {
+    .forgotPassword {
+        text-align: center;
+        margin-top: 0.5rem;
+        margin-bottom: 1rem;
+    }
+    
+    .linkButton {
+        font-size: 13px;
     }
 }

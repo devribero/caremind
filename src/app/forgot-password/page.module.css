@@ -1,0 +1,98 @@
+@import url('https://fonts.googleapis.com/css2?family=League+Spartan:wght@100..900&display=swap');
+
+.forgotContainer {
+    max-width: 400px;
+    margin: 4rem auto;
+    padding: 2rem;
+    background: white;
+    border-radius: 16px;
+    box-shadow: 0 4px 20px rgba(4, 0, 186, 0.1);
+    border: 1px solid rgba(4, 0, 186, 0.1);
+    text-align: center;
+    font-family: "League Spartan", sans-serif;
+}
+
+.forgotContainer h2 {
+    font-size: clamp(1.75rem, 5vw, 3rem);
+    font-weight: 700;
+    color: #0400ba;
+    margin-bottom: 1.5rem;
+}
+
+.forgotContainer input[type="email"] {
+    width: 100%;
+    padding: 12px 16px;
+    border: 2px solid #e2e8f0;
+    border-radius: 8px;
+    font-size: 16px;
+    margin-bottom: 1rem;
+    font-family: inherit;
+    transition: all 0.3s ease;
+}
+
+.forgotContainer input[type="email"]:focus {
+    outline: none;
+    border-color: #0400ba;
+    box-shadow: 0 0 0 3px rgba(4, 0, 186, 0.1);
+}
+
+.forgotContainer p {
+    margin-top: 1rem;
+    font-size: 14px;
+    color: #4a5568;
+}
+
+.forgotContainer .submitButton {
+    background-color: #0400ba;
+    border: 2px solid #0400ba;
+    color: white;
+    padding: 16px 24px;
+    border-radius: 8px;
+    font-size: 16px;
+    font-weight: 600;
+    cursor: pointer;
+    font-family: inherit;
+    transition: all 0.3s ease;
+    margin-top: 1rem;
+    width: 100%;
+}
+
+.forgotContainer .submitButton:hover:not(:disabled) {
+    background-color: #020054;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(4, 0, 186, 0.3);
+}
+
+.forgotContainer .submitButton:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+    transform: none;
+}
+
+.forgotContainer .backButton {
+    background: none;
+    border: none;
+    color: #0400ba;
+    text-decoration: underline;
+    cursor: pointer;
+    font-family: inherit;
+    font-weight: 600;
+    font-size: 14px;
+    margin-top: 1rem;
+    transition: opacity 0.3s ease;
+}
+
+.forgotContainer .backButton:hover {
+    opacity: 0.7;
+}
+
+@media (max-width: 640px) {
+    .forgotContainer {
+        margin: 2rem 1rem;
+        padding: 1.5rem;
+    }
+
+    .forgotContainer h2 {
+        font-size: clamp(1.5rem, 5vw, 2.5rem);
+    }
+}
