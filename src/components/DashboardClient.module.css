@@ -1,0 +1,127 @@
+.dashboardContainer {
+    padding: 2rem;
+    background-color: #ffffff;
+    border-radius: 20px;
+    border: 1px solid #e9ecef;
+}
+
+.dashboardTitle {
+    font-size: 2rem;
+    font-weight: bold;
+    color: #0400BA;
+    margin-bottom: 2rem;
+    border-bottom: 3px solid #0400BA;
+    padding-bottom: 0.5rem;
+    display: inline-block;
+}
+
+.summaryGrid,
+.detailsGrid {
+    display: grid;
+    gap: 1.5rem;
+    margin-bottom: 2rem;
+}
+
+.summaryGrid {
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+}
+
+.detailsGrid {
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+}
+
+.card {
+    background: white;
+    padding: 1.5rem;
+    border-radius: 16px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+    border: 1px solid #e9ecef;
+}
+
+.largeCard {
+    min-height: 250px;
+    display: flex;
+    flex-direction: column;
+}
+
+.card p {
+    margin: 0 0 0.5rem 0;
+    font-weight: 600;
+    color: #495057;
+}
+
+.progressText {
+    display: block;
+    font-weight: bold;
+    font-size: 1.2rem;
+    margin-bottom: 1rem;
+}
+
+.exportButtons {
+    display: flex;
+    gap: 0.5rem;
+    margin-top: 1rem;
+}
+
+.exportButtons button {
+    padding: 0.5rem 1rem;
+    border-radius: 8px;
+    border: 1px solid #ced4da;
+    background: #f8f9fa;
+    cursor: pointer;
+    font-weight: 500;
+}
+
+.cardHeader {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1rem;
+}
+
+.cardHeader h2 {
+    margin: 0;
+    font-size: 1.25rem;
+}
+
+.novoBtn {
+    background-color: #0400BA;
+    color: white;
+    border: none;
+    padding: 0.6rem 1.2rem;
+    border-radius: 8px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+}
+
+.novoBtn:hover {
+    background-color: #020054;
+}
+
+.cardBody {
+    flex-grow: 1;
+    display: flex;
+    flex-direction: column;
+}
+
+.emptyText {
+    margin: auto; /* Centraliza o texto verticalmente e horizontalmente */
+    text-align: center;
+    color: #6c757d;
+}
+
+.cardBody ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.cardBody li {
+    padding: 0.5rem 0;
+    border-bottom: 1px solid #f1f1f1;
+}
+
+.cardBody li:last-child {
+    border-bottom: none;
+}

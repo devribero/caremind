@@ -1,9 +1,9 @@
-'use client'; // Adicione isso no topo se estiver usando Next.js 13+
+'use client'; 
 
 import { useState } from 'react';
 import { Button } from "@/components/ui/button"
+import { Header } from '@/components/headers/HeaderHome';
 import styles from './page.module.css';    
-import Image from 'next/image'; 
 import Link from 'next/link';
 
 export default function Home() {
@@ -19,51 +19,8 @@ export default function Home() {
 
   return (
     <main className={styles.main}>
-      <div className={styles.header}>
-        <ul className={styles.header_list}>
-          <div className={styles.header_image}>
-            <li>
-              <a href="#">
-                <Image src="/logo.png" alt="Minha logo" width={200} height={63} />
-              </a>
-            </li>
-          </div>
-          
-          {/* Menu Desktop */}
-          <div className={styles.header_text}>
-            <li><a className={styles.header_a} href="#">Funcionalidades</a></li>
-            <li><a className={styles.header_a} href="#">Como Funciona</a></li>
-            <li><a className={styles.header_a} href="#">Para Famílias</a></li>
-            <li><Link className={styles.header_btn} href="/login">Começar agora</Link></li>
-          </div>
-
-          {/* Hambúrguer Button */}
-          <div 
-            className={`${styles.hamburger} ${isMenuOpen ? styles.active : ''}`}
-            onClick={toggleMenu}
-          >
-            <span></span>
-            <span></span>
-            <span></span>
-          </div>
-        </ul>
-      </div>
-
-      {/* Overlay */}
-      <div 
-        className={`${styles.menu_overlay} ${isMenuOpen ? styles.active : ''}`}
-        onClick={closeMenu}
-      ></div>
-
-      {/* Menu Mobile */}
-      <div className={`${styles.mobile_menu} ${isMenuOpen ? styles.active : ''}`}>
-        <ul className={styles.mobile_menu_list}>
-          <li><a className={styles.mobile_menu_item} href="#" onClick={closeMenu}>Funcionalidades</a></li>
-          <li><a className={styles.mobile_menu_item} href="#" onClick={closeMenu}>Como Funciona</a></li>
-          <li><a className={styles.mobile_menu_item} href="#" onClick={closeMenu}>Para Famílias</a></li>
-          <li><Link className={styles.mobile_menu_btn} href="/login" onClick={closeMenu}>Começar agora</Link></li>
-        </ul>
-      </div>
+      
+      <Header />
 
       <section className={styles.section}>
         <div className={styles.container}>

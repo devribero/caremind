@@ -1,6 +1,11 @@
-import { createClient } from '@supabase/supabase-js'
+// lib/supabaseClient.ts ou lib/supabase/client.ts
 
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!
-const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+import { createBrowserClient } from '@supabase/ssr';
 
-export const supabase = createClient(supabaseUrl, supabaseAnonKey)
+// 👇 Garanta que está usando "export function", e NÃO "export default"
+export function createClient() {
+  return createBrowserClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+  );
+}
