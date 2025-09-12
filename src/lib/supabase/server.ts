@@ -1,7 +1,7 @@
 import { createServerClient, type CookieOptions } from '@supabase/ssr';
 import { cookies } from 'next/headers';
 
-export function createClient() {
+export function createClient(accessToken?: string) {
   const cookieStore = cookies();
 
   return createServerClient(
@@ -27,6 +27,14 @@ export function createClient() {
           }
         },
       },
+      // Quando fornecido, propaga o token via header Authorization para autorizar as queries
+      global: accessToken
+        ? {
+            headers: {
+              Authorization: `Bearer ${accessToken}`,
+            },
+          }
+        : undefined,
     }
   );
 }

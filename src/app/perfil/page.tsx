@@ -9,14 +9,22 @@ import styles from '@/app/perfil/page.module.css'// esse @ server pra puxar na r
 export default function Perfil() {
 
     const { user, signOut } = useAuth();
-    const router = useRouter(); 
+    const router = useRouter();
+    const [isEditing, setIsEditing] = useState(false);
+    const [profileData, setProfileData] = useState({
+        fullName: user?.user_metadata?.full_name || '',
+        email: user?.email || '',
+        phone: '',
+    }); 
+
+    useEffect()
 
     const handleLogout = async () => {
         await signOut(); 
         router.push('/'); 
     };
     
-    const displayName = user?.user_metadata?.full_name || user?.email;
+    const displayName = user?.use || user?.email;
     
     return( 
         <div>
@@ -29,5 +37,5 @@ export default function Perfil() {
     )
 }
 
-
+er_metadata?.full_nam
 

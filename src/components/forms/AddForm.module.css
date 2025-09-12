@@ -8,6 +8,7 @@
   margin: 0;
   border: none;
   box-shadow: none;
+  max-width: 100%;
 }
 
 .formGroup {
@@ -31,7 +32,142 @@
   background: #ffffff;
   transition: border-color 0.2s ease, box-shadow 0.2s ease;
   outline: none;
+  width: 100%;
+  box-sizing: border-box;
 }
+
+.select {
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%236b7280' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 12px center;
+  padding-right: 36px;
+  cursor: pointer;
+}
+
+.horariosContainer {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: 8px;
+}
+
+.horarioItem {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 12px;
+  background-color: #f9fafb;
+  border-radius: 6px;
+  border: 1px solid #e5e7eb;
+}
+
+.removeButton {
+  background: none;
+  border: none;
+  color: #ef4444;
+  font-size: 1.2rem;
+  cursor: pointer;
+  padding: 2px 6px;
+  line-height: 1;
+  border-radius: 4px;
+}
+
+.removeButton:hover {
+  background-color: #fee2e2;
+}
+
+.addHorarioContainer {
+  display: flex;
+  gap: 8px;
+  margin-top: 8px;
+}
+
+.timeInput {
+  flex: 1;
+  min-width: 100px;
+}
+
+.addButton {
+  background-color: #e0e7ff;
+  color: #4338ca;
+  border: none;
+  border-radius: 6px;
+  padding: 0 12px;
+  font-size: 0.9rem;
+  font-weight: 500;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background-color 0.2s ease;
+  white-space: nowrap;
+}
+
+.addButton:hover {
+  background-color: #c7d2fe;
+}
+
+.diasSemanaContainer {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 8px;
+}
+
+.diaSemanaLabel {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  cursor: pointer;
+  font-size: 0.9rem;
+  padding: 6px 10px;
+  background-color: #f9fafb;
+  border-radius: 20px;
+  border: 1px solid #e5e7eb;
+  transition: all 0.2s ease;
+}
+
+.diaSemanaLabel:hover {
+  background-color: #f3f4f6;
+}
+
+.checkbox {
+  width: 16px;
+  height: 16px;
+  border: 1px solid #d1d5db;
+  border-radius: 4px;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  appearance: none;
+  margin: 0;
+  cursor: pointer;
+  position: relative;
+  flex-shrink: 0;
+}
+
+.checkbox:checked {
+  background-color: #0400BA;
+  border-color: #0400BA;
+}
+
+.checkbox:checked::after {
+  content: '✓';
+  position: absolute;
+  color: white;
+  font-size: 12px;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  line-height: 1;
+}
+
+.input {
+  width: 100%;
+  box-sizing: border-box;
+}
+
+/* Number input tweaks moved to globals.css (CSS Modules forbid global element selectors) */
 
 .formGroup input:hover {
   border-color: #9ca3af;
@@ -42,15 +178,50 @@
   box-shadow: 0 0 0 3px rgba(4, 0, 186, 0.1);
 }
 
-.formGroup input::placeholder {
-  color: #9ca3af;
-}
-
 .buttonGroup {
   display: flex;
   justify-content: flex-end;
   gap: 12px;
   margin-top: 24px;
+  width: 100%;
+}
+
+.cancelButton {
+  padding: 10px 20px;
+  background-color: #f3f4f6;
+  color: #4b5563;
+  border: 1px solid #d1d5db;
+  border-radius: 8px;
+  font-size: 0.95rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.cancelButton:hover {
+  background-color: #e5e7eb;
+}
+
+.saveButton {
+  padding: 10px 20px;
+  background-color: #0400BA;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-size: 0.95rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.saveButton:hover {
+  background-color: #2d2dff;
+}
+
+.saveButton:disabled {
+  background-color: #9ca3af;
+  cursor: not-allowed;
+  opacity: 0.7;
 }
 
 .buttonGroup button {
@@ -145,5 +316,23 @@
 
   .buttonGroup {
     margin-top: 16px;
+  }
+  
+  .addHorarioContainer {
+    flex-direction: column;
+  }
+  
+  .addButton {
+    justify-content: center;
+    padding: 8px 12px;
+  }
+  
+  .diasSemanaContainer {
+    gap: 6px;
+  }
+  
+  .diaSemanaLabel {
+    padding: 4px 8px;
+    font-size: 0.85rem;
   }
 }

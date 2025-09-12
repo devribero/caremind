@@ -18,10 +18,24 @@ export async function OPTIONS() {
 // FUNÇÃO GET - Buscar Rotinas
 // ================================================================= //
 export async function GET(request: Request) {
-  const supabase = createClient();
+  const authHeader = request.headers.get('authorization');
+  const token = authHeader?.startsWith('Bearer ')
+    ? authHeader.slice('Bearer '.length)
+    : undefined;
+  const supabase = createClient(token);
 
   try {
-    const { data: { user } } = await supabase.auth.getUser();
+    let user = null as null | { id: string };
+    if (token) {
+      const { data, error: userErr } = await supabase.auth.getUser(token);
+      if (userErr) {
+        console.error('Supabase getUser(token) error:', userErr.message);
+      }
+      user = data?.user ?? null;
+    } else {
+      const { data } = await supabase.auth.getUser();
+      user = data.user ?? null;
+    }
 
     if (!user) {
       return NextResponse.json(
@@ -59,10 +73,24 @@ export async function GET(request: Request) {
 // FUNÇÃO POST - Criar Nova Rotina
 // ================================================================= //
 export async function POST(request: Request) {
-  const supabase = createClient();
+  const authHeader = request.headers.get('authorization');
+  const token = authHeader?.startsWith('Bearer ')
+    ? authHeader.slice('Bearer '.length)
+    : undefined;
+  const supabase = createClient(token);
 
   try {
-    const { data: { user } } = await supabase.auth.getUser();
+    let user = null as null | { id: string };
+    if (token) {
+      const { data, error: userErr } = await supabase.auth.getUser(token);
+      if (userErr) {
+        console.error('Supabase getUser(token) error:', userErr.message);
+      }
+      user = data?.user ?? null;
+    } else {
+      const { data } = await supabase.auth.getUser();
+      user = data.user ?? null;
+    }
 
     if (!user) {
       return NextResponse.json(

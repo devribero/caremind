@@ -24,7 +24,23 @@ export async function PATCH(request: Request, context: { params: { id: string } 
   const supabase = createClient();
 
   try {
-    const { data: { user } } = await supabase.auth.getUser();
+    // Support Bearer token as well as cookie session
+    const authHeader = request.headers.get('authorization');
+    const token = authHeader?.startsWith('Bearer ')
+      ? authHeader.slice('Bearer '.length)
+      : undefined;
+
+    let user = null as null | { id: string };
+    if (token) {
+      const { data, error: userErr } = await supabase.auth.getUser(token);
+      if (userErr) {
+        console.error('Supabase getUser(token) error:', userErr.message);
+      }
+      user = data?.user ?? null;
+    } else {
+      const { data } = await supabase.auth.getUser();
+      user = data.user ?? null;
+    }
 
     if (!user) {
       return NextResponse.json(
@@ -86,8 +102,24 @@ export async function DELETE(request: Request, context: { params: { id: string }
   const supabase = createClient();
 
   try {
-    const { data: { user } } = await supabase.auth.getUser();
-    
+    // Support Bearer token as well as cookie session
+    const authHeader = request.headers.get('authorization');
+    const token = authHeader?.startsWith('Bearer ')
+      ? authHeader.slice('Bearer '.length)
+      : undefined;
+
+    let user = null as null | { id: string };
+    if (token) {
+      const { data, error: userErr } = await supabase.auth.getUser(token);
+      if (userErr) {
+        console.error('Supabase getUser(token) error:', userErr.message);
+      }
+      user = data?.user ?? null;
+    } else {
+      const { data } = await supabase.auth.getUser();
+      user = data.user ?? null;
+    }
+
     if (!user) {
       return NextResponse.json(
         { erro: 'Usuário não autenticado' },
@@ -99,7 +131,7 @@ export async function DELETE(request: Request, context: { params: { id: string }
 
     if (!id) {
       return NextResponse.json(
-        { erro: 'ID da tarefa não fornecido.' },
+        { erro: 'ID do medicamento não fornecido.' },
         { status: 400, headers: corsHeaders }
       );
     }
@@ -107,18 +139,18 @@ export async function DELETE(request: Request, context: { params: { id: string }
     // A adição do .select() faz com que o Supabase retorne o item deletado,
     // permitindo verificar se a operação realmente encontrou e removeu algo.
     const { data, error } = await supabase
-      .from('tarefas')
+      .from('medicamentos')
       .delete()
       .eq('id', id)
       .eq('user_id', user.id)
       .select();
 
     if (error) throw error;
-    
+
     // Se nada foi retornado, significa que o item não existia ou não pertencia ao usuário.
     if (!data || data.length === 0) {
       return NextResponse.json(
-        { erro: `Tarefa com ID ${id} não encontrada ou não pertence ao usuário.` },
+        { erro: `Medicamento com ID ${id} não encontrado ou não pertence ao usuário.` },
         { status: 404, headers: corsHeaders }
       );
     }
@@ -131,7 +163,7 @@ export async function DELETE(request: Request, context: { params: { id: string }
     if (error instanceof Error) {
       errorMessage = error.message;
     }
-    console.error('Erro em DELETE /api/tarefas/[id]:', errorMessage);
+    console.error('Erro em DELETE /api/medicamentos/[id]:', errorMessage);
     return NextResponse.json(
       { erro: errorMessage },
       { status: 500, headers: corsHeaders }

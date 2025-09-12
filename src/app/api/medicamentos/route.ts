@@ -18,10 +18,27 @@ export async function OPTIONS() {
 // FUNÇÃO GET - Buscar Medicamentos
 // ================================================================= //
 export async function GET(request: Request) {
-  const supabase = createClient();
+  // Lê token Bearer do header, se houver, e injeta no cliente do Supabase
+  const authHeader = request.headers.get('authorization');
+  const token = authHeader?.startsWith('Bearer ')
+    ? authHeader.slice('Bearer '.length)
+    : undefined;
+  const supabase = createClient(token);
 
   try {
-    const { data: { user } } = await supabase.auth.getUser();
+    // Try to read user based on Bearer token or cookie session
+    let user = null as null | { id: string };
+    if (token) {
+      const { data, error: userErr } = await supabase.auth.getUser(token);
+      if (userErr) {
+        console.error('Supabase getUser(token) error:', userErr.message);
+      }
+      user = data?.user ?? null;
+    } else {
+      // Fallback to cookie-based session (SSR cookies)
+      const { data } = await supabase.auth.getUser();
+      user = data.user ?? null;
+    }
 
     if (!user) {
       return NextResponse.json(
@@ -51,16 +68,30 @@ export async function GET(request: Request) {
       { status: 500, headers: corsHeaders }
     );
   }
-} 
+}
 
 // ================================================================= //
 // FUNÇÃO POST - Criar Novo Medicamento
 // ================================================================= //
 export async function POST(request: Request) {
-  const supabase = createClient();
+  const authHeader = request.headers.get('authorization');
+  const token = authHeader?.startsWith('Bearer ')
+    ? authHeader.slice('Bearer '.length)
+    : undefined;
+  const supabase = createClient(token);
 
   try {
-    const { data: { user } } = await supabase.auth.getUser();
+    let user = null as null | { id: string };
+    if (token) {
+      const { data, error: userErr } = await supabase.auth.getUser(token);
+      if (userErr) {
+        console.error('Supabase getUser(token) error:', userErr.message);
+      }
+      user = data?.user ?? null;
+    } else {
+      const { data } = await supabase.auth.getUser();
+      user = data.user ?? null;
+    }
 
     if (!user) {
       return NextResponse.json(

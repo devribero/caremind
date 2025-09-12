@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, memo } from 'react';
 import { createClient } from '@/lib/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import styles from './DashboardClient.module.css';
@@ -9,12 +9,39 @@ import { AddMedicamentoForm } from './forms/AddMedicamentoForm';
 import { AddRotinaForm } from './forms/AddRotinaForm';
 
 // === TIPOS ===
+type FrequenciaDiaria = {
+  tipo: 'diario';
+  horarios: string[];
+};
+
+type FrequenciaIntervalo = {
+  tipo: 'intervalo';
+  intervalo_horas: number;
+  inicio: string;
+};
+
+type FrequenciaDiasAlternados = {
+  tipo: 'dias_alternados';
+  intervalo_dias: number;
+  horario: string;
+};
+
+type FrequenciaSemanal = {
+  tipo: 'semanal';
+  dias_da_semana: number[];
+  horario: string;
+};
+
+type Frequencia = FrequenciaDiaria | FrequenciaIntervalo | FrequenciaDiasAlternados | FrequenciaSemanal;
+
 type Medicamento = {
     id: string;
     nome: string;
     dosagem: string | null;
     data_agendada: string;
     concluido: boolean;
+    frequencia: Frequencia;
+    quantidade: number;
 };
 
 type Rotina = {
@@ -37,7 +64,7 @@ type RotinasData = {
 };
 
 // === COMPONENTES AUXILIARES ===
-function ProgressBar({ current, total }: { current: number; total: number }) {
+const ProgressBarComponent = ({ current, total }: { current: number; total: number }) => {
     const percentage = total > 0 ? (current / total) * 100 : 0;
     
     return (
@@ -58,7 +85,7 @@ function ProgressBar({ current, total }: { current: number; total: number }) {
             />
         </div>
     );
-}
+};
 
 function LoadingSpinner() {
     return <div>Carregando...</div>;
@@ -144,13 +171,28 @@ export function DashboardClient() {
     };
 
     // === HANDLERS DE FORMULÁRIO ===
-    const handleSaveMedicamento = async (nome: string, dosagem: string, data: string) => {
+    const handleSaveMedicamento = async (nome: string, dosagem: string, frequencia: Frequencia, quantidade: number) => {
         if (!user) return;
         
         const token = await getAuthToken();
         if (!token) return;
 
         try {
+            // Calculate the first occurrence based on frequency type
+            const primeiraData: Date = new Date();
+            
+            // Set the time based on the frequency type
+            if (frequencia.tipo === 'diario' && frequencia.horarios.length > 0) {
+                const [hours, minutes] = frequencia.horarios[0].split(':');
+                primeiraData.setHours(parseInt(hours, 10), parseInt(minutes, 10), 0, 0);
+            } else if (frequencia.tipo === 'intervalo') {
+                const [hours, minutes] = frequencia.inicio.split(':');
+                primeiraData.setHours(parseInt(hours, 10), parseInt(minutes, 10), 0, 0);
+            } else if (frequencia.tipo === 'dias_alternados' || frequencia.tipo === 'semanal') {
+                const [hours, minutes] = frequencia.horario.split(':');
+                primeiraData.setHours(parseInt(hours, 10), parseInt(minutes, 10), 0, 0);
+            }
+
             const response = await fetch('/api/medicamentos', {
                 method: 'POST',
                 headers: {
@@ -160,8 +202,10 @@ export function DashboardClient() {
                 body: JSON.stringify({
                     nome,
                     dosagem,
-                    data_agendada: new Date(data).toISOString(),
-                    concluido: false
+                    data_agendada: primeiraData.toISOString(),
+                    concluido: false,
+                    frequencia,
+                    quantidade
                 }),
             });
 
@@ -170,8 +214,17 @@ export function DashboardClient() {
                 throw new Error(errorData.erro || 'Falha ao salvar medicamento.');
             }
 
+            // Get the new medicamento from API response
+            const novoMedicamento = await response.json();
+
+            // Optimistic update - add to local state immediately
+            setMedicamentos(prev => ({
+                total: prev.total + 1,
+                concluidos: prev.concluidos, // Doesn't change when adding new (starts as false)
+                lista: [...prev.lista, novoMedicamento],
+            }));
+
             closeModal();
-            await fetchData();
         } catch (error) {
             handleApiError(error, 'Erro ao salvar medicamento');
         }
@@ -203,8 +256,17 @@ export function DashboardClient() {
                 throw new Error(errorData.erro || 'Falha ao salvar rotina.');
             }
 
+            // Get the new rotina from API response
+            const novaRotina = await response.json();
+
+            // Optimistic update - add to local state immediately
+            setRotinas(prev => ({
+                total: prev.total + 1,
+                concluidas: prev.concluidas, // Doesn't change when adding new (starts as false)
+                lista: [...prev.lista, novaRotina],
+            }));
+
             closeModal();
-            await fetchData();
         } catch (error) {
             handleApiError(error, 'Erro ao salvar rotina');
         }
@@ -215,26 +277,39 @@ export function DashboardClient() {
         id: string,
         statusAtual: boolean
     ) => {
+        const novoStatus = !statusAtual;
+        
+        // Optimistic update - update UI immediately
+        if (tipo === 'medicamentos') {
+            setMedicamentos(prev => ({
+                ...prev,
+                concluidos: novoStatus ? prev.concluidos + 1 : prev.concluidos - 1,
+                lista: prev.lista.map(med => 
+                    med.id === id ? { ...med, concluido: novoStatus } : med
+                ),
+            }));
+        } else {
+            setRotinas(prev => ({
+                ...prev,
+                concluidas: novoStatus ? prev.concluidas + 1 : prev.concluidas - 1,
+                lista: prev.lista.map(rot => 
+                    rot.id === id ? { ...rot, concluida: novoStatus } : rot
+                ),
+            }));
+        }
+
         try {
             const token = await getAuthToken();
             if (!token) throw new Error('Sessão não encontrada');
 
             const colunaStatus = tipo === 'medicamentos' ? 'concluido' : 'concluida';
-            const novoStatus = !statusAtual;
-
-            console.log('Atualizando status:', {
-                tipo,
-                id,
-                statusAtual,
-                novoStatus
-            });
 
             const response = await fetch(`/api/${tipo}/${id}`, {
                 method: 'PATCH',
                 headers: {
                     'Content-Type': 'application/json',
                     'Authorization': `Bearer ${token}`,
-                },
+                }, 
                 body: JSON.stringify({
                     [colunaStatus]: novoStatus
                 }),
@@ -246,9 +321,25 @@ export function DashboardClient() {
                 throw new Error(responseData.erro || 'Falha ao atualizar status');
             }
 
-            console.log('Status atualizado com sucesso');
-            await fetchData();
         } catch (error) {
+            // Rollback optimistic update on error
+            if (tipo === 'medicamentos') {
+                setMedicamentos(prev => ({
+                    ...prev,
+                    concluidos: statusAtual ? prev.concluidos + 1 : prev.concluidos - 1,
+                    lista: prev.lista.map(med => 
+                        med.id === id ? { ...med, concluido: statusAtual } : med
+                    ),
+                }));
+            } else {
+                setRotinas(prev => ({
+                    ...prev,
+                    concluidas: statusAtual ? prev.concluidas + 1 : prev.concluidas - 1,
+                    lista: prev.lista.map(rot => 
+                        rot.id === id ? { ...rot, concluida: statusAtual } : rot
+                    ),
+                }));
+            }
             handleApiError(error, 'Erro ao atualizar status');
         }
     };
@@ -318,30 +409,94 @@ export function DashboardClient() {
             <h3>{title}</h3>
             <p>Total: {total}</p>
             <p>{title === 'Medicamentos' ? 'Concluídos' : 'Concluídas'}: {completed}</p>
-            <ProgressBar current={completed} total={total} />
+            <ProgressBarComponent current={completed} total={total} />
             <button onClick={onAddClick} className={styles.add_btn}>
                 + Adicionar {title.slice(0, -1)}
             </button>
         </div>
     );
 
+    const formatFrequencia = (frequencia: Frequencia) => {
+        switch (frequencia.tipo) {
+            case 'diario':
+                return `Diário ${frequencia.horarios.length > 1 ? 'nos horários: ' + frequencia.horarios.join(', ') : 'às ' + frequencia.horarios[0]}`;
+            case 'intervalo':
+                return `A cada ${frequencia.intervalo_horas}h a partir das ${frequencia.inicio}`;
+            case 'dias_alternados':
+                return `A cada ${frequencia.intervalo_dias} dias às ${frequencia.horario}`;
+            case 'semanal':
+                const diasSemana = ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb'];
+                const diasSelecionados = frequencia.dias_da_semana.map(dia => diasSemana[dia - 1]);
+                return `Toda semana nas ${frequencia.horario} de ${diasSelecionados.join(', ')}`;
+            default:
+                return '';
+        }
+    };
+
     const renderListItem = (
         item: Medicamento | Rotina,
         tipo: 'medicamentos' | 'rotinas'
     ) => {
         const isMedicamento = 'nome' in item;
-        const displayText = isMedicamento 
-            ? `${item.nome} (${item.dosagem}) - ${new Date(item.data_agendada).toLocaleDateString()}`
-            : `${item.descricao} - ${new Date(item.data_agendada).toLocaleDateString()}`;
+        
+        let displayText: React.ReactNode;
+        
+        if (isMedicamento) {
+            const medicamento = item as Medicamento;
+            const dataFormatada = new Date(medicamento.data_agendada).toLocaleDateString('pt-BR', {
+                day: '2-digit',
+                month: '2-digit',
+                year: 'numeric',
+                hour: '2-digit',
+                minute: '2-digit'
+            });
+            
+            displayText = (
+                <div className={styles.medicamento_info}>
+                    <div className={styles.medicamento_header}>
+                        <strong>{medicamento.nome}</strong>
+                        {medicamento.dosagem && <span> ({medicamento.dosagem})</span>}
+                        {medicamento.quantidade > 0 && <span> - Qtd: {medicamento.quantidade}</span>}
+                    </div>
+                    <div className={styles.medicamento_schedule}>
+                        <span>Próxima dose: {dataFormatada}</span>
+                        <span className={styles.frequencia}>{formatFrequencia(medicamento.frequencia)}</span>
+                    </div>
+                </div>
+            );
+        } else {
+            const rotina = item as Rotina;
+            displayText = (
+                <div className={styles.rotina_info}>
+                    <div className={styles.rotina_header}>
+                        <strong>{rotina.descricao}</strong>
+                    </div>
+                    <div className={styles.rotina_schedule}>
+                        {new Date(rotina.data_agendada).toLocaleDateString('pt-BR', {
+                            day: '2-digit',
+                            month: '2-digit',
+                            year: 'numeric',
+                            hour: '2-digit',
+                            minute: '2-digit'
+                        })}
+                    </div>
+                </div>
+            );
+        }
         
         const isCompleted = isMedicamento ? item.concluido : (item as Rotina).concluida;
 
         return (
-            <li key={item.id} className={styles.list_item}>
-                <span>{displayText}</span>
-                <button onClick={() => handleToggleStatus(tipo, item.id, isCompleted)}>
-                    {isCompleted ? 'Desmarcar' : 'Concluir'}
-                </button>
+            <li key={item.id} className={`${styles.list_item} ${isCompleted ? styles.completed : ''}`}>
+                <div className={styles.item_content}>
+                    {displayText}
+                    <button 
+                        onClick={() => handleToggleStatus(tipo, item.id, isCompleted)}
+                        className={isCompleted ? styles.button_secondary : styles.button_primary}
+                    >
+                        {isCompleted ? 'Desmarcar' : 'Concluir'}
+                    </button>
+                </div>
             </li>
         );
     };
