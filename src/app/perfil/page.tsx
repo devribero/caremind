@@ -15,15 +15,7 @@ export default function Perfil() {
         fullName: user?.user_metadata?.full_name || '',
         email: user?.email || '',
         phone: '',
-    }); 
-
-    useEffect(() => {
-        if (user) {
-            setProfileData({
-
-            });
-        }
-    }, [user]);
+    });
 
     const handleLogout = async () => {
         await signOut(); 
