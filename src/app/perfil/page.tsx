@@ -22,8 +22,6 @@ export default function Perfil() {
         router.push('/'); 
     };
     
-    const displayName = user?.use || user?.email;
-    
     return( 
         <div>
             <h1 className=''>Perfil</h1> 
