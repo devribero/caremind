@@ -17,7 +17,15 @@ export default function Perfil() {
         phone: '',
     }); 
 
-    useEffect()
+    useEffect(() => {
+        if (user) {
+            setProfileData(
+                
+            )
+        }
+    }
+
+    )
 
     const handleLogout = async () => {
         await signOut(); 
