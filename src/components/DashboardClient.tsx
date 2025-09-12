@@ -7,29 +7,30 @@ import styles from './DashboardClient.module.css';
 import { Modal } from './Modal';
 import { AddMedicamentoForm } from './forms/AddMedicamentoForm';
 import { AddRotinaForm } from './forms/AddRotinaForm';
+import { useLoading } from '@/contexts/LoadingContext';
 
 // === TIPOS ===
 type FrequenciaDiaria = {
-  tipo: 'diario';
-  horarios: string[];
+    tipo: 'diario';
+    horarios: string[];
 };
 
 type FrequenciaIntervalo = {
-  tipo: 'intervalo';
-  intervalo_horas: number;
-  inicio: string;
+    tipo: 'intervalo';
+    intervalo_horas: number;
+    inicio: string;
 };
 
 type FrequenciaDiasAlternados = {
-  tipo: 'dias_alternados';
-  intervalo_dias: number;
-  horario: string;
+    tipo: 'dias_alternados';
+    intervalo_dias: number;
+    horario: string;
 };
 
 type FrequenciaSemanal = {
-  tipo: 'semanal';
-  dias_da_semana: number[];
-  horario: string;
+    tipo: 'semanal';
+    dias_da_semana: number[];
+    horario: string;
 };
 
 type Frequencia = FrequenciaDiaria | FrequenciaIntervalo | FrequenciaDiasAlternados | FrequenciaSemanal;
@@ -40,7 +41,7 @@ type Medicamento = {
     dosagem: string | null;
     data_agendada: string;
     concluido: boolean;
-    frequencia: Frequencia;
+    frequencia: Frequencia | null;
     quantidade: number;
 };
 
@@ -64,7 +65,7 @@ type RotinasData = {
 };
 
 // === COMPONENTES AUXILIARES ===
-const ProgressBarComponent = ({ current, total }: { current: number; total: number }) => {
+const ProgressBar = memo(function ProgressBar({ current, total }: { current: number; total: number }) {
     const percentage = total > 0 ? (current / total) * 100 : 0;
     
     return (
@@ -85,19 +86,16 @@ const ProgressBarComponent = ({ current, total }: { current: number; total: numb
             />
         </div>
     );
-};
-
-function LoadingSpinner() {
-    return <div>Carregando...</div>;
-}
+});
 
 // === COMPONENTE PRINCIPAL ===
 export function DashboardClient() {
+    const { setIsLoading } = useLoading();
     const supabase = createClient();
     const { user } = useAuth();
 
     // === ESTADOS ===
-    const [loading, setLoading] = useState(true);
+    // const [loading, setIsLoading] = useState(true); // ❌ REMOVIDO: Conflito com o useLoading
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [modalType, setModalType] = useState<'medicamento' | 'rotina'>('medicamento');
     const [medicamentos, setMedicamentos] = useState<MedicamentosData>({ 
@@ -142,34 +140,6 @@ export function DashboardClient() {
         return response.json();
     };
 
-    const fetchData = async () => {
-        if (!user) return;
-
-        const token = await getAuthToken();
-        if (!token) return;
-
-        try {
-            const [medsData, rotinasData] = await Promise.all([
-                fetchMedicamentos(token),
-                fetchRotinas(token)
-            ]);
-
-            setMedicamentos({
-                total: medsData.length,
-                concluidos: medsData.filter(m => m.concluido).length,
-                lista: medsData
-            });
-
-            setRotinas({
-                total: rotinasData.length,
-                concluidas: rotinasData.filter(r => r.concluida).length,
-                lista: rotinasData
-            });
-        } catch (error) {
-            handleApiError(error, 'Não foi possível carregar os dados do dashboard.');
-        }
-    };
-
     // === HANDLERS DE FORMULÁRIO ===
     const handleSaveMedicamento = async (nome: string, dosagem: string, frequencia: Frequencia, quantidade: number) => {
         if (!user) return;
@@ -178,10 +148,8 @@ export function DashboardClient() {
         if (!token) return;
 
         try {
-            // Calculate the first occurrence based on frequency type
             const primeiraData: Date = new Date();
             
-            // Set the time based on the frequency type
             if (frequencia.tipo === 'diario' && frequencia.horarios.length > 0) {
                 const [hours, minutes] = frequencia.horarios[0].split(':');
                 primeiraData.setHours(parseInt(hours, 10), parseInt(minutes, 10), 0, 0);
@@ -214,13 +182,11 @@ export function DashboardClient() {
                 throw new Error(errorData.erro || 'Falha ao salvar medicamento.');
             }
 
-            // Get the new medicamento from API response
             const novoMedicamento = await response.json();
 
-            // Optimistic update - add to local state immediately
             setMedicamentos(prev => ({
                 total: prev.total + 1,
-                concluidos: prev.concluidos, // Doesn't change when adding new (starts as false)
+                concluidos: prev.concluidos,
                 lista: [...prev.lista, novoMedicamento],
             }));
 
@@ -230,12 +196,12 @@ export function DashboardClient() {
         }
     };
 
-    const handleSaveRotina = async (titulo: string, descricao: string, data: string) => {
+    const handleSaveRotina = async (titulo: string, descricao: string, frequencia: Frequencia) => {
         if (!user) return;
         
         const token = await getAuthToken();
         if (!token) return;
-
+    
         try {
             const response = await fetch('/api/rotinas', {
                 method: 'POST',
@@ -243,29 +209,29 @@ export function DashboardClient() {
                     'Content-Type': 'application/json',
                     'Authorization': `Bearer ${token}`,
                 },
+                // O corpo agora envia o objeto 'frequencia' diretamente, sem 'data_agendada'
                 body: JSON.stringify({
                     titulo,
                     descricao,
-                    data_agendada: new Date(data).toISOString(),
+                    frequencia, // <-- A API já espera por este campo
                     concluida: false
                 }),
             });
-
+    
             if (!response.ok) {
                 const errorData = await response.json();
                 throw new Error(errorData.erro || 'Falha ao salvar rotina.');
             }
-
-            // Get the new rotina from API response
+    
             const novaRotina = await response.json();
-
-            // Optimistic update - add to local state immediately
+    
             setRotinas(prev => ({
                 total: prev.total + 1,
-                concluidas: prev.concluidas, // Doesn't change when adding new (starts as false)
-                lista: [...prev.lista, novaRotina],
+                concluidas: prev.concluidas,
+                // Adiciona a nova rotina à lista do estado
+                lista: [...prev.lista, novaRotina], 
             }));
-
+    
             closeModal();
         } catch (error) {
             handleApiError(error, 'Erro ao salvar rotina');
@@ -279,7 +245,6 @@ export function DashboardClient() {
     ) => {
         const novoStatus = !statusAtual;
         
-        // Optimistic update - update UI immediately
         if (tipo === 'medicamentos') {
             setMedicamentos(prev => ({
                 ...prev,
@@ -322,7 +287,6 @@ export function DashboardClient() {
             }
 
         } catch (error) {
-            // Rollback optimistic update on error
             if (tipo === 'medicamentos') {
                 setMedicamentos(prev => ({
                     ...prev,
@@ -356,18 +320,41 @@ export function DashboardClient() {
 
     // === EFFECTS ===
     useEffect(() => {
-        if (user) {
-            setLoading(true);
-            fetchData().finally(() => setLoading(false));
-        } else {
-            setLoading(false);
-        }
-    }, [user]);
+        const fetchData = async () => {
+            if (!user) return;
 
-    // === RENDER ===
-    if (loading) {
-        return <LoadingSpinner />;
-    }
+            const token = await getAuthToken();
+            if (!token) return;
+
+            try {
+                const [medsData, rotinasData] = await Promise.all([
+                    fetchMedicamentos(token),
+                    fetchRotinas(token)
+                ]);
+
+                setMedicamentos({
+                    total: medsData.length,
+                    concluidos: medsData.filter(m => m.concluido).length,
+                    lista: medsData
+                });
+
+                setRotinas({
+                    total: rotinasData.length,
+                    concluidas: rotinasData.filter(r => r.concluida).length,
+                    lista: rotinasData
+                });
+            } catch (error) {
+                handleApiError(error, 'Não foi possível carregar os dados do dashboard.');
+            }
+        };
+        
+        if (user) {
+            setIsLoading(true); // ATIVA o loader global
+            fetchData().finally(() => {
+                setIsLoading(false) // DESATIVA no final
+            });
+        }
+    }, [user, setIsLoading]);
 
     const renderModalContent = () => {
         if (modalType === 'medicamento') {
@@ -409,14 +396,18 @@ export function DashboardClient() {
             <h3>{title}</h3>
             <p>Total: {total}</p>
             <p>{title === 'Medicamentos' ? 'Concluídos' : 'Concluídas'}: {completed}</p>
-            <ProgressBarComponent current={completed} total={total} />
+            <ProgressBar current={completed} total={total} />
             <button onClick={onAddClick} className={styles.add_btn}>
                 + Adicionar {title.slice(0, -1)}
             </button>
         </div>
     );
 
-    const formatFrequencia = (frequencia: Frequencia) => {
+    const formatFrequencia = (frequencia: Frequencia | null) => {
+        if (!frequencia) {
+            return 'Frequência não especificada';
+        }
+
         switch (frequencia.tipo) {
             case 'diario':
                 return `Diário ${frequencia.horarios.length > 1 ? 'nos horários: ' + frequencia.horarios.join(', ') : 'às ' + frequencia.horarios[0]}`;
@@ -503,8 +494,6 @@ export function DashboardClient() {
 
     return (
         <div className={styles.dashboard_client}>
-            <h2>Resumo do Dashboard</h2>
-            
             <div className={styles.cards_container}>
                 {renderCard(
                     'Medicamentos',

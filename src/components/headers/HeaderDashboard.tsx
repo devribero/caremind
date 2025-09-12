@@ -10,7 +10,7 @@ import { IoPersonCircleOutline } from "react-icons/io5";
 // ===================================================================
 // IMPORTANTE: Defina a interface para as props do menu principal
 // ===================================================================
-interface HeaderProps {
+interface HeaderProps { 
   isMenuOpen: boolean;
   onMenuToggle: () => void;
 }

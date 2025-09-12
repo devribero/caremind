@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { AuthProvider } from "@/contexts/AuthContext";
+import { LoadingProvider } from "@/contexts/LoadingContext";
 import "./globals.css";
 
 export const metadata: Metadata = {
@@ -8,15 +9,18 @@ export const metadata: Metadata = {
 };
 
 export default function RootLayout({
-  children, 
+  children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="pt-BR" suppressHydrationWarning>
-      <body suppressHydrationWarning>
+    <html lang="pt-BR">
+      <body>
         <AuthProvider>
-          {children}
+          {/* 2. Envolva o children com o LoadingProvider */}
+          <LoadingProvider>
+            {children}
+          </LoadingProvider>
         </AuthProvider>
       </body>
     </html>

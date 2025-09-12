@@ -1,0 +1,39 @@
+/*
+  Este CSS cria uma camada que cobre a tela inteira com um spinner no centro.
+*/
+.overlay {
+    position: fixed; /* Fica fixo na tela, mesmo se a página rolar */
+    top: 0;
+    left: 0;
+    width: 100vw; /* 100% da largura da janela */
+    height: 100vh; /* 100% da altura da janela */
+    background-color: rgba(255, 255, 255, 0.9); /* Fundo branco com 90% de opacidade */
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    z-index: 9999; /* Garante que ele fique na frente de todos os outros elementos */
+    transition: opacity 0.3s ease-in-out;
+}
+
+.spinner {
+    width: 50px;
+    height: 50px;
+    border: 5px solid #e0e0e0; /* Cor da borda do círculo */
+    border-top: 5px solid #0400BA; /* Cor do indicador de progresso (seu azul) */
+    border-radius: 50%;
+    animation: spin 1s linear infinite; /* Animação de rotação */
+}
+
+.text {
+    margin-top: 1rem;
+    font-size: 1.2rem;
+    color: #333;
+    font-weight: 500;
+}
+
+/* Animação que faz o spinner girar */
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
