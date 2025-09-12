@@ -19,13 +19,11 @@ export default function Perfil() {
 
     useEffect(() => {
         if (user) {
-            setProfileData(
-                
-            )
-        }
-    }
+            setProfileData({
 
-    )
+            });
+        }
+    }, [user]);
 
     const handleLogout = async () => {
         await signOut(); 
@@ -45,5 +43,5 @@ export default function Perfil() {
     )
 }
 
-er_metadata?.full_nam
+
 
