@@ -44,12 +44,12 @@ export async function GET(request: Request) {
       );
     }
 
-    // ✅ CORREÇÃO: Variável e ordenação ajustadas para rotinas
+    // Ordena por data agendada para refletir o próximo compromisso primeiro
     const { data: rotinas, error } = await supabase
       .from('rotinas')
       .select('*')
       .eq('user_id', user.id)
-      .order('created_at', { ascending: true });
+      .order('data_agendada', { ascending: true });
 
     if (error) throw error;
 
@@ -104,20 +104,24 @@ export async function POST(request: Request) {
     const {
       titulo,
       descricao,
-      concluido = false
+      data_agendada,
+      concluida = false,
     } = body;
 
-    if (!titulo || titulo.trim() === '') {
-      return NextResponse.json({ erro: "O campo 'titulo' é obrigatório." }, { status: 400 });
+    // No cliente o campo exibido é a descrição. Permitimos enviar como "titulo" ou "descricao".
+    const descricaoFinal = (descricao ?? titulo ?? '').toString().trim();
+
+    if (!descricaoFinal) {
+      return NextResponse.json({ erro: "O campo 'descricao' é obrigatório." }, { status: 400, headers: corsHeaders });
     }
 
     const { data, error } = await supabase
       .from('rotinas')
       .insert([{
-        titulo: titulo.trim(),
-        descricao,
-        concluido,
-        user_id: user.id
+        descricao: descricaoFinal,
+        data_agendada: data_agendada ?? new Date().toISOString(),
+        concluida,
+        user_id: user.id,
       }])
       .select()
       .single();
