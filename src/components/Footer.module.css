@@ -1,0 +1,148 @@
+/* Estilo principal do rodapé */
+.footer {
+    background-color: #ffffff;
+    color: black;
+    padding: 60px 0;
+    font-size: 15px;
+    border-top: solid 0.3px black;
+    border-radius: 20px;
+}
+
+.footerContainer {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 20px;
+    color: black;
+}
+
+/* Seção superior com as colunas */
+.footerTop {
+    display: grid;
+    grid-template-columns: 2fr 1fr 1fr 1fr;
+    gap: 40px;
+}
+
+/* Coluna 1: Sobre */
+.footerLogo {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    color: #FFFFFF;
+    font-size: 24px;
+    font-weight: 700;
+    margin-bottom: 20px;
+    text-decoration: none;
+}
+
+.footerDescription {
+    line-height: 1.6;
+    max-width: 300px;
+}
+
+.footerSocialIcons {
+    display: flex;
+    gap: 12px;
+    margin-top: 24px;
+}
+
+.footerSocialIcons a {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 40px;
+    height: 40px;
+    background: linear-gradient(45deg, #4F46E5, #7C3AED);
+    color: white;
+    border-radius: 8px;
+    font-size: 18px; /* Ajusta o tamanho do ícone */
+    text-decoration: none;
+    transition: transform 0.3s ease;
+}
+
+.footerSocialIcons a:hover {
+    transform: scale(1.1);
+}
+
+/* Colunas 2, 3 e 4: Links */
+.footerColumnLinks h4 {
+    color: black;
+    font-size: 16px;
+    font-weight: 600;
+    margin-top: 0;
+    margin-bottom: 24px;
+}
+
+.footerColumnLinks ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.footerColumnLinks li {
+    margin-bottom: 14px;
+}
+
+.footerColumnLinks a {
+    color: black;
+    text-decoration: none;
+    transition: color 0.3s ease;
+}
+
+/* Divisor horizontal */
+.footerDivider {
+    border: none;
+    height: 1px;
+    background-color: rgba(255, 255, 255, 0.1);
+    margin: 40px 0;
+}
+
+/* Seção inferior */
+.footerBottom {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 15px;
+}
+
+.footerCopyright {
+    margin: 0;
+}
+
+.footerLegalLinks {
+    display: flex;
+    gap: 30px;
+}
+
+.footerLegalLinks a {
+    color: black;
+    text-decoration: none;
+    transition: color 0.3s ease;
+}
+
+/* Responsividade */
+@media (max-width: 992px) {
+    .footerTop {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 50px;
+    }
+}
+
+@media (max-width: 768px) {
+    .footerTop {
+        grid-template-columns: 1fr;
+        text-align: center;
+    }
+    .footerLogo, .footerSocialIcons {
+        justify-content: center;
+    }
+    .footerDescription {
+        margin-left: auto;
+        margin-right: auto;
+    }
+    .footerBottom {
+        flex-direction: column-reverse;
+        text-align: center;
+        gap: 20px;
+    }
+}

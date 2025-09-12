@@ -1,11 +1,12 @@
 'use client';
 
+// 1. O useState já estava importado, ótimo!
 import { useState } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useRouter } from 'next/navigation';
 import { Button } from "@/components/ui/button";
 import styles from './page.module.css';
-import Image from 'next/image';
+import { Header } from '@/components/headers/HeaderLogin'
 
 export default function AuthPage() {
   const [isLogin, setIsLogin] = useState(true);
@@ -25,7 +26,6 @@ export default function AuthPage() {
     setError('');
 
     if (!isLogin) {
-      // validações extras do registro
       if (password !== confirmPassword) {
         return setError('As senhas não coincidem');
       }
@@ -54,26 +54,14 @@ export default function AuthPage() {
 
   return (
     <main className={styles.main}>
-      <div className={styles.header}>
-        <ul className={styles.header_list}>
-          <div className={styles.header_image}>
-            <li>
-              <a href="/">
-                <Image src="/logo.png" alt="CareMind Logo" width={200} height={63} />
-              </a>
-            </li>
-          </div>
-          <div className={styles.header_text}>
-            <li><a className={styles.header_a} href="/">Voltar ao Início</a></li>
-          </div>
-        </ul>
-      </div>
+
+      <Header />
 
       <section className={styles.section}>
         <div className={styles.container}>
           <div className={styles.formContainer}>
             <h1 className={styles.title}>
-              {isLogin ? 'Entrar na Sua Conta' : 'Criar Nova Conta'}
+              {isLogin ? 'Entrar' : 'Registrar'}
             </h1>
 
             <form onSubmit={handleSubmit} className={styles.form}>
@@ -113,11 +101,11 @@ export default function AuthPage() {
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   className={styles.input}
+                  placeholder='Password'
                   required
                 />
               </div>
 
-              {/* Botão de "Esqueci minha senha" só aparece no login */}
               {isLogin && (
                 <div className={styles.forgotPassword}>
                   <button 
@@ -139,6 +127,7 @@ export default function AuthPage() {
                     value={confirmPassword}
                     onChange={(e) => setConfirmPassword(e.target.value)}
                     className={styles.input}
+                    placeholder='Password'
                     required
                   />
                 </div>

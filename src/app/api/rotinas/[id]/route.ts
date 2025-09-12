@@ -1,0 +1,139 @@
+import { NextResponse } from 'next/server';
+// ✅ 1. Importa a FUNÇÃO createClient do arquivo de servidor
+import { createClient } from '@/lib/supabase/server';
+
+const corsHeaders = {
+  'Access-Control-Allow-Origin': '*',
+  'Access-Control-Allow-Methods': 'GET, POST, PUT, PATCH, DELETE, OPTIONS',
+  'Access-Control-Allow-Headers': 'Content-Type, Authorization',
+};
+
+// ✅ 2. A função manual getAuthenticatedUser foi REMOVIDA.
+
+export async function OPTIONS() {
+  return new NextResponse(null, {
+    status: 204,
+    headers: corsHeaders,
+  });
+}
+
+// ================================================================= //
+// PATCH - Atualizar uma rotina
+// ================================================================= //
+export async function PATCH(request: Request, context: { params: { id: string } }) {
+  // ✅ 3. Cliente é criado dentro da função
+  const supabase = createClient();
+
+  try {
+    // ✅ 4. Usuário é obtido via cookies, de forma segura e simples
+    const { data: { user } } = await supabase.auth.getUser();
+
+    if (!user) {
+      return NextResponse.json(
+        { erro: 'Usuário não autenticado' },
+        { status: 401, headers: corsHeaders }
+      );
+    }
+
+    const { id } = context.params;
+    const body = await request.json();
+
+    if (!id) {
+      return NextResponse.json(
+        { erro: 'ID da rotina não fornecido.' },
+        { status: 400, headers: corsHeaders }
+      );
+    }
+
+    const { data, error } = await supabase
+      .from('rotinas') // ✅ CORRIGIDO: agora usa 'rotinas' em vez de 'tarefas'
+      .update(body)
+      .eq('id', id)
+      .eq('user_id', user.id) // Essencial para a segurança
+      .select()
+      .single(); // .single() é melhor aqui, pois esperamos apenas um resultado
+
+    if (error) throw error;
+
+    if (!data) {
+        return NextResponse.json(
+          { erro: `Rotina com ID ${id} não encontrada ou não pertence ao usuário.` },
+          { status: 404, headers: corsHeaders }
+        );
+    }
+
+    return NextResponse.json(data, { headers: corsHeaders });
+
+  } catch (error: unknown) {
+    // ✅ 5. Bloco catch seguro e padronizado
+    let errorMessage = 'Falha ao processar a atualização.';
+    if (error instanceof Error) {
+      errorMessage = error.message;
+    }
+    console.error('Erro em PATCH /api/rotinas/[id]:', errorMessage);
+    return NextResponse.json(
+      { erro: errorMessage },
+      { status: 500, headers: corsHeaders }
+    );
+  }
+}
+
+// ================================================================= //
+// DELETE - Excluir uma rotina
+// ================================================================= //
+export async function DELETE(request: Request, context: { params: { id: string } }) {
+  const supabase = createClient();
+
+  try {
+    const { data: { user } } = await supabase.auth.getUser();
+    
+    if (!user) {
+      return NextResponse.json(
+        { erro: 'Usuário não autenticado' },
+        { status: 401, headers: corsHeaders }
+      );
+    }
+
+    const { id } = context.params;
+
+    if (!id) {
+      return NextResponse.json(
+        { erro: 'ID da rotina não fornecido.' },
+        { status: 400, headers: corsHeaders }
+      );
+    }
+
+    // A adição do .select() faz com que o Supabase retorne o item deletado,
+    // permitindo verificar se a operação realmente encontrou e removeu algo.
+    const { data, error } = await supabase
+      .from('rotinas') // ✅ CORRIGIDO: agora usa 'rotinas' em vez de 'tarefas'
+      .delete()
+      .eq('id', id)
+      .eq('user_id', user.id)
+      .select();
+
+    if (error) throw error;
+    
+    // Se nada foi retornado, significa que o item não existia ou não pertencia ao usuário.
+    if (!data || data.length === 0) {
+      return NextResponse.json(
+        { erro: `Rotina com ID ${id} não encontrada ou não pertence ao usuário.` },
+        { status: 404, headers: corsHeaders }
+      );
+    }
+
+    // Retorna 204 No Content, que é o padrão para um DELETE bem-sucedido
+    return new NextResponse(null, { status: 204, headers: corsHeaders });
+
+  } catch (error: unknown) {
+    let errorMessage = 'Falha ao processar a exclusão.';
+    if (error instanceof Error) {
+      errorMessage = error.message;
+    }
+    console.error('Erro em DELETE /api/rotinas/[id]:', errorMessage);
+    return NextResponse.json(
+      { erro: errorMessage },
+      { status: 500, headers: corsHeaders }
+    );
+  }
+}

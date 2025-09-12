@@ -1,0 +1,149 @@
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  padding: 0;
+  background: transparent;
+  max-width: none;
+  margin: 0;
+  border: none;
+  box-shadow: none;
+}
+
+.formGroup {
+  display: flex;
+  flex-direction: column;
+}
+
+.formGroup label {
+  margin-bottom: 8px;
+  font-weight: 500;
+  font-size: 0.95rem;
+  color: #374151;
+}
+
+.formGroup input {
+  padding: 12px;
+  border: 1px solid #d1d5db;
+  border-radius: 8px;
+  font-size: 1rem;
+  color: #374151;
+  background: #ffffff;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+  outline: none;
+}
+
+.formGroup input:hover {
+  border-color: #9ca3af;
+}
+
+.formGroup input:focus {
+  border-color: #0400BA;
+  box-shadow: 0 0 0 3px rgba(4, 0, 186, 0.1);
+}
+
+.formGroup input::placeholder {
+  color: #9ca3af;
+}
+
+.buttonGroup {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+  margin-top: 24px;
+}
+
+.buttonGroup button {
+  padding: 12px 24px;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: 500;
+  font-size: 0.95rem;
+  transition: background-color 0.2s ease, transform 0.1s ease;
+  min-width: 100px;
+}
+
+.buttonGroup button:focus {
+  outline: 2px solid transparent;
+  outline-offset: 2px;
+}
+
+.cancelButton {
+  background-color: #f3f4f6;
+  color: #6b7280;
+  border: 1px solid #e5e7eb;
+}
+
+.cancelButton:hover {
+  background-color: #e5e7eb;
+  color: #374151;
+}
+
+.cancelButton:active {
+  transform: translateY(1px);
+}
+
+.saveButton {
+  background-color: #0400BA;
+  color: #ffffff;
+}
+
+.saveButton:hover {
+  background-color: #0300a0;
+}
+
+.saveButton:active {
+  transform: translateY(1px);
+}
+
+.saveButton:disabled {
+  background-color: #9ca3af;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.saveButton:disabled:hover {
+  background-color: #9ca3af;
+}
+
+/* Responsivo */
+@media (max-width: 768px) {
+  .form {
+    gap: 1.25rem;
+  }
+
+  .buttonGroup {
+    flex-direction: column-reverse;
+    gap: 10px;
+    margin-top: 20px;
+  }
+
+  .buttonGroup button {
+    width: 100%;
+    padding: 14px 24px;
+  }
+
+  .formGroup input {
+    padding: 14px 12px;
+    font-size: 16px; /* Evita zoom no iOS */
+  }
+}
+
+@media (max-width: 480px) {
+  .form {
+    gap: 1rem;
+  }
+
+  .formGroup label {
+    font-size: 0.9rem;
+  }
+
+  .formGroup input {
+    padding: 12px;
+  }
+
+  .buttonGroup {
+    margin-top: 16px;
+  }
+}

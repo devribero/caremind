@@ -3,7 +3,7 @@
 .main {
     font-family: "League Spartan", sans-serif;
 }
-
+ 
 .header {
     background-color: white;
     color: #0400BA;
@@ -102,7 +102,7 @@
 }
 
 .title {
-    font-size: clamp(1.75rem, 6vw, 3.75rem);
+    font-size: clamp(1.75rem, 6vw, 3rem);
     font-weight: 700;
     color: #0400ba;
     margin-bottom: clamp(1rem, 3vw, 1.5rem);
