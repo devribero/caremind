@@ -3,7 +3,7 @@
 import { Header } from '@/components/headers/HeaderDashboard';
 import styles from '@/app/perfil/page.module.css';
 import { useAuth } from '@/contexts/AuthContext';
-import { supabase } from '@/lib/supabase/client';
+import { createClient } from '@/lib/supabase/client';
 import { Sidebar } from '@/components/Sidebar';
 import { useState, useEffect, ChangeEvent } from 'react';
 import { useRouter } from 'next/navigation';
@@ -81,6 +81,7 @@ const ChangePasswordModal = ({ show, onClose, onSave }: ChangePasswordModalProps
 export default function Perfil() {
     const { user, signOut } = useAuth();
     const router = useRouter();
+    const supabase = createClient();
     const [isEditing, setIsEditing] = useState(false);
     const [profileData, setProfileData] = useState({
         fullName: '',

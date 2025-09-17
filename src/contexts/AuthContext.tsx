@@ -1,3 +1,5 @@
+//contexts/AuthContext.tsx
+
 'use client';
 
 import { createContext, useContext, useEffect, useState, ReactNode } from 'react';
@@ -33,23 +35,38 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   useEffect(() => {
-    // ... o resto do seu useEffect continua igual ...
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setSession(session);
-      setUser(session?.user ?? null);
-      setLoading(false);
-    });
+    // Verifica a sessão atual ao carregar o componente
+    const getInitialSession = async () => {
+      try {
+        const { data: { session }, error } = await supabase.auth.getSession();
+        if (error) {
+          console.error('Erro ao obter sessão:', error);
+        }
+        setSession(session);
+        setUser(session?.user ?? null);
+      } catch (error) {
+        console.error('Erro inesperado ao obter sessão:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
 
+    getInitialSession();
+
+    // Escuta mudanças no estado de autenticação
     const {
       data: { subscription },
-    } = supabase.auth.onAuthStateChange((_event, session) => {
+    } = supabase.auth.onAuthStateChange(async (event, session) => {
+      console.log('Mudança no estado de autenticação:', event, session?.user?.email);
       setSession(session);
       setUser(session?.user ?? null);
       setLoading(false);
     });
 
-    return () => subscription.unsubscribe();
-  }, [supabase]); // Adicione supabase como dependência
+    return () => {
+      subscription.unsubscribe();
+    };
+  }, [supabase]);
 
   const signIn = async (email: string, password: string) => {
     return await supabase.auth.signInWithPassword({
@@ -71,7 +88,19 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   const signOut = async () => {
-    await supabase.auth.signOut();
+    try {
+      const { error } = await supabase.auth.signOut();
+      if (error) {
+        console.error('Erro ao fazer logout:', error);
+        throw error;
+      }
+      // Limpa o estado local imediatamente
+      setUser(null);
+      setSession(null);
+    } catch (error) {
+      console.error('Erro inesperado ao fazer logout:', error);
+      throw error;
+    }
   };
 
   const value = {

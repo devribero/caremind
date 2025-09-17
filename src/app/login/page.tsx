@@ -1,7 +1,7 @@
 'use client';
 
 // 1. O useState já estava importado, ótimo!
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useRouter } from 'next/navigation';
 import { Button } from "@/components/ui/button";
@@ -18,8 +18,32 @@ export default function AuthPage() {
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
 
-  const { signIn, signUp } = useAuth();
+  const { signIn, signUp, user, loading: authLoading } = useAuth();
   const router = useRouter();
+
+  // Redireciona para o dashboard se o usuário já estiver logado
+  useEffect(() => {
+    if (!authLoading && user) {
+      router.push('/dashboard');
+    }
+  }, [user, authLoading, router]);
+
+  // Mostra loading enquanto verifica a autenticação
+  if (authLoading) {
+    return (
+      <main className={styles.main}>
+        <div style={{ 
+          display: 'flex', 
+          justifyContent: 'center', 
+          alignItems: 'center', 
+          height: '100vh',
+          fontSize: '18px'
+        }}>
+          Carregando...
+        </div>
+      </main>
+    );
+  }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();

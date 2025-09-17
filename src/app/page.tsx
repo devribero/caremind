@@ -11,8 +11,37 @@ import { FaHeart } from 'react-icons/fa';
 import styles from './page.module.css';
 import Image from 'next/image';
 import Link from 'next/link';
+import { useAuth } from '@/contexts/AuthContext';
+import { useRouter } from 'next/navigation';
+import { useEffect } from 'react';
 
 export default function Home() {
+  const { user, loading } = useAuth();
+  const router = useRouter();
+
+  // Redireciona para o dashboard se o usuário já estiver logado
+  useEffect(() => {
+    if (!loading && user) {
+      router.push('/dashboard');
+    }
+  }, [user, loading, router]);
+
+  // Mostra loading enquanto verifica a autenticação
+  if (loading) {
+    return (
+      <main className={styles.main}>
+        <div style={{ 
+          display: 'flex', 
+          justifyContent: 'center', 
+          alignItems: 'center', 
+          height: '100vh',
+          fontSize: '18px'
+        }}>
+          Carregando...
+        </div>
+      </main>
+    );
+  }
   return (
     <main className={styles.main}>
 
