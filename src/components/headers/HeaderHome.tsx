@@ -15,7 +15,17 @@ export function Header() {
       <div className={styles.header__container}>
         {/* Logo */}
         <Link href="/" className={styles.header__logo}>
-          <Image src="/logo.png" alt="CareMind Logo" width={200} height={63} priority />
+          <Image 
+            src="/logo.png" 
+            alt="CareMind Logo" 
+            width={180} 
+            height={57} 
+            priority 
+            style={{
+              maxWidth: '100%',
+              height: 'auto',
+            }}
+          />
         </Link>
 
         {/* Navegação Desktop */}
@@ -48,6 +58,15 @@ export function Header() {
 
       {/* Menu Mobile */}
       <div className={`${styles.mobile_menu} ${isMenuOpen ? styles.active : ''}`}>
+        {/* Botão de fechar */}
+        <button 
+          className={styles.close_button}
+          onClick={closeMenu}
+          aria-label="Fechar menu"
+        >
+          ×
+        </button>
+        
         <nav className={styles.mobile_menu__nav}>
           <a href="#" onClick={closeMenu}>Funcionalidades</a>
           <a href="#" onClick={closeMenu}>Como Funciona</a>

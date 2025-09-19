@@ -26,6 +26,7 @@
   max-height: 90vh;
   overflow-y: auto;
   animation: slideUp 0.3s ease-out;
+  margin: 20px;
 }
 
 .modalHeader {
@@ -97,4 +98,65 @@
 
 .modalContent::-webkit-scrollbar-thumb:hover {
   background-color: #a8a8a8; /* Cor da barra ao passar o mouse */
+}
+
+/* Responsividade para tablets */
+@media (max-width: 768px) {
+  .modalContent {
+    max-width: 95%;
+    width: 95%;
+    padding: 20px;
+    margin: 15px;
+    max-height: 85vh;
+  }
+  
+  .modalTitle {
+    font-size: 1.1rem;
+  }
+  
+  .closeButton {
+    font-size: 1.75rem;
+  }
+}
+
+/* Responsividade para dispositivos móveis */
+@media (max-width: 480px) {
+  .modalOverlay {
+    padding: 10px;
+  }
+  
+  .modalContent {
+    max-width: 100%;
+    width: 100%;
+    padding: 16px;
+    margin: 10px;
+    max-height: 90vh;
+    border-radius: 8px;
+  }
+  
+  .modalHeader {
+    padding-bottom: 12px;
+    margin-bottom: 16px;
+  }
+  
+  .modalTitle {
+    font-size: 1rem;
+  }
+  
+  .closeButton {
+    font-size: 1.5rem;
+    padding: 4px;
+  }
+}
+
+/* Responsividade para telas muito pequenas */
+@media (max-width: 360px) {
+  .modalContent {
+    padding: 12px;
+    margin: 5px;
+  }
+  
+  .modalTitle {
+    font-size: 0.95rem;
+  }
 }

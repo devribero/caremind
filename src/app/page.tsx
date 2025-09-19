@@ -53,9 +53,13 @@ export default function Home() {
             <Image
               src="/logo.png"
               alt="CareMind Logo"
-              width={500} // Defina a largura real da sua imagem /logo.png
-              height={170} // Defina a altura real da sua imagem /logo.png
-              className={styles.logo} // Sua classe CSS ainda funciona
+              width={400}
+              height={136}
+              className={styles.logo}
+              style={{
+                maxWidth: '100%',
+                height: 'auto',
+              }}
             />
           </div>
           <h1 className={styles.title}>

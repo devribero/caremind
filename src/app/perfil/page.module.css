@@ -303,3 +303,217 @@
 .saveButton:hover {
   background-color: #4a54c9;
 }
+
+/* Responsividade para tablets */
+@media (max-width: 1024px) {
+  .pageContainer {
+    padding: 25px;
+  }
+  
+  .profileHeader {
+    padding: 18px 25px;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    gap: 15px;
+  }
+  
+  .profileInfo {
+    flex-direction: column;
+    align-items: center;
+    gap: 15px;
+  }
+  
+  .profileActions {
+    width: 100%;
+    justify-content: center;
+  }
+}
+
+/* Responsividade para dispositivos móveis */
+@media (max-width: 768px) {
+  .pageContainer {
+    padding: 20px 15px;
+  }
+  
+  .profileHeader {
+    padding: 15px 20px;
+    margin-bottom: 20px;
+  }
+  
+  .profilePhotoContainer {
+    width: 70px;
+    height: 70px;
+  }
+  
+  .uploadPhotoButton {
+    width: 25px;
+    height: 25px;
+  }
+  
+  .uploadPhotoButton svg {
+    width: 15px;
+    height: 15px;
+  }
+  
+  .profileName {
+    font-size: 20px;
+  }
+  
+  .profileEmail {
+    font-size: 13px;
+  }
+  
+  .actionButton, .logoutButton {
+    padding: 8px 16px;
+    font-size: 14px;
+  }
+  
+  .infoCard {
+    padding: 25px 20px;
+  }
+  
+  .cardTitle {
+    font-size: 18px;
+    margin-bottom: 20px;
+  }
+  
+  .modalContent {
+    width: 95%;
+    padding: 25px 20px;
+  }
+  
+  .modalTitle {
+    font-size: 20px;
+  }
+}
+
+/* Responsividade para telas pequenas */
+@media (max-width: 480px) {
+  .pageContainer {
+    padding: 15px 10px;
+  }
+  
+  .profileHeader {
+    padding: 12px 15px;
+    margin-bottom: 15px;
+  }
+  
+  .profilePhotoContainer {
+    width: 60px;
+    height: 60px;
+  }
+  
+  .uploadPhotoButton {
+    width: 22px;
+    height: 22px;
+  }
+  
+  .uploadPhotoButton svg {
+    width: 12px;
+    height: 12px;
+  }
+  
+  .profileName {
+    font-size: 18px;
+  }
+  
+  .profileEmail {
+    font-size: 12px;
+  }
+  
+  .profileActions {
+    flex-direction: column;
+    width: 100%;
+    gap: 10px;
+  }
+  
+  .actionButton, .logoutButton {
+    width: 100%;
+    padding: 10px 16px;
+    font-size: 14px;
+  }
+  
+  .infoCard {
+    padding: 20px 15px;
+  }
+  
+  .cardTitle {
+    font-size: 16px;
+    margin-bottom: 18px;
+  }
+  
+  .infoGrid {
+    gap: 15px;
+  }
+  
+  .fieldInput {
+    padding: 10px 12px;
+    font-size: 14px;
+  }
+  
+  .editProfileButton {
+    width: 100%;
+    padding: 12px 20px;
+    font-size: 14px;
+  }
+  
+  .modalContent {
+    width: 98%;
+    padding: 20px 15px;
+    margin: 10px;
+  }
+  
+  .modalTitle {
+    font-size: 18px;
+  }
+  
+  .modalInput {
+    padding: 10px 12px;
+    font-size: 14px;
+  }
+  
+  .modalActions {
+    flex-direction: column;
+    gap: 10px;
+  }
+  
+  .cancelButton, .saveButton {
+    width: 100%;
+    padding: 12px 20px;
+    font-size: 14px;
+  }
+}
+
+/* Responsividade para telas muito pequenas */
+@media (max-width: 360px) {
+  .pageContainer {
+    padding: 12px 8px;
+  }
+  
+  .profileHeader {
+    padding: 10px 12px;
+  }
+  
+  .profilePhotoContainer {
+    width: 55px;
+    height: 55px;
+  }
+  
+  .profileName {
+    font-size: 16px;
+  }
+  
+  .infoCard {
+    padding: 15px 12px;
+  }
+  
+  .cardTitle {
+    font-size: 15px;
+  }
+  
+  .modalContent {
+    padding: 15px 12px;
+    margin: 5px;
+  }
+}
