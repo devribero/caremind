@@ -17,7 +17,6 @@ export default function RootLayout({
     <html lang="pt-BR">
       <body>
         <AuthProvider>
-          {/* 2. Envolva o children com o LoadingProvider */}
           <LoadingProvider>
             {children}
           </LoadingProvider>

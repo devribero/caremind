@@ -277,7 +277,8 @@
 }
 
 .button_primary,
-.button_secondary {
+.button_secondary,
+.editButton {
   padding: 8px 16px;
   border: none;
   border-radius: 6px;

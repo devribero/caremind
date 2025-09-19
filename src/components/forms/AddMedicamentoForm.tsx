@@ -1,5 +1,5 @@
 'use client';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import styles from './AddForm.module.css';
 
 type FrequenciaDiaria = {
@@ -27,22 +27,54 @@ type FrequenciaSemanal = {
 
 type Frequencia = FrequenciaDiaria | FrequenciaIntervalo | FrequenciaDiasAlternados | FrequenciaSemanal;
 
-interface AddMedicamentoFormProps {
-  onSave: (nome: string, dosagem: string, frequencia: Frequencia, quantidade: number) => Promise<void>;
-  onCancel: () => void;
+interface MedicamentoBase {
+  id?: string;
+  nome: string;
+  dosagem: string | null;
+  quantidade: number;
+  frequencia: Frequencia | null;
+  data_agendada?: string;
+  concluido?: boolean;
+  ultimaAtualizacao?: string;
 }
 
-export function AddMedicamentoForm({ onSave, onCancel }: AddMedicamentoFormProps) {
-  const [nome, setNome] = useState('');
-  const [dosagem, setDosagem] = useState('');
-  const [quantidade, setQuantidade] = useState(30);
-  const [tipoFrequencia, setTipoFrequencia] = useState<'diario' | 'intervalo' | 'dias_alternados' | 'semanal'>('diario');
-  const [horarios, setHorarios] = useState<string[]>(['08:00']);
+interface AddMedicamentoFormProps {
+  onSave: (nome: string, dosagem: string | null, frequencia: Frequencia, quantidade: number) => Promise<void>;
+  onCancel: () => void;
+  medicamento?: MedicamentoBase;
+}
+
+export function AddMedicamentoForm({ onSave, onCancel, medicamento }: AddMedicamentoFormProps) {
+  const [nome, setNome] = useState(medicamento?.nome || '');
+  const [dosagem, setDosagem] = useState<string | null>(medicamento?.dosagem ?? null);
+  const [quantidade, setQuantidade] = useState(medicamento?.quantidade || 30);
+
+  const initTipoFrequencia = medicamento?.frequencia?.tipo || 'diario';
+  const [tipoFrequencia, setTipoFrequencia] = useState<
+    'diario' | 'intervalo' | 'dias_alternados' | 'semanal'
+  >(initTipoFrequencia as any);
+
+  const [horarios, setHorarios] = useState<string[]>(
+    (medicamento?.frequencia as FrequenciaDiaria)?.horarios || ['08:00']
+  );
+
   const [novoHorario, setNovoHorario] = useState('');
-  const [intervaloHoras, setIntervaloHoras] = useState(8);
+
+  const [intervaloHoras, setIntervaloHoras] = useState(
+    (medicamento?.frequencia as FrequenciaIntervalo)?.intervalo_horas || 8
+  );
+
+  // Inicializa com um valor padrão
   const [horaInicio, setHoraInicio] = useState('08:00');
-  const [intervaloDias, setIntervaloDias] = useState(2);
-  const [diasSemana, setDiasSemana] = useState<number[]>([]);
+
+  const [intervaloDias, setIntervaloDias] = useState(
+    (medicamento?.frequencia as FrequenciaDiasAlternados)?.intervalo_dias || 2
+  );
+
+  const [diasSemana, setDiasSemana] = useState<number[]>(
+    (medicamento?.frequencia as FrequenciaSemanal)?.dias_da_semana || []
+  );
+
   const [loading, setLoading] = useState(false);
 
   const diasDaSemana = [
@@ -67,16 +99,16 @@ export function AddMedicamentoForm({ onSave, onCancel }: AddMedicamentoFormProps
   };
 
   const toggleDiaSemana = (dia: number) => {
-    setDiasSemana(prev => 
-      prev.includes(dia) 
-        ? prev.filter(d => d !== dia) 
+    setDiasSemana(prev =>
+      prev.includes(dia)
+        ? prev.filter(d => d !== dia)
         : [...prev, dia].sort()
     );
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (!nome) {
       alert('Por favor, preencha o nome do medicamento.');
       return;
@@ -92,31 +124,31 @@ export function AddMedicamentoForm({ onSave, onCancel }: AddMedicamentoFormProps
         }
         frequencia = { tipo: 'diario', horarios };
         break;
-      
+
       case 'intervalo':
         if (!horaInicio) {
           alert('Por favor, informe o horário de início.');
           return;
         }
-        frequencia = { 
-          tipo: 'intervalo', 
-          intervalo_horas: Number(intervaloHoras) || 8, 
-          inicio: horaInicio 
+        frequencia = {
+          tipo: 'intervalo',
+          intervalo_horas: Number(intervaloHoras) || 8,
+          inicio: horaInicio
         };
         break;
-      
+
       case 'dias_alternados':
         if (!horaInicio) {
           alert('Por favor, informe o horário.');
           return;
         }
-        frequencia = { 
-          tipo: 'dias_alternados', 
-          intervalo_dias: Number(intervaloDias) || 2, 
-          horario: horaInicio 
+        frequencia = {
+          tipo: 'dias_alternados',
+          intervalo_dias: Number(intervaloDias) || 2,
+          horario: horaInicio
         };
         break;
-      
+
       case 'semanal':
         if (diasSemana.length === 0) {
           alert('Por favor, selecione pelo menos um dia da semana.');
@@ -126,13 +158,13 @@ export function AddMedicamentoForm({ onSave, onCancel }: AddMedicamentoFormProps
           alert('Por favor, informe o horário.');
           return;
         }
-        frequencia = { 
-          tipo: 'semanal', 
-          dias_da_semana: diasSemana, 
-          horario: horaInicio 
+        frequencia = {
+          tipo: 'semanal',
+          dias_da_semana: diasSemana,
+          horario: horaInicio
         };
         break;
-      
+
       default:
         return;
     }
@@ -145,8 +177,57 @@ export function AddMedicamentoForm({ onSave, onCancel }: AddMedicamentoFormProps
     }
   };
 
+  // Efeito para inicializar os estados quando o componente monta ou quando o medicamento muda
+  useEffect(() => {
+    if (medicamento) {
+      // Garante que o TypeScript entenda que medicamento não é undefined aqui
+      const med = medicamento as MedicamentoBase;
+      
+      setNome(med.nome);
+      setDosagem(med.dosagem ?? null);
+      setQuantidade(med.quantidade);
+
+      if (med.frequencia) {
+        const freq = med.frequencia;
+        setTipoFrequencia(freq.tipo as any);
+
+        // Inicializa os estados específicos do tipo de frequência
+        // Usando type guards para garantir que estamos acessando as propriedades corretas
+        if (freq.tipo === 'diario' && 'horarios' in freq) {
+          setHorarios(freq.horarios);
+        } else if (freq.tipo === 'intervalo' && 'intervalo_horas' in freq) {
+          setIntervaloHoras(freq.intervalo_horas);
+          setHoraInicio('inicio' in freq ? freq.inicio : '08:00');
+        } else if (freq.tipo === 'dias_alternados' && 'intervalo_dias' in freq) {
+          setIntervaloDias(freq.intervalo_dias);
+          setHoraInicio('horario' in freq ? freq.horario : '08:00');
+        } else if (freq.tipo === 'semanal' && 'dias_da_semana' in freq) {
+          setDiasSemana(freq.dias_da_semana);
+          setHoraInicio('horario' in freq ? freq.horario : '08:00');
+        }
+      } else {
+        // Se não houver frequência definida, define valores padrão
+        setTipoFrequencia('diario');
+        setHorarios(['08:00']);
+        setHoraInicio('08:00');
+      }
+    } else {
+      // Se não houver medicamento (criação), define valores padrão
+      setNome('');
+      setDosagem(null);
+      setQuantidade(30);
+      setTipoFrequencia('diario');
+      setHorarios(['08:00']);
+      setHoraInicio('08:00');
+      setIntervaloHoras(8);
+      setIntervaloDias(2);
+      setDiasSemana([]);
+    }
+  }, [medicamento]);
+
   return (
     <form onSubmit={handleSubmit} className={styles.form}>
+      <h2>{medicamento?.id ? 'Editar' : 'Adicionar'} Medicamento</h2>
       <div className={styles.formGroup}>
         <label htmlFor="nome">Nome do Medicamento</label>
         <input
@@ -163,8 +244,8 @@ export function AddMedicamentoForm({ onSave, onCancel }: AddMedicamentoFormProps
         <input
           id="dosagem"
           type="text"
-          value={dosagem}
-          onChange={(e) => setDosagem(e.target.value)}
+          value={dosagem || ''}
+          onChange={(e) => setDosagem(e.target.value || null)}
           placeholder="Ex: 1 comprimido"
         />
       </div>
