@@ -34,19 +34,21 @@
 }
 
 .card {
-  background: #ffffff;
+  background: linear-gradient(145deg, #ffffff, #f8f9ff);
   border-radius: 16px;
-  padding: 24px;
+  padding: 1.75rem;
   box-shadow: 
-    0 2px 8px rgba(0, 0, 0, 0.04),
-    0 1px 3px rgba(0, 0, 0, 0.02);
+    0 4px 6px -1px rgba(0, 0, 0, 0.05),
+    0 2px 4px -1px rgba(0, 0, 0, 0.02);
   border: 1px solid #e2e8f0;
   display: flex;
   flex-direction: column;
   align-items: flex-start;
   position: relative;
-  transition: all 0.2s ease-out;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   overflow: hidden;
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
 }
 
 .card::before {
@@ -55,18 +57,20 @@
   top: 0;
   left: 0;
   right: 0;
-  height: 3px;
+  height: 4px;
   background: linear-gradient(90deg, #0400BA, #2d2dff);
   transform: scaleX(0);
-  transition: transform 0.2s ease;
+  transform-origin: left;
+  transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  z-index: 1;
 }
 
 .card:hover {
-  transform: translateY(-2px);
+  transform: translateY(-4px);
   box-shadow: 
-    0 8px 24px rgba(0, 0, 0, 0.08),
-    0 2px 8px rgba(4, 0, 186, 0.04);
-  border-color: #cbd5e1;
+    0 15px 30px -5px rgba(0, 0, 0, 0.1),
+    0 10px 15px -3px rgba(0, 0, 0, 0.05);
+  border-color: rgba(66, 153, 225, 0.2);
 }
 
 .card:hover::before {
@@ -74,16 +78,32 @@
 }
 
 .card h3 {
-  margin-top: 0;
-  margin-bottom: 16px;
-  color: #0400BA;
+  margin: 0 0 1.25rem 0;
+  color: #1a1a2e;
   font-size: 1.25rem;
   font-weight: 700;
+  letter-spacing: -0.01em;
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.card h3::before {
+  content: '';
+  display: block;
+  width: 6px;
+  height: 1.5rem;
+  background: linear-gradient(to bottom, #0400BA, #2d2dff);
+  border-radius: 3px;
+  margin-right: 0.5rem;
 }
 
 .card p {
-  color: #64748b;
-  font-size: 1rem;
+  color: #4a5568;
+  font-size: 0.95rem;
+  margin: 0.25rem 0;
+  line-height: 1.5;
   margin: 4px 0;
   font-weight: 500;
   display: flex;
@@ -139,6 +159,8 @@
 }
 
 .list_section {
+  display: flex;
+  gap: 180px;
   margin-top: 32px;
   background: #ffffff;
   border-radius: 16px;
@@ -336,20 +358,220 @@
   transform: translateY(0);
 }
 
+/* Estilos para os botões de ação */
+.actions {
+  display: flex;
+  gap: 6px;
+  margin-left: auto;
+  padding-left: 12px;
+  opacity: 0;
+  transition: opacity 0.2s ease;
+}
+
+.list_item:hover .actions {
+  opacity: 1;
+}
+
+.iconButton {
+  background: #f8fafc;
+  color: #64748b;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  padding: 0;
+  flex-shrink: 0;
+  box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+  position: relative;
+  overflow: hidden;
+}
+
+.iconButton::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 5px;
+  height: 5px;
+  background: rgba(255, 255, 255, 0.5);
+  opacity: 0;
+  border-radius: 100%;
+  transform: scale(1, 1) translate(-50%, -50%);
+  transform-origin: 50% 50%;
+}
+
+.iconButton:focus:not(:active)::after {
+  animation: ripple 0.6s ease-out;
+}
+
+@keyframes ripple {
+  0% {
+    transform: scale(0, 0);
+    opacity: 0.5;
+  }
+  100% {
+    transform: scale(20, 20);
+    opacity: 0;
+  }
+}
+
+.iconButton:hover {
+  background: #f1f5f9;
+  color: #0400BA;
+  border-color: #cbd5e1;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+}
+
+.iconButton:active {
+  transform: translateY(0);
+  box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+}
+
+.deleteButton {
+  color: #ef4444;
+  border-color: #fee2e2;
+  background: #fef2f2;
+}
+
+.deleteButton:hover {
+  background: #fee2e2;
+  color: #dc2626;
+  border-color: #fecaca;
+}
+
+/* Estilo para o botão de status (concluir/desfazer) */
+.statusButton {
+  background: #f0fdf4;
+  color: #16a34a;
+  border: 1px solid #bbf7d0;
+  border-radius: 8px;
+  width: 36px;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  padding: 0;
+  flex-shrink: 0;
+  box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+  position: relative;
+  overflow: hidden;
+}
+
+.statusButton::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 5px;
+  height: 5px;
+  background: rgba(255, 255, 255, 0.5);
+  opacity: 0;
+  border-radius: 100%;
+  transform: scale(1, 1) translate(-50%, -50%);
+  transform-origin: 50% 50%;
+}
+
+.statusButton:focus:not(:active)::after {
+  animation: ripple 0.6s ease-out;
+}
+
+.statusButton:hover {
+  background: #dcfce7;
+  color: #15803d;
+  border-color: #86efac;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+}
+
+.statusButton:active {
+  transform: translateY(0);
+  box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+}
+
+.statusButton.completed {
+  background: #f0f9ff;
+  color: #0ea5e9;
+  border-color: #bae6fd;
+}
+
+.statusButton.completed:hover {
+  background: #e0f2fe;
+  color: #0284c7;
+  border-color: #7dd3fc;
+}
+
+/* Melhorias na acessibilidade */
+.iconButton:focus,
+.statusButton:focus {
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(4, 0, 186, 0.2);
+}
+
+/* Transição suave para o hover dos botões */
+.iconButton,
+.statusButton {
+  will-change: transform, box-shadow;
+  backface-visibility: hidden;
+  -webkit-font-smoothing: subpixel-antialiased;
+}
+
+/* Ajustes para o layout dos itens */
+.medicamento_header,
+.rotina_header {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  width: 100%;
+}
+
+.medicamento_header strong,
+.rotina_header strong {
+  margin-right: auto;
+}
+
+.medicamento_schedule {
+  width: 100%;
+  margin-top: 6px;
+  padding-top: 6px;
+  border-top: 1px dashed #e2e8f0;
+}
+
 /* Estados especiais */
 .list_item.completed {
-  opacity: 0.6;
-  background: #f0f9ff;
-  border-color: #e0f2fe;
+  opacity: 0.7;
+  background: #f8fafc;
+  border-color: #e2e8f0;
 }
 
-.list_item.completed span {
+.list_item.completed .medicamento_header,
+.list_item.completed .medicamento_schedule,
+.list_item.completed .rotina_header,
+.list_item.completed .rotina_schedule {
+  opacity: 0.8;
+}
+
+.list_item.completed .medicamento_header strong,
+.list_item.completed .rotina_header strong {
   text-decoration: line-through;
-  color: #64748b;
+  color: #94a3b8;
 }
 
-.list_item.completed button {
-  background: #64748b;
+.list_item.completed .medicamento_schedule,
+.list_item.completed .rotina_schedule {
+  color: #94a3b8;
+}
+
+.list_item.completed .frequencia {
+  background: #f1f5f9;
+  color: #94a3b8;
 }
 
 /* Animações sutis */

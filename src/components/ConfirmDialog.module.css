@@ -1,0 +1,85 @@
+.dialogContent {
+  padding: 0 0 1rem;
+}
+
+.message {
+  margin: 0 0 1.5rem;
+  color: #4b5563;
+  line-height: 1.5;
+  font-size: 1rem;
+}
+
+.buttons {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.75rem;
+  margin-top: 1.5rem;
+}
+
+.button {
+  padding: 0.5rem 1.25rem;
+  border-radius: 0.5rem;
+  font-weight: 500;
+  font-size: 0.875rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  border: 1px solid transparent;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 100px;
+}
+
+.cancelButton {
+  background-color: #f3f4f6;
+  color: #374151;
+  border-color: #e5e7eb;
+}
+
+.cancelButton:hover {
+  background-color: #e5e7eb;
+}
+
+.confirmButton {
+  background-color: #0400BA;
+  color: white;
+}
+
+.confirmButton:hover {
+  background-color: #2d2dff;
+  transform: translateY(-1px);
+}
+
+.dangerButton {
+  background-color: #dc2626;
+  color: white;
+}
+
+.dangerButton:hover {
+  background-color: #b91c1c;
+  transform: translateY(-1px);
+}
+
+/* Efeito de clique */
+.button:active {
+  transform: translateY(0);
+}
+
+/* Foco visível para acessibilidade */
+.button:focus-visible {
+  outline: 2px solid #0400BA;
+  outline-offset: 2px;
+}
+
+/* Responsividade */
+@media (max-width: 480px) {
+  .buttons {
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+  
+  .button {
+    width: 100%;
+    padding: 0.625rem 1.25rem;
+  }
+}

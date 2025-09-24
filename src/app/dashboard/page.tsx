@@ -7,7 +7,7 @@ import { useState } from 'react';
 
 // Importe seus componentes normais
 import { Header } from '@/components/headers/HeaderDashboard';
-import { DashboardClient } from '@/components/DashboardClient';
+import DashboardClient from '@/components/DashboardClient';
 import { FullScreenLoader } from '@/components/FullScreenLoader';
 import { Sidebar } from '@/components/Sidebar';
 import styles from './page.module.css';
@@ -27,9 +27,9 @@ export default function Dashboard() {
 
   useEffect(() => {
     if (!loading && !user) {
-      router.push('/login'); // ou a rota da sua página de autenticação
+      router.push('/login');
     }
-  }, [user, loading, router]); // O useEffect roda sempre que um desses valores mudar
+  }, [user, loading, router]); 
 
   if (loading) {
     return (
