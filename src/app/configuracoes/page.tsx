@@ -6,7 +6,7 @@ import { createClient } from '@/lib/supabase/client';
 import { Sidebar } from '@/components/Sidebar';
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import styles from './remedios.module.css';
+import styles from './page.module.css';
 
 export default function Remedios() {
     const { user, signOut } = useAuth();
