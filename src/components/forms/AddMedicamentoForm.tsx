@@ -227,7 +227,6 @@ export function AddMedicamentoForm({ onSave, onCancel, medicamento }: AddMedicam
 
   return (
     <form onSubmit={handleSubmit} className={styles.form}>
-      <h2>{medicamento?.id ? 'Editar' : 'Adicionar'} Medicamento</h2>
       <div className={styles.formGroup}>
         <label htmlFor="nome">Nome do Medicamento</label>
         <input

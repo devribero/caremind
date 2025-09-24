@@ -185,108 +185,113 @@ export default function Perfil() {
     };
 
     return (
-        <main>
+        <main className={styles.main}>
             <Header isMenuOpen={isMenuOpen} onMenuToggle={toggleMenu} />
-            <Sidebar
-                isOpen={isMenuOpen}
-                onClose={closeMenu}
-            />
-            <div className={styles.pageContainer}>
-                <div className={styles.profileSection}>
-                    <div className={styles.profileHeader}>
-                        <div className={styles.profileInfo}>
-                            <div className={styles.profilePhotoContainer}>
-                                <Image
-                                    src={profileData.photoUrl}
-                                    alt="Foto de Perfil"
-                                    className={styles.profilePhoto}
-                                    width={80}
-                                    height={80}
-                                    onError={() => {
-                                        setProfileData(prev => ({ ...prev, photoUrl: '/foto_padrao.png' }));
-                                    }}
-                                />
-                                <button className={styles.uploadPhotoButton}>
-                                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
-                                        <path d="M12 9V3H9V9H3V12H9V18H12V12H18V9H12Z" />
-                                    </svg>
-                                </button>
-                            </div>
-                            <div className={styles.profileText}>
-                                <h1 className={styles.profileName}>{profileData.fullName}</h1>
-                                <span className={styles.profileEmail}>{profileData.email}</span>
-                            </div>
-                        </div>
-                        <div className={styles.profileActions}>
-                            <button className={styles.actionButton} onClick={() => setShowPasswordModal(true)}>Alterar Senha</button>
-                            <button className={styles.actionButton}>Contatos</button>
-                            <button className={styles.logoutButton} onClick={handleLogout}>Logout</button>
-                        </div>
+            <Sidebar isOpen={isMenuOpen} onClose={closeMenu} />
+            <div className={`${isMenuOpen ? styles.contentPushed : ''} ${styles.mainContent}`}>
+                <div className={styles.content}>
+                    <div className={styles.pageHeader}>
+                        <h1 className={styles.content_title}>Perfil</h1>
                     </div>
 
-                    <div className={styles.infoCard}>
-                        <h2 className={styles.cardTitle}>Informações do Perfil</h2>
-                        <div className={styles.infoGrid}>
-                            <div className={styles.infoField}>
-                                <label htmlFor="fullName" className={styles.fieldLabel}>Nome Completo</label>
-                                <input
-                                    type="text"
-                                    id="fullName"
-                                    name="fullName"
-                                    value={profileData.fullName}
-                                    onChange={handleInputChange}
-                                    className={styles.fieldInput}
-                                    disabled={!isEditing}
-                                />
+                    <section className={styles.content_info}>
+                        <div className={styles.profileSection}>
+                            <div className={styles.profileHeader}>
+                                <div className={styles.profileInfo}>
+                                    <div className={styles.profilePhotoContainer}>
+                                        <Image
+                                            src={profileData.photoUrl}
+                                            alt="Foto de Perfil"
+                                            className={styles.profilePhoto}
+                                            width={80}
+                                            height={80}
+                                            onError={() => {
+                                                setProfileData(prev => ({ ...prev, photoUrl: '/foto_padrao.png' }));
+                                            }}
+                                        />
+                                        <button className={styles.uploadPhotoButton}>
+                                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
+                                                <path d="M12 9V3H9V9H3V12H9V18H12V12H18V9H12Z" />
+                                            </svg>
+                                        </button>
+                                    </div>
+                                    <div className={styles.profileText}>
+                                        <h1 className={styles.profileName}>{profileData.fullName}</h1>
+                                        <span className={styles.profileEmail}>{profileData.email}</span>
+                                    </div>
+                                </div>
+                                <div className={styles.profileActions}>
+                                    <button className={styles.actionButton} onClick={() => setShowPasswordModal(true)}>Alterar Senha</button>
+                                    <button className={styles.actionButton}>Contatos</button>
+                                    <button className={styles.logoutButton} onClick={handleLogout}>Logout</button>
+                                </div>
                             </div>
-                            <div className={styles.infoField}>
-                                <label htmlFor="email" className={styles.fieldLabel}>Email</label>
-                                <input
-                                    type="email"
-                                    id="email"
-                                    name="email"
-                                    value={profileData.email}
-                                    onChange={handleInputChange}
-                                    className={styles.fieldInput}
-                                    disabled
-                                />
-                            </div>
-                            <div className={styles.infoField}>
-                                <label htmlFor="phone" className={styles.fieldLabel}>Telefone</label>
-                                <input
-                                    type="text"
-                                    id="phone"
-                                    name="phone"
-                                    value={profileData.phone}
-                                    onChange={handleInputChange}
-                                    className={styles.fieldInput}
-                                    disabled={!isEditing}
-                                />
-                            </div>
-                            <div className={styles.infoField}>
-                                <label htmlFor="dob" className={styles.fieldLabel}>Data de Nascimento</label>
-                                <input
-                                    type="date"
-                                    id="dob"
-                                    name="dob"
-                                    value={profileData.dob}
-                                    onChange={handleInputChange}
-                                    className={styles.fieldInput}
-                                    disabled={!isEditing}
-                                />
+
+                            <div className={styles.infoCard}>
+                                <h2 className={styles.cardTitle}>Informações do Perfil</h2>
+                                <div className={styles.infoGrid}>
+                                    <div className={styles.infoField}>
+                                        <label htmlFor="fullName" className={styles.fieldLabel}>Nome Completo</label>
+                                        <input
+                                            type="text"
+                                            id="fullName"
+                                            name="fullName"
+                                            value={profileData.fullName}
+                                            onChange={handleInputChange}
+                                            className={styles.fieldInput}
+                                            disabled={!isEditing}
+                                        />
+                                    </div>
+                                    <div className={styles.infoField}>
+                                        <label htmlFor="email" className={styles.fieldLabel}>Email</label>
+                                        <input
+                                            type="email"
+                                            id="email"
+                                            name="email"
+                                            value={profileData.email}
+                                            onChange={handleInputChange}
+                                            className={styles.fieldInput}
+                                            disabled
+                                        />
+                                    </div>
+                                    <div className={styles.infoField}>
+                                        <label htmlFor="phone" className={styles.fieldLabel}>Telefone</label>
+                                        <input
+                                            type="text"
+                                            id="phone"
+                                            name="phone"
+                                            value={profileData.phone}
+                                            onChange={handleInputChange}
+                                            className={styles.fieldInput}
+                                            disabled={!isEditing}
+                                        />
+                                    </div>
+                                    <div className={styles.infoField}>
+                                        <label htmlFor="dob" className={styles.fieldLabel}>Data de Nascimento</label>
+                                        <input
+                                            type="date"
+                                            id="dob"
+                                            name="dob"
+                                            value={profileData.dob}
+                                            onChange={handleInputChange}
+                                            className={styles.fieldInput}
+                                            disabled={!isEditing}
+                                        />
+                                    </div>
+                                </div>
+                                <div className={styles.editButtonContainer}>
+                                    <button
+                                        className={styles.editProfileButton}
+                                        onClick={handleEditProfile}
+                                    >
+                                        {isEditing ? 'Salvar Perfil' : 'Editar Perfil'}
+                                    </button>
+                                </div>
                             </div>
                         </div>
-                        <div className={styles.editButtonContainer}>
-                            <button
-                                className={styles.editProfileButton}
-                                onClick={handleEditProfile}
-                            >
-                                {isEditing ? 'Salvar Perfil' : 'Editar Perfil'}
-                            </button>
-                        </div>
-                    </div>
+                        <ChangePasswordModal show={showPasswordModal} onClose={() => setShowPasswordModal(false)} onSave={handleSavePassword} />
+                    </section>
                 </div>
-                <ChangePasswordModal show={showPasswordModal} onClose={() => setShowPasswordModal(false)} onSave={handleSavePassword} />
             </div>
         </main>
     );

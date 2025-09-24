@@ -4,14 +4,15 @@
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { createClient } from '@/lib/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
-import { shouldResetMedicamento, calcularProximaDose } from '@/lib/medicamentoUtils';
+import { shouldResetMedicamento } from '@/lib/medicamentoUtils';
+
 import styles from './DashboardClient.module.css';
 import { Modal } from './Modal';
 import { ConfirmDialog } from './ConfirmDialog';
 import { AddMedicamentoForm } from './forms/AddMedicamentoForm';
 import { AddRotinaForm } from './forms/AddRotinaForm';
 import { useLoading } from '@/contexts/LoadingContext';
-import { FiEdit2, FiTrash2, FiCheck, FiX, FiPlus } from 'react-icons/fi';
+import { FiEdit2, FiTrash2, FiPlus, FiCheck, FiX } from 'react-icons/fi';
 
 // ===== TIPOS DE DADOS =====
 
@@ -57,9 +58,11 @@ interface Medicamento {
 // Interface para uma rotina
 interface Rotina {
     id: string;
-    descricao: string;
-    data_agendada: string;   // Data/hora da rotina
-    concluida: boolean;      // Se a rotina foi concluída
+    titulo?: string;
+    descricao?: string;
+    concluido: boolean;      // API usa 'concluido'
+    frequencia?: any;
+    data_agendada?: string;  // opcional
 }
 
 // Interface para os dados de medicamentos
@@ -255,8 +258,8 @@ export default function DashboardClient(): React.ReactElement {
 
             setRotinas({
                 total: dadosRotinas.length,
-                concluidas: dadosRotinas.filter(r => r.concluida).length,
-                lista: dadosRotinas
+                concluidas: dadosRotinas.filter((r: any) => r.concluido || r.concluida).length,
+                lista: dadosRotinas as Rotina[]
             });
         } catch (erro) {
             handleApiError(erro, 'Não foi possível carregar os dados do dashboard.');
@@ -457,14 +460,12 @@ export default function DashboardClient(): React.ReactElement {
     // Lida com o salvamento de rotina
     const handleSaveRotina = useCallback(async (titulo: string, descricao: string, frequencia: any) => {
         try {
-            // For now, we'll use titulo as descricao and create a simple data_agendada
-            // In the future, you might want to process the frequencia object to generate proper schedules
-            const data = { 
-                descricao: titulo, 
-                data_agendada: new Date().toISOString(), 
-                concluida: false,
-                // Store frequency data for future use
-                frequencia: JSON.stringify(frequencia)
+            // A API espera: { titulo, descricao, frequencia, concluido }
+            const data = {
+                titulo,
+                descricao,
+                frequencia,
+                concluido: false,
             };
             if (isEditing && currentRotina) {
                 await atualizarRotina(currentRotina.id, data);
@@ -484,6 +485,82 @@ export default function DashboardClient(): React.ReactElement {
         setIsEditing(true);
         setIsModalOpen(true);
     }, []);
+
+    // Alterna status de conclusão do medicamento (otimista)
+    const handleToggleStatus = useCallback(async (id: string) => {
+        // estado anterior para possível rollback
+        let previousState: MedicamentosData | null = null;
+        setMedicamentos(prev => {
+            previousState = prev;
+            const lista = prev.lista.map(m => m.id === id ? { ...m, concluido: !m.concluido } : m);
+            return {
+                ...prev,
+                lista,
+                concluidos: lista.filter(m => m.concluido).length,
+            };
+        });
+
+        try {
+            const token = await getAuthToken();
+            if (!token) throw new Error('Sessão não encontrada');
+            const med = medicamentos.lista.find(m => m.id === id);
+            const novoStatus = med ? !med.concluido : true;
+
+            const resposta = await fetch(`/api/medicamentos/${id}`, {
+                method: 'PATCH',
+                headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+                body: JSON.stringify({ concluido: novoStatus })
+            });
+
+            if (!resposta.ok) {
+                throw new Error('Falha ao atualizar status do medicamento');
+            }
+        } catch (erro) {
+            // rollback
+            if (previousState) {
+                setMedicamentos(previousState);
+            }
+            handleApiError(erro, 'Erro ao atualizar status do medicamento');
+        }
+    }, [getAuthToken, handleApiError, medicamentos.lista]);
+
+    // Alterna status de conclusão da rotina (otimista)
+    const handleToggleRotinaStatus = useCallback(async (id: string) => {
+        // estado anterior para possível rollback
+        let previousState: RotinasData | null = null;
+        setRotinas(prev => {
+            previousState = prev;
+            const lista = prev.lista.map(r => r.id === id ? { ...r, concluido: !r.concluido } : r);
+            return {
+                ...prev,
+                lista,
+                concluidas: lista.filter(r => r.concluido).length,
+            };
+        });
+
+        try {
+            const token = await getAuthToken();
+            if (!token) throw new Error('Sessão não encontrada');
+            const rot = rotinas.lista.find(r => r.id === id);
+            const novoStatus = rot ? !rot.concluido : true;
+
+            const resposta = await fetch(`/api/rotinas/${id}`, {
+                method: 'PATCH',
+                headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+                body: JSON.stringify({ concluido: novoStatus })
+            });
+
+            if (!resposta.ok) {
+                throw new Error('Falha ao atualizar status da rotina');
+            }
+        } catch (erro) {
+            // rollback
+            if (previousState) {
+                setRotinas(previousState);
+            }
+            handleApiError(erro, 'Erro ao atualizar status da rotina');
+        }
+    }, [getAuthToken, handleApiError, rotinas.lista]);
 
     // ===== RENDERIZAÇÃO =====
 
@@ -517,7 +594,9 @@ export default function DashboardClient(): React.ReactElement {
     // Renderização da lista de medicamentos
     const listaMedicamentos = useMemo(() => {
         if (medicamentos.lista.length === 0) {
-            return <p className={styles.empty_list}>Nenhum medicamento adicionado.</p>;
+            return (
+                <p className={styles.empty_list}>Nenhum medicamento adicionado.</p>
+            );
         }
         return (
             <ul className={styles.list}>
@@ -528,6 +607,14 @@ export default function DashboardClient(): React.ReactElement {
                             <span>{med.dosagem} - {formatarFrequencia(med.frequencia)}</span>
                         </div>
                         <div className={styles.item_actions}>
+                            <button
+                                onClick={() => handleToggleStatus(med.id)}
+                                className={`${styles.statusButton} ${med.concluido ? styles.completed : ''}`}
+                                aria-label={med.concluido ? 'Desfazer' : 'Concluir'}
+                                title={med.concluido ? 'Desfazer' : 'Concluir'}
+                            >
+                                {med.concluido ? <FiX /> : <FiCheck />}
+                            </button>
                             <button onClick={() => openModal('medicamento', med)} className={styles.icon_button}><FiEdit2 /></button>
                             <button onClick={() => confirmarExclusao('medicamentos', med.id)} className={`${styles.icon_button} ${styles.danger}`}><FiTrash2 /></button>
                         </div>
@@ -535,111 +622,118 @@ export default function DashboardClient(): React.ReactElement {
                 ))}
             </ul>
         );
-    }, [medicamentos.lista, openModal, formatarFrequencia]);
+    }, [medicamentos.lista, openModal, formatarFrequencia, handleToggleStatus, confirmarExclusao]);
 
     // Renderização da lista de rotinas
     const listaRotinas = useMemo(() => {
         if (rotinas.lista.length === 0) {
-            return <p className={styles.empty_list}>Nenhuma rotina adicionada.</p>;
+            return (
+                <p className={styles.empty_list}>Nenhuma rotina adicionada.</p>
+            );
         }
         return (
             <ul className={styles.list}>
-                {rotinas.lista.map(rot => (
+                {rotinas.lista.map((rot) => (
                     <li key={rot.id} className={styles.list_item}>
                         <div className={styles.item_info}>
-                            <strong>{rot.descricao}</strong>
-                            <span>{new Date(rot.data_agendada).toLocaleDateString('pt-BR')}</span>
+                            <strong>{rot.titulo || rot.descricao || 'Rotina'}</strong>
+                            {rot.descricao && rot.titulo ? (
+                                <span>{rot.descricao}</span>
+                            ) : null}
                         </div>
                         <div className={styles.item_actions}>
-                            <button onClick={() => handleEditRotina(rot)} className={styles.icon_button}><FiEdit2 /></button>
-                            <button onClick={() => confirmarExclusao('rotinas', rot.id)} className={`${styles.icon_button} ${styles.danger}`}><FiTrash2 /></button>
+                            <button
+                                onClick={() => handleToggleRotinaStatus(rot.id)}
+                                className={`${styles.statusButton} ${rot.concluido ? styles.completed : ''}`}
+                                aria-label={rot.concluido ? 'Desfazer' : 'Concluir'}
+                                title={rot.concluido ? 'Desfazer' : 'Concluir'}
+                            >
+                                {rot.concluido ? <FiX /> : <FiCheck />}
+                            </button>
+                            <button onClick={() => handleEditRotina(rot)} className={styles.icon_button}>
+                                <FiEdit2 />
+                            </button>
+                            <button onClick={() => confirmarExclusao('rotinas', rot.id)} className={`${styles.icon_button} ${styles.danger}`}>
+                                <FiTrash2 />
+                            </button>
                         </div>
                     </li>
                 ))}
             </ul>
         );
-    }, [rotinas.lista, handleEditRotina]);
+    }, [rotinas.lista, handleEditRotina, handleToggleRotinaStatus]);
 
     return (
         <div className={styles.dashboard_client}>
-            <div className={styles.header}>
-                <h1>Bem-vindo de volta, {user?.user_metadata?.name || 'Usuário'}</h1>
-                <p className={styles.subtitle}>Aqui está o seu resumo diário</p>
-                
-                <div className={styles.actions}>
-                    <button className={`${styles.button} ${styles.primary}`} onClick={() => openModal('medicamento')}>
-                        <FiPlus size={16} /> Adicionar Medicamento
-                    </button>
-                    <button className={styles.button} onClick={() => openModal('rotina')}>
-                        <FiPlus size={16} /> Adicionar Rotina
-                    </button>
-                </div>
+            <div className={styles.actions}>
+                <button className={`${styles.button} ${styles.primary}`} onClick={() => openModal('medicamento')}>
+                    <FiPlus size={16} /> Adicionar Medicamento
+                </button>
+                <button className={styles.button} onClick={() => openModal('rotina')}>
+                    <FiPlus size={16} /> Adicionar Rotina
+                </button>
             </div>
 
             <div className={styles.cards_container}>
-                <div className={styles.card}>
-                    <h3>Medicamentos</h3>
-                    <div className={styles.card_content}>
-                        <div className={styles.card_stat}>
-                            <span className={styles.stat_number}>{medicamentos.total}</span>
-                            <span className={styles.stat_label}>Total</span>
-                        </div>
-                        <div className={styles.card_stat}>
-                            <span className={styles.stat_number}>{medicamentos.concluidos}</span>
-                            <span className={styles.stat_label}>Concluídos</span>
-                        </div>
-                    </div>
+            <div className={styles.card}>
+                <h3>Medicamentos</h3>
+                <p><strong>Total:</strong> {medicamentos.total}</p>
+                <p><strong>Concluídos:</strong> {medicamentos.concluidos}</p>
+                <div className={styles.progress_bar}>
+                    <div
+                        className={styles.progress_fill}
+                        style={{ width: `${medicamentos.total ? (medicamentos.concluidos / medicamentos.total) * 100 : 0}%` }}
+                    />
                 </div>
-                
-                <div className={styles.card}>
-                    <h3>Rotinas</h3>
-                    <div className={styles.card_content}>
-                        <div className={styles.card_stat}>
-                            <span className={styles.stat_number}>{rotinas.total}</span>
-                            <span className={styles.stat_label}>Total</span>
-                        </div>
-                        <div className={styles.card_stat}>
-                            <span className={styles.stat_number}>{rotinas.concluidas}</span>
-                            <span className={styles.stat_label}>Concluídas</span>
-                        </div>
-                    </div>
-                </div>
+                <button className={styles.add_btn} onClick={() => openModal('medicamento')}>
+                    <FiPlus size={16} /> Adicionar Medicamento
+                </button>
             </div>
-
-            <div className={styles.list_section}>
-                <div className={styles.list_container}>
-                    <div className={styles.list_header}>
-                        <h3>Medicamentos</h3>
-                        <button className={styles.add_button} onClick={() => openModal('medicamento')}>
-                            <FiPlus size={16} /> Adicionar
-                        </button>
-                    </div>
-                    {listaMedicamentos}
-                </div>
-
-                <div className={styles.list_container}>
-                    <div className={styles.list_header}>
-                        <h3>Rotinas</h3>
-                        <button className={styles.add_button} onClick={() => openModal('rotina')}>
-                            <FiPlus size={16} /> Adicionar
-                        </button>
-                    </div>
-                    {listaRotinas}
-                </div>
-            </div>
-
-            {renderModal}
             
-            <ConfirmDialog
-                isOpen={confirmDialog.isOpen}
-                title={confirmDialog.title}
-                message={confirmDialog.message}
-                confirmText="Excluir"
-                cancelText="Cancelar"
-                onConfirm={confirmDialog.onConfirm || (() => {})}
-                onCancel={fecharConfirmacao}
-                danger
-            />
+            <div className={styles.card}>
+                <h3>Rotinas</h3>
+                <p><strong>Total:</strong> {rotinas.total}</p>
+                <p><strong>Concluídas:</strong> {rotinas.concluidas}</p>
+                <div className={styles.progress_bar}>
+                    <div
+                        className={styles.progress_fill}
+                        style={{ width: `${rotinas.total ? (rotinas.concluidas / rotinas.total) * 100 : 0}%` }}
+                    />
+                </div>
+                <button className={styles.add_btn} onClick={() => openModal('rotina')}>
+                    <FiPlus size={16} /> Adicionar Rotina
+                </button>
+            </div>
         </div>
+
+        <div className={styles.list_section}>
+            <div className={styles.list_container}>
+                <div className={styles.list_header}>
+                    <h3>Medicamentos</h3>
+                </div>
+                {listaMedicamentos}
+            </div>
+
+            <div className={styles.list_container}>
+                <div className={styles.list_header}>
+                    <h3>Rotinas</h3>
+                </div>
+                {listaRotinas}
+            </div>
+        </div>
+
+        {renderModal}
+        
+        <ConfirmDialog
+            isOpen={confirmDialog.isOpen}
+            title={confirmDialog.title}
+            message={confirmDialog.message}
+            confirmText="Excluir"
+            cancelText="Cancelar"
+            onConfirm={confirmDialog.onConfirm || (() => {})}
+            onCancel={fecharConfirmacao}
+            danger
+        />
+    </div>
     );
 }

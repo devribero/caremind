@@ -29,24 +29,23 @@ type FrequenciaSemanal = {
 
 type Frequencia = FrequenciaDiaria | FrequenciaIntervalo | FrequenciaDiasAlternados | FrequenciaSemanal;
 
-// Interface para uma rotina (matching DashboardClient.tsx)
-interface Rotina {
-  id: string;
-  descricao: string;
-  data_agendada: string;
-  concluida: boolean;
-}
+// Tipo leve para edição/pré-preenchimento no formulário
+type RotinaFormData = {
+  id?: string;
+  titulo?: string;
+  descricao?: string;
+};
 
 // Interface de Props atualizada
 interface AddRotinaFormProps {
   onSave: (titulo: string, descricao: string, frequencia: Frequencia) => Promise<void>;
   onCancel: () => void;
-  rotina?: Rotina;
+  rotina?: RotinaFormData;
 }
 
 export function AddRotinaForm({ onSave, onCancel, rotina }: AddRotinaFormProps) {
   // Estados para os campos da rotina
-  const [titulo, setTitulo] = useState(rotina?.descricao || '');
+  const [titulo, setTitulo] = useState(rotina?.titulo || rotina?.descricao || '');
   const [descricao, setDescricao] = useState('');
   
   // Estados para o controle da frequência

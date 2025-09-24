@@ -1,3 +1,58 @@
+.main {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  background-color: #f0f2f5;
+  font-family: "League Spartan", sans-serif;
+}
+
+.content {
+  flex: 1;
+  max-width: 1200px;
+  width: 100%;
+  margin: 0 auto;
+  padding: 0 20px;
+}
+
+.content_title {
+  text-decoration: underline;
+  text-decoration-color: #0400BA;
+  text-decoration-thickness: 2px;
+  font-size: 40px;
+  color: black;
+  font-weight: 400;
+}
+
+.content_info {
+  background-color: white;
+  border-radius: 20px;
+  margin-top: 2rem;
+  padding: 1.5rem;
+}
+
+.mainContent {
+  transition: margin-left 0.3s ease-in-out;
+  padding: 24px;
+  width: 100%;
+}
+
+.contentPushed {
+  margin-left: 280px;
+}
+
+.pageHeader {
+  margin-bottom: 1.5rem;
+}
+
+/* Responsive design to match other pages */
+@media (max-width: 768px) {
+  .content { padding: 0 15px; }
+}
+
+@media (max-width: 480px) {
+  .content_title { font-size: 1.75rem; }
+}
+
 .pageContainer {
   min-height: 100vh;
   display: flex;

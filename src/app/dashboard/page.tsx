@@ -42,15 +42,15 @@ export default function Dashboard() {
   if (user) {
     return (
         <div className={styles.dashboardContainer}>
-            <Sidebar
-              isOpen={isMenuOpen}
-              onClose={closeMenu}
-            />
             <div className={styles.headerContainer}>
-              <Header
-                isMenuOpen={isMenuOpen}
-                onMenuToggle={toggleMenu}
-              />
+                <Header
+                  isMenuOpen={isMenuOpen}
+                  onMenuToggle={toggleMenu}
+                />
+                <Sidebar
+                  isOpen={isMenuOpen}
+                  onClose={closeMenu}
+                />
             </div>
             <main className={styles.mainContent}>
                 <div className={styles.content}>

@@ -25,6 +25,10 @@
   font-weight: 400;
 }
 
+.content_info{
+  margin-top: -35px;
+}
+
 .headerContainer {
   position: sticky; /* ou fixed, dependendo do seu design */
   top: 0;

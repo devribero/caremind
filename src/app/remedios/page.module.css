@@ -25,6 +25,15 @@
   font-weight: 400;
 }
 
+.content_info {
+  background-color: white;
+  border-radius: 20px;
+  margin-top: 2rem;
+  padding: 1.5rem;
+}
+
+
+
 .headerContainer {
   position: sticky; /* ou fixed, dependendo do seu design */
   top: 0;
@@ -93,4 +102,83 @@
     padding: 10px 20px;
     font-size: 14px;
   }
+}
+
+.gridContainer {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 1.5rem;
+  width: 100%;
+}
+
+.loadingText,
+.errorText,
+.emptyState {
+  width: 100%;
+  text-align: center;
+  padding: 2rem;
+  background-color: #f9fafb; /* Um cinza bem claro */
+  border-radius: 8px;
+  margin-top: 1rem;
+}
+
+.errorText {
+  color: #dc2626; /* Um tom de vermelho */
+  background-color: #fef2f2; /* Um vermelho bem claro */
+  border: 1px solid #fecaca;
+}
+
+.emptyState p {
+  color: #6b7280; /* Cinza */
+  font-size: 1.1rem;
+}
+
+/* Adicione estas classes ao seu arquivo page.module.css */
+
+.pageHeader {
+  /* Mantém o alinhamento do título */
+  margin-bottom: 1.5rem;
+}
+
+/* Remova os estilos .addCardButton, .addCardContent e coloque estes no lugar */
+
+.actionsContainer {
+  margin-bottom: 1.5rem; /* Espaço entre o botão e a lista de cards */
+}
+
+.addButton {
+  background-color: #0400BA; /* Azul do CareMind */
+  color: white;
+  font-weight: 600; /* semi-bold */
+  font-size: 0.95rem;
+  border: none;
+  border-radius: 9px; /* Totalmente arredondado */
+  padding: 0.6rem 1.25rem;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem; /* Espaço entre o ícone e o texto */
+  cursor: pointer;
+  transition: background-color 0.2s ease, transform 0.1s ease;
+  box-shadow: 0 4px 14px 0 rgb(0 118 255 / 39%);
+}
+
+.addButton:hover {
+  background-color: #1d4ed8; /* Azul um pouco mais escuro */
+}
+
+.addButton:active {
+    transform: scale(0.98); /* Efeito de clique */
+}
+
+.addIcon {
+  font-size: 1.4rem;
+  font-weight: 300; /* Deixa o '+' mais fino */
+  line-height: 1;
+}
+
+/* Estilo para o estado vazio, se quiser ajustar */
+.emptyState p {
+    text-align: center;
+    color: #6b7280;
+    margin: 0;
 }
