@@ -12,7 +12,7 @@ type FrequenciaIntervalo = {
   intervalo_horas: number;
   inicio: string;
 };
-
+    
 type FrequenciaDiasAlternados = {
   tipo: 'dias_alternados';
   intervalo_dias: number;

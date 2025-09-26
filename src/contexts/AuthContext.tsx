@@ -11,7 +11,13 @@ interface AuthContextType {
   session: Session | null;
   loading: boolean;
   signIn: (email: string, password: string) => Promise<AuthResponse>;
-  signUp: (email: string, password: string, fullName?: string) => Promise<AuthResponse>;
+  signUp: (
+    email: string,
+    password: string,
+    fullName?: string,
+    phone?: string,
+    accountType?: 'Individual' | 'Familiar'
+  ) => Promise<AuthResponse>;
   resetPassword: (email: string) => Promise<{ error: AuthError | null }>;
   signOut: () => Promise<void>;
 }
@@ -60,6 +66,34 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       console.log('Mudança no estado de autenticação:', event, session?.user?.email);
       setSession(session);
       setUser(session?.user ?? null);
+
+      // Fallback: ao logar, tenta sincronizar metadados pendentes (ex.: phone) se não existirem ainda
+      try {
+        if (event === 'SIGNED_IN' && session?.user) {
+          const currentMeta = session.user.user_metadata as Record<string, any> | undefined;
+          const pendingRaw = typeof window !== 'undefined' ? localStorage.getItem('pendingUserMetadata') : null;
+          if (pendingRaw) {
+            const pending = JSON.parse(pendingRaw) as { full_name?: string; phone?: string } | null;
+            const needsPhone = !currentMeta?.phone && !!pending?.phone;
+            const needsName = !currentMeta?.full_name && !!pending?.full_name;
+            if (needsPhone || needsName) {
+              await supabase.auth.updateUser({
+                data: {
+                  full_name: needsName ? pending?.full_name : currentMeta?.full_name,
+                  phone: needsPhone ? pending?.phone : currentMeta?.phone,
+                },
+              });
+            }
+            // Limpa pendências após tentativa
+            if (typeof window !== 'undefined') {
+              localStorage.removeItem('pendingUserMetadata');
+            }
+          }
+        }
+      } catch (syncErr) {
+        console.warn('Falha ao sincronizar metadados pendentes no SIGNED_IN:', syncErr);
+      }
+
       setLoading(false);
     });
 
@@ -75,16 +109,75 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     });
   };
 
-  const signUp = async (email: string, password: string, fullName?: string) => {
-    return await supabase.auth.signUp({
+  const signUp = async (
+    email: string,
+    password: string,
+    fullName?: string,
+    phone?: string,
+    accountType: 'Individual' | 'Familiar' = 'Individual'
+  ) => {
+    // 1) Cria usuário com metadados (inclui telefone)
+    const response = await supabase.auth.signUp({
       email,
       password,
       options: {
         data: {
           full_name: fullName,
+          phone,
         },
       },
     });
+
+    // Armazena metadados pendentes localmente para sincronizar após primeiro login
+    try {
+      if (typeof window !== 'undefined') {
+        localStorage.setItem(
+          'pendingUserMetadata',
+          JSON.stringify({ full_name: fullName, phone })
+        );
+      }
+    } catch {}
+
+    // 2) Refina user_metadata garantindo persistência do telefone, pois em alguns projetos
+    //    as configurações podem exigir confirmação de email e ignorar parte dos metadados.
+    try {
+      const createdUser = response?.data?.user;
+      if (createdUser) {
+        await supabase.auth.updateUser({
+          data: {
+            full_name: fullName,
+            phone,
+          },
+        });
+        // Checagem opcional (log) para confirmar metadados
+        const { data: userCheck } = await supabase.auth.getUser();
+        console.log('Metadados após updateUser:', userCheck?.user?.user_metadata);
+      }
+    } catch (e) {
+      console.warn('Aviso: não foi possível confirmar/persistir metadados do usuário no signup.', e);
+    }
+
+    // 3) Se o usuário foi criado com sucesso, cria o perfil com o tipo selecionado
+    try {
+      const createdUser = response?.data?.user;
+      if (createdUser && fullName) {
+        await fetch('/api/perfil', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            nome: fullName,
+            tipo: accountType,
+          }),
+        });
+      }
+    } catch (err) {
+      console.error('Falha ao criar Perfil após signUp:', err);
+      // Mantemos o fluxo de signup mesmo que o Perfil falhe; UI pode lidar depois
+    }
+
+    return response;
   };
 
   const signOut = async () => {

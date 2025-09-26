@@ -1,13 +1,15 @@
 'use client'
 
 import { Header } from '@/components/headers/HeaderDashboard';
-import styles from '@/app/perfil/page.module.css';
+import pageStyles from '@/app/perfil/page.module.css';
+import modalStyles from '@/app/perfil/modal.module.css';
 import { useAuth } from '@/contexts/AuthContext';
 import { createClient } from '@/lib/supabase/client';
 import { Sidebar } from '@/components/Sidebar';
-import { useState, useEffect, ChangeEvent } from 'react';
+import { useState, useEffect, ChangeEvent, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import Image from 'next/image';
+import { PasswordService, ChangePasswordData } from '@/lib/services/passwordService';
 
 // --- DEFINIÇÃO DE TIPOS ---
 
@@ -21,16 +23,18 @@ interface ChangePasswordModalProps {
     show: boolean;
     onClose: () => void;
     onSave: (data: PasswordData) => void;
+    loading?: boolean;
 }
 
 // --- COMPONENTE MODAL DE ALTERAR SENHA ---
 
-const ChangePasswordModal = ({ show, onClose, onSave }: ChangePasswordModalProps) => {
+const ChangePasswordModal = ({ show, onClose, onSave, loading = false }: ChangePasswordModalProps) => {
     const [passwordData, setPasswordData] = useState<PasswordData>({
         currentPassword: '',
         newPassword: '',
         confirmNewPassword: ''
     });
+    const [error, setError] = useState<string>('');
 
     if (!show) {
         return null;
@@ -39,42 +43,109 @@ const ChangePasswordModal = ({ show, onClose, onSave }: ChangePasswordModalProps
     const handlePasswordChange = (e: ChangeEvent<HTMLInputElement>) => {
         const { name, value } = e.target;
         setPasswordData(prev => ({ ...prev, [name]: value }));
+        if (error) setError('');
     };
 
-    const handleSavePassword = () => {
-        if (passwordData.newPassword !== passwordData.confirmNewPassword) {
-            alert("As novas senhas não coincidem!");
+    const handleSaveClick = () => {
+        if (!passwordData.currentPassword) {
+            setError("Por favor, informe a senha atual");
             return;
         }
+        if (!passwordData.newPassword) {
+            setError("Por favor, informe a nova senha");
+            return;
+        }
+        if (passwordData.newPassword.length < 6) {
+            setError("A nova senha deve ter pelo menos 6 caracteres");
+            return;
+        }
+        if (passwordData.newPassword !== passwordData.confirmNewPassword) {
+            setError("As novas senhas não coincidem!");
+            return;
+        }
+        setError('');
         onSave(passwordData);
+    };
+
+    const handleClose = () => {
+        setPasswordData({
+            currentPassword: '',
+            newPassword: '',
+            confirmNewPassword: ''
+        });
+        setError('');
         onClose();
     };
 
     return (
-        <div className={styles.modalOverlay}>
-            <div className={styles.modalContent}>
-                <h2 className={styles.modalTitle}>Alterar Senha</h2>
-                <span className={styles.modalClose} onClick={onClose}>&times;</span>
-                <div className={styles.formGroup}>
-                    <label htmlFor="currentPassword" className={styles.modalLabel}>Senha Atual</label>
-                    <input type="password" id="currentPassword" name="currentPassword" className={styles.modalInput} onChange={handlePasswordChange} />
+        <div className={modalStyles.modalOverlay}>
+            <div className={modalStyles.modalContent}>
+                <h2 className={modalStyles.modalTitle}>Alterar Senha</h2>
+                <span className={modalStyles.modalClose} onClick={handleClose}>&times;</span>
+                
+                {error && (
+                    <div className={modalStyles.errorMessage}>
+                        {error}
+                    </div>
+                )}
+
+                <div className={modalStyles.formGroup}>
+                    <label htmlFor="currentPassword" className={modalStyles.modalLabel}>Senha Atual</label>
+                    <input 
+                        type="password" 
+                        id="currentPassword" 
+                        name="currentPassword" 
+                        className={modalStyles.modalInput} 
+                        value={passwordData.currentPassword}
+                        onChange={handlePasswordChange}
+                        disabled={loading}
+                    />
                 </div>
-                <div className={styles.formGroup}>
-                    <label htmlFor="newPassword" className={styles.modalLabel}>Nova Senha</label>
-                    <input type="password" id="newPassword" name="newPassword" className={styles.modalInput} onChange={handlePasswordChange} />
+                <div className={modalStyles.formGroup}>
+                    <label htmlFor="newPassword" className={modalStyles.modalLabel}>Nova Senha</label>
+                    <input 
+                        type="password" 
+                        id="newPassword" 
+                        name="newPassword" 
+                        className={modalStyles.modalInput} 
+                        value={passwordData.newPassword}
+                        onChange={handlePasswordChange}
+                        disabled={loading}
+                    />
                 </div>
-                <div className={styles.formGroup}>
-                    <label htmlFor="confirmNewPassword" className={styles.modalLabel}>Repetir Nova Senha</label>
-                    <input type="password" id="confirmNewPassword" name="confirmNewPassword" className={styles.modalInput} onChange={handlePasswordChange} />
+                <div className={modalStyles.formGroup}>
+                    <label htmlFor="confirmNewPassword" className={modalStyles.modalLabel}>Repetir Nova Senha</label>
+                    <input 
+                        type="password" 
+                        id="confirmNewPassword" 
+                        name="confirmNewPassword" 
+                        className={modalStyles.modalInput} 
+                        value={passwordData.confirmNewPassword}
+                        onChange={handlePasswordChange}
+                        disabled={loading}
+                    />
                 </div>
-                <div className={styles.modalActions}>
-                    <button className={styles.cancelButton} onClick={onClose}>Cancelar</button>
-                    <button className={styles.saveButton} onClick={handleSavePassword}>Salvar</button>
+                <div className={modalStyles.modalActions}>
+                    <button 
+                        className={modalStyles.cancelButton} 
+                        onClick={handleClose}
+                        disabled={loading}
+                    >
+                        Cancelar
+                    </button>
+                    <button 
+                        className={modalStyles.saveButton} 
+                        onClick={handleSaveClick}
+                        disabled={loading}
+                    >
+                        {loading ? 'Salvando...' : 'Salvar'}
+                    </button>
                 </div>
             </div>
         </div>
     );
 };
+
 
 // --- COMPONENTE PRINCIPAL DA PÁGINA DE PERFIL ---
 
@@ -88,17 +159,25 @@ export default function Perfil() {
         email: '',
         phone: '',
         dob: '',
-        photoUrl: '/foto_padrao.png' // Inicia com a foto padrão
+        photoUrl: '/foto_padrao.png'
     });
     const [showPasswordModal, setShowPasswordModal] = useState(false);
+    // ADICIONADO: Estado para controlar o carregamento do modal de senha.
+    const [passwordLoading, setPasswordLoading] = useState(false);
+    // Upload de foto
+    const [uploadingPhoto, setUploadingPhoto] = useState(false);
+    const fileInputRef = useRef<HTMLInputElement | null>(null);
+    // Nome do bucket deve ser configurado via env. Ex.: NEXT_PUBLIC_SUPABASE_BUCKET=avatars
+    const BUCKET_NAME = process.env.NEXT_PUBLIC_SUPABASE_BUCKET;
 
+    // CORRIGIDO: Este useEffect busca os dados do perfil do usuário logado.
     useEffect(() => {
         const fetchProfileData = async () => {
             if (user) {
                 try {
                     const { data, error } = await supabase
                         .from('perfis')
-                        .select('nome, foto_usuario') // Seleciona as colunas necessárias
+                        .select('nome, foto_usuario')
                         .eq('id', user.id)
                         .single();
 
@@ -106,18 +185,19 @@ export default function Perfil() {
 
                     if (data) {
                         setProfileData({
-                            fullName: data.nome || user.user_metadata?.full_name || '',
+                            fullName: data.nome || user.user_metadata?.full_name || 'Nome não encontrado',
                             email: user.email || '',
-                            phone: '', // Preencher se/quando buscar da tabela
-                            dob: '',   // Preencher se/quando buscar da tabela
+                            phone: '', // Preencha se tiver esses dados no DB
+                            dob: '',   // Preencha se tiver esses dados no DB
                             photoUrl: data.foto_usuario || '/foto_padrao.png',
                         });
                     }
                 } catch (error) {
                     console.error("Erro ao buscar dados do perfil:", error);
+                    // Define dados básicos em caso de erro para não quebrar a UI
                     setProfileData(prev => ({
                         ...prev,
-                        fullName: user.user_metadata?.full_name || '',
+                        fullName: user.user_metadata?.full_name || 'Nome não encontrado',
                         email: user.email || '',
                         photoUrl: '/foto_padrao.png',
                     }));
@@ -126,11 +206,11 @@ export default function Perfil() {
         };
 
         fetchProfileData();
-    }, [user]);
+    }, [user, supabase]); // Adicionado supabase às dependências
 
     const handleLogout = async () => {
         await signOut();
-        router.push('/');
+        router.push('/login');
     };
 
     const handleInputChange = (e: ChangeEvent<HTMLInputElement>) => {
@@ -139,6 +219,71 @@ export default function Perfil() {
             ...prevData,
             [name]: value,
         }));
+    };
+
+    const openFilePicker = () => {
+        fileInputRef.current?.click();
+    };
+
+    const handlePhotoSelected = async (e: ChangeEvent<HTMLInputElement>) => {
+        const files = e.target.files;
+        if (!files || files.length === 0) return;
+        if (!user) {
+            alert('Você precisa estar autenticado para enviar uma foto.');
+            return;
+        }
+
+        const file = files[0];
+        try {
+            setUploadingPhoto(true);
+            if (!BUCKET_NAME) {
+                alert('Bucket do Storage não configurado. Defina NEXT_PUBLIC_SUPABASE_BUCKET no seu .env.local (ex.: avatars) e crie esse bucket no Supabase.');
+                return;
+            }
+            // Gera um caminho único por usuário
+            const fileExt = file.name.split('.').pop();
+            const filePath = `profiles/${user.id}/${Date.now()}.${fileExt}`;
+
+            // Faz upload para o bucket público
+            const { error: uploadError } = await supabase.storage
+                .from(BUCKET_NAME)
+                .upload(filePath, file, {
+                    cacheControl: '3600',
+                    upsert: true,
+                });
+
+            if (uploadError) throw uploadError;
+
+            // Obtém URL pública
+            const { data: publicData } = supabase.storage
+                .from(BUCKET_NAME)
+                .getPublicUrl(filePath);
+
+            const publicUrl = publicData.publicUrl;
+
+            // Atualiza no banco a coluna foto_usuario
+            const { error: updateError } = await supabase
+                .from('perfis')
+                .update({ foto_usuario: publicUrl })
+                .eq('id', user.id);
+
+            if (updateError) throw updateError;
+
+            // Atualiza UI
+            setProfileData(prev => ({ ...prev, photoUrl: publicUrl }));
+            alert('Foto de perfil atualizada com sucesso!');
+        } catch (err: any) {
+            console.error('Erro ao enviar/atualizar foto:', err);
+            if (err?.message?.toLowerCase?.().includes('bucket not found')) {
+                alert(`Bucket não encontrado no Supabase. Verifique se o bucket "${BUCKET_NAME ?? ''}" existe e está público nas configurações de Storage.`);
+            } else {
+                alert('Não foi possível atualizar a foto de perfil.');
+            }
+        } finally {
+            setUploadingPhoto(false);
+            // limpa o input para permitir re-seleção do mesmo arquivo
+            if (fileInputRef.current) fileInputRef.current.value = '';
+        }
     };
 
     const handleEditProfile = async () => {
@@ -153,7 +298,6 @@ export default function Perfil() {
                     .from("perfis")
                     .update({
                         nome: profileData.fullName,
-                        // ALERTA: Para salvar telefone e data de nasc., adicione as colunas na tabela
                     })
                     .eq('id', user.id);
 
@@ -170,8 +314,33 @@ export default function Perfil() {
         setIsEditing(!isEditing);
     };
 
-    const handleSavePassword = async (data: PasswordData) => {
-        console.log('Dados de senha para salvar:', data);
+    const handleSavePassword = async (passwordData: PasswordData) => {
+        console.log("=== USANDO API PARA ALTERAR SENHA ===");
+        setPasswordLoading(true);
+
+        try {
+            const changePasswordData: ChangePasswordData = {
+                currentPassword: passwordData.currentPassword,
+                newPassword: passwordData.newPassword
+            };
+
+            const result = await PasswordService.changePassword(changePasswordData);
+
+            if (result.error) {
+                alert(`Erro: ${result.error}`);
+                return;
+            }
+
+            console.log("✅ SENHA ALTERADA VIA API!");
+            alert("Senha alterada com sucesso!");
+            setShowPasswordModal(false);
+
+        } catch (error) {
+            console.error('❌ ERRO NA API:', error);
+            alert("Erro inesperado ao alterar senha");
+        } finally {
+            setPasswordLoading(false);
+        }
     };
 
     const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -185,103 +354,120 @@ export default function Perfil() {
     };
 
     return (
-        <main className={styles.main}>
+        <main className={pageStyles.main}>
             <Header isMenuOpen={isMenuOpen} onMenuToggle={toggleMenu} />
             <Sidebar isOpen={isMenuOpen} onClose={closeMenu} />
-            <div className={`${isMenuOpen ? styles.contentPushed : ''} ${styles.mainContent}`}>
-                <div className={styles.content}>
-                    <div className={styles.pageHeader}>
-                        <h1 className={styles.content_title}>Perfil</h1>
+            <div className={`${isMenuOpen ? pageStyles.contentPushed : ''} ${pageStyles.mainContent}`}>
+                <div className={pageStyles.content}>
+                    <div className={pageStyles.pageHeader}>
+                        <h1 className={pageStyles.content_title}>Perfil</h1>
                     </div>
 
-                    <section className={styles.content_info}>
-                        <div className={styles.profileSection}>
-                            <div className={styles.profileHeader}>
-                                <div className={styles.profileInfo}>
-                                    <div className={styles.profilePhotoContainer}>
+                    <section className={pageStyles.content_info}>
+                        <div className={pageStyles.profileSection}>
+                            <div className={pageStyles.profileHeader}>
+                                <div className={pageStyles.profileInfo}>
+                                    <div className={pageStyles.profilePhotoContainer}>
                                         <Image
                                             src={profileData.photoUrl}
                                             alt="Foto de Perfil"
-                                            className={styles.profilePhoto}
+                                            className={pageStyles.profilePhoto}
                                             width={80}
                                             height={80}
                                             onError={() => {
                                                 setProfileData(prev => ({ ...prev, photoUrl: '/foto_padrao.png' }));
                                             }}
                                         />
-                                        <button className={styles.uploadPhotoButton}>
+                                        <input
+                                            ref={fileInputRef}
+                                            type="file"
+                                            accept="image/png,image/jpeg,image/jpg,image/webp"
+                                            style={{ display: 'none' }}
+                                            onChange={handlePhotoSelected}
+                                        />
+                                        <button
+                                            className={pageStyles.uploadPhotoButton}
+                                            onClick={openFilePicker}
+                                            disabled={uploadingPhoto}
+                                            title={uploadingPhoto ? 'Enviando foto...' : 'Atualizar foto de perfil'}
+                                        >
                                             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
                                                 <path d="M12 9V3H9V9H3V12H9V18H12V12H18V9H12Z" />
                                             </svg>
                                         </button>
                                     </div>
-                                    <div className={styles.profileText}>
-                                        <h1 className={styles.profileName}>{profileData.fullName}</h1>
-                                        <span className={styles.profileEmail}>{profileData.email}</span>
+                                    <div className={pageStyles.profileText}>
+                                        <h1 className={pageStyles.profileName}>{profileData.fullName}</h1>
+                                        <span className={pageStyles.profileEmail}>{profileData.email}</span>
                                     </div>
                                 </div>
-                                <div className={styles.profileActions}>
-                                    <button className={styles.actionButton} onClick={() => setShowPasswordModal(true)}>Alterar Senha</button>
-                                    <button className={styles.actionButton}>Contatos</button>
-                                    <button className={styles.logoutButton} onClick={handleLogout}>Logout</button>
+                                <div className={pageStyles.profileActions}>
+                                    <button 
+                                        className={pageStyles.actionButton} 
+                                        onClick={() => setShowPasswordModal(true)}
+                                        disabled={passwordLoading}
+                                    >
+                                        Alterar Senha
+                                    </button>
+                                    <button className={pageStyles.actionButton}>Contatos</button>
+                                    <button className={pageStyles.logoutButton} onClick={handleLogout}>Logout</button>
                                 </div>
                             </div>
 
-                            <div className={styles.infoCard}>
-                                <h2 className={styles.cardTitle}>Informações do Perfil</h2>
-                                <div className={styles.infoGrid}>
-                                    <div className={styles.infoField}>
-                                        <label htmlFor="fullName" className={styles.fieldLabel}>Nome Completo</label>
+                            <div className={pageStyles.infoCard}>
+                                <h2 className={pageStyles.cardTitle}>Informações do Perfil</h2>
+                                <div className={pageStyles.infoGrid}>
+                                    <div className={pageStyles.infoField}>
+                                        <label htmlFor="fullName" className={pageStyles.fieldLabel}>Nome Completo</label>
                                         <input
                                             type="text"
                                             id="fullName"
                                             name="fullName"
                                             value={profileData.fullName}
                                             onChange={handleInputChange}
-                                            className={styles.fieldInput}
+                                            className={pageStyles.fieldInput}
                                             disabled={!isEditing}
                                         />
                                     </div>
-                                    <div className={styles.infoField}>
-                                        <label htmlFor="email" className={styles.fieldLabel}>Email</label>
+                                    <div className={pageStyles.infoField}>
+                                        <label htmlFor="email" className={pageStyles.fieldLabel}>Email</label>
                                         <input
                                             type="email"
                                             id="email"
                                             name="email"
                                             value={profileData.email}
-                                            onChange={handleInputChange}
-                                            className={styles.fieldInput}
+                                            className={pageStyles.fieldInput}
                                             disabled
                                         />
                                     </div>
-                                    <div className={styles.infoField}>
-                                        <label htmlFor="phone" className={styles.fieldLabel}>Telefone</label>
+                                    <div className={pageStyles.infoField}>
+                                        <label htmlFor="phone" className={pageStyles.fieldLabel}>Telefone</label>
                                         <input
                                             type="text"
                                             id="phone"
                                             name="phone"
                                             value={profileData.phone}
                                             onChange={handleInputChange}
-                                            className={styles.fieldInput}
+                                            className={pageStyles.fieldInput}
                                             disabled={!isEditing}
                                         />
                                     </div>
-                                    <div className={styles.infoField}>
-                                        <label htmlFor="dob" className={styles.fieldLabel}>Data de Nascimento</label>
+                                    <div className={pageStyles.infoField}>
+                                        <label htmlFor="dob" className={pageStyles.fieldLabel}>Data de Nascimento</label>
                                         <input
                                             type="date"
                                             id="dob"
                                             name="dob"
                                             value={profileData.dob}
                                             onChange={handleInputChange}
-                                            className={styles.fieldInput}
+                                            className={pageStyles.fieldInput}
                                             disabled={!isEditing}
                                         />
                                     </div>
                                 </div>
-                                <div className={styles.editButtonContainer}>
+                                <div className={pageStyles.editButtonContainer}>
                                     <button
-                                        className={styles.editProfileButton}
+                                        className={pageStyles.editProfileButton}
                                         onClick={handleEditProfile}
                                     >
                                         {isEditing ? 'Salvar Perfil' : 'Editar Perfil'}
@@ -289,7 +475,12 @@ export default function Perfil() {
                                 </div>
                             </div>
                         </div>
-                        <ChangePasswordModal show={showPasswordModal} onClose={() => setShowPasswordModal(false)} onSave={handleSavePassword} />
+                        <ChangePasswordModal 
+                            show={showPasswordModal} 
+                            onClose={() => setShowPasswordModal(false)} 
+                            onSave={handleSavePassword}
+                            loading={passwordLoading}
+                        />
                     </section>
                 </div>
             </div>
