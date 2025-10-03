@@ -70,9 +70,9 @@ export default function Home() {
             Mais autonomia para eles, mais tranquilidade para a família.
           </p>
           <div className={styles.buttonGroup}>
-            <Link href="/login">
+            <Link href="/choose_profile">
               <Button size="lg" className={styles.primaryButton}>
-                Experimente
+                Começar agora
               </Button>
             </Link>
           </div>
