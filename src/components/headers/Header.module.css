@@ -5,7 +5,7 @@
   justify-content: space-between;
   align-items: center;
   padding: 16px 24px;
-  background-color: white;
+  background-color: #f8f9fa;
   border-bottom: 1px solid #dee2e6;
 }
 
@@ -40,9 +40,9 @@
 
 .welcomeText {
   margin: 0;
-  color: #495057;
+  color: #0400BA;
   font-weight: 500;
-  font-size: 20px;
+  font-size: 25px;
 }
 
 .dropdownMenu {
@@ -131,7 +131,7 @@
   }
   
   .welcomeText {
-    font-size: 18px;
+    font-size: 22px;
   }
   
   .dropdownMenu {
@@ -150,8 +150,7 @@
   }
   
   .welcomeText {
-    font-size: 16px;
-    display: none; /* Oculta o texto de boas-vindas em telas pequenas */
+    font-size: 20px;
   }
   
   .actions {
@@ -184,6 +183,10 @@
     gap: 10px;
   }
   
+  .welcomeText {
+    font-size: 18px;
+  }
+  
   .actions {
     padding: 4px;
   }
@@ -208,6 +211,10 @@
 @media (max-width: 360px) {
   .header {
     padding: 8px 10px;
+  }
+  
+  .welcomeText {
+    font-size: 16px;
   }
   
   .dropdownMenu {
