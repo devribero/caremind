@@ -11,13 +11,7 @@ interface AuthContextType {
   session: Session | null;
   loading: boolean;
   signIn: (email: string, password: string) => Promise<AuthResponse>;
-  signUp: (
-    email: string,
-    password: string,
-    fullName?: string,
-    phone?: string,
-    accountType?: 'Individual' | 'Familiar'
-  ) => Promise<AuthResponse>;
+  signUp: (email: string, password: string, fullName?: string, accountType?: 'individual' | 'familiar') => Promise<AuthResponse>;
   resetPassword: (email: string) => Promise<{ error: AuthError | null }>;
   signOut: () => Promise<void>;
 }
@@ -109,75 +103,95 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     });
   };
 
-  const signUp = async (
-    email: string,
-    password: string,
-    fullName?: string,
-    phone?: string,
-    accountType: 'Individual' | 'Familiar' = 'Individual'
-  ) => {
-    // 1) Cria usuário com metadados (inclui telefone)
-    const response = await supabase.auth.signUp({
-      email,
-      password,
-      options: {
-        data: {
-          full_name: fullName,
-          phone,
-        },
-      },
-    });
-
-    // Armazena metadados pendentes localmente para sincronizar após primeiro login
+  const signUp = async (email: string, password: string, fullName?: string, accountType: 'individual' | 'familiar' = 'individual') => {
     try {
-      if (typeof window !== 'undefined') {
-        localStorage.setItem(
-          'pendingUserMetadata',
-          JSON.stringify({ full_name: fullName, phone })
-        );
-      }
-    } catch {}
-
-    // 2) Refina user_metadata garantindo persistência do telefone, pois em alguns projetos
-    //    as configurações podem exigir confirmação de email e ignorar parte dos metadados.
-    try {
-      const createdUser = response?.data?.user;
-      if (createdUser) {
-        await supabase.auth.updateUser({
+      // Primeiro, registra o usuário na autenticação
+      const authResponse = await supabase.auth.signUp({
+        email,
+        password,
+        options: {
           data: {
             full_name: fullName,
-            phone,
+            account_type: accountType,
           },
-        });
-        // Checagem opcional (log) para confirmar metadados
-        const { data: userCheck } = await supabase.auth.getUser();
-        console.log('Metadados após updateUser:', userCheck?.user?.user_metadata);
+        },
+      });
+      
+      console.log("Resposta de autenticação:", authResponse);
+      
+      // Se o registro de autenticação for bem-sucedido, cria o perfil no banco de dados
+      if (authResponse.data.user && !authResponse.error) {
+        const userId = authResponse.data.user.id;
+        
+        // Tenta inserir o perfil na tabela 'perfis' com o nome explícito
+        const profileData = {
+          user_id: userId,
+          nome: fullName || 'Sem nome', // Nome explícito
+          tipo: accountType,
+          email: email,
+          created_at: new Date().toISOString()
+        };
+        
+        console.log("Tentando inserir perfil com nome:", fullName);
+        
+        // Primeiro, vamos verificar se já existe um perfil para este usuário
+        const { data: existingProfile } = await supabase
+          .from('perfis')
+          .select('*')
+          .eq('user_id', userId)
+          .single();
+          
+        if (existingProfile) {
+          // Se já existe, atualiza o perfil existente
+          const { error: updateError } = await supabase
+            .from('perfis')
+            .update({ 
+              nome: fullName,
+              tipo: accountType,
+              email: email
+            })
+            .eq('user_id', userId);
+            
+          if (updateError) {
+            console.error('Erro ao atualizar perfil:', updateError);
+          } else {
+            console.log('Perfil atualizado com sucesso!');
+          }
+        } else {
+          // Se não existe, insere um novo perfil
+          const { error: insertError } = await supabase
+            .from('perfis')
+            .insert([profileData]);
+            
+          if (insertError) {
+            console.error('Erro ao criar perfil:', insertError);
+            
+            // Tenta uma abordagem alternativa - RLS pode estar bloqueando
+            const { error: rpcError } = await supabase.rpc('criar_perfil', {
+              p_user_id: userId,
+              p_nome: fullName || 'Sem nome',
+              p_tipo: accountType,
+              p_email: email
+            });
+            
+            if (rpcError) {
+              console.error('Erro ao criar perfil via RPC:', rpcError);
+            } else {
+              console.log('Perfil criado com sucesso via RPC!');
+            }
+          } else {
+            console.log('Perfil criado com sucesso!');
+          }
+        }
+      } else if (authResponse.error) {
+        console.error('Erro na autenticação:', authResponse.error);
       }
-    } catch (e) {
-      console.warn('Aviso: não foi possível confirmar/persistir metadados do usuário no signup.', e);
+      
+      return authResponse;
+    } catch (error) {
+      console.error('Erro inesperado no signUp:', error);
+      throw error;
     }
-
-    // 3) Se o usuário foi criado com sucesso, cria o perfil com o tipo selecionado
-    try {
-      const createdUser = response?.data?.user;
-      if (createdUser && fullName) {
-        await fetch('/api/perfil', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            nome: fullName,
-            tipo: accountType,
-          }),
-        });
-      }
-    } catch (err) {
-      console.error('Falha ao criar Perfil após signUp:', err);
-      // Mantemos o fluxo de signup mesmo que o Perfil falhe; UI pode lidar depois
-    }
-
-    return response;
   };
 
   const signOut = async () => {

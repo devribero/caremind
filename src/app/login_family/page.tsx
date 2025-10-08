@@ -14,8 +14,6 @@ export default function AuthPage() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
-  const [phone, setPhone] = useState('');
-  const [accountType, setAccountType] = useState<'Individual' | 'Familiar'>('Individual');
   const [acceptTerms, setAcceptTerms] = useState(false);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
@@ -55,15 +53,6 @@ export default function AuthPage() {
       if (password !== confirmPassword) {
         return setError('As senhas não coincidem');
       }
-      if (!fullName.trim()) {
-        return setError('Informe seu nome completo');
-      }
-      if (!phone.trim()) {
-        return setError('Informe seu número de telefone');
-      }
-      if (!['Individual', 'Familiar'].includes(accountType)) {
-        return setError('Selecione um tipo de conta válido');
-      }
       if (!acceptTerms) {
         return setError('Você precisa aceitar os Termos e a Política');
       }
@@ -76,7 +65,7 @@ export default function AuthPage() {
         if (error) setError('Email ou senha incorretos');
         else router.push('/dashboard');
       } else {
-        const { error } = await signUp(email, password, fullName, 'individual');
+        const { error } = await signUp(email, password, fullName, 'familiar');
         if (error) setError('Erro ao criar conta: ' + error.message);
         else router.push('/dashboard');
       }
@@ -169,37 +158,6 @@ export default function AuthPage() {
               )}
 
               {!isLogin && (
-                <div className={styles.inputGroup}>
-                  <label htmlFor="phone">Número (telefone)</label>
-                  <input
-                    id="phone"
-                    type="tel"
-                    value={phone}
-                    onChange={(e) => setPhone(e.target.value)}
-                    className={styles.input}
-                    placeholder='(00) 00000-0000'
-                    required
-                  />
-                </div>
-              )}
-
-              {!isLogin && (
-                <div className={styles.inputGroup}>
-                  <label htmlFor="accountType">Tipo de conta</label>
-                  <select
-                    id="accountType"
-                    className={styles.input}
-                    value={accountType}
-                    onChange={(e) => setAccountType(e.target.value as 'Individual' | 'Familiar')}
-                    required
-                  >
-                    <option value="Individual">Individual</option>
-                    <option value="Familiar">Familiar</option>
-                  </select>
-                </div>
-              )}
-
-              {!isLogin && (
                 <div className={styles.checkboxGroup}>
                   <input
                     id="terms"
@@ -237,8 +195,6 @@ export default function AuthPage() {
                   setPassword('');
                   setFullName('');
                   setConfirmPassword('');
-                  setPhone('');
-                  setAccountType('Individual');
                   setAcceptTerms(false);
                 }}
                 className={styles.switchButton}

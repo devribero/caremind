@@ -13,9 +13,16 @@ try {
 }
 
 const nextConfig = {
-  images: {
-    remotePatterns,
-  },
+    images: {
+        remotePatterns: [
+            {
+                protocol: 'https',
+                hostname: 'njxsuqvqaeesxmoajzyb.supabase.co',
+                port: '',
+                pathname: '/storage/v1/object/public/**',
+            },
+        ],
+    },
 };
 
 module.exports = nextConfig;

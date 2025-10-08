@@ -12,7 +12,6 @@ import Image from 'next/image';
 import { PasswordService, ChangePasswordData } from '@/lib/services/passwordService';
 
 // --- DEFINIÇÃO DE TIPOS ---
-
 interface PasswordData {
     currentPassword: string;
     newPassword: string;
@@ -28,7 +27,7 @@ interface ChangePasswordModalProps {
 
 // --- COMPONENTE MODAL DE ALTERAR SENHA ---
 
-const ChangePasswordModal = ({ show, onClose, onSave, loading = false }: ChangePasswordModalProps) => {
+const ChangePasswordModal = ({ show, onClose, onSave }: ChangePasswordModalProps) => {
     const [passwordData, setPasswordData] = useState<PasswordData>({
         currentPassword: '',
         newPassword: '',
@@ -148,7 +147,6 @@ const ChangePasswordModal = ({ show, onClose, onSave, loading = false }: ChangeP
 
 
 // --- COMPONENTE PRINCIPAL DA PÁGINA DE PERFIL ---
-
 export default function Perfil() {
     const { user, signOut } = useAuth();
     const router = useRouter();
@@ -162,20 +160,12 @@ export default function Perfil() {
         photoUrl: '/foto_padrao.png'
     });
     const [showPasswordModal, setShowPasswordModal] = useState(false);
-    // ADICIONADO: Estado para controlar o carregamento do modal de senha.
-    const [passwordLoading, setPasswordLoading] = useState(false);
-    // Upload de foto
-    const [uploadingPhoto, setUploadingPhoto] = useState(false);
-    const fileInputRef = useRef<HTMLInputElement | null>(null);
-    // Nome do bucket deve ser configurado via env. Ex.: NEXT_PUBLIC_SUPABASE_BUCKET=avatars
-    const BUCKET_NAME = process.env.NEXT_PUBLIC_SUPABASE_BUCKET;
 
-    // CORRIGIDO: Este useEffect busca os dados do perfil do usuário logado.
     useEffect(() => {
         const fetchProfileData = async () => {
             if (user) {
                 try {
-                    const { data, error } = await supabase
+                    const { data: profile, error: profileError } = await supabase
                         .from('perfis')
                         .select('nome, foto_usuario')
                         .eq('id', user.id)
@@ -185,10 +175,10 @@ export default function Perfil() {
 
                     if (data) {
                         setProfileData({
-                            fullName: data.nome || user.user_metadata?.full_name || 'Nome não encontrado',
+                            fullName: data.nome || user.user_metadata?.full_name || '',
                             email: user.email || '',
-                            phone: '', // Preencha se tiver esses dados no DB
-                            dob: '',   // Preencha se tiver esses dados no DB
+                            phone: '', // Preencher se/quando buscar da tabela
+                            dob: '',   // Preencher se/quando buscar da tabela
                             photoUrl: data.foto_usuario || '/foto_padrao.png',
                         });
                     }
@@ -206,7 +196,7 @@ export default function Perfil() {
         };
 
         fetchProfileData();
-    }, [user, supabase]); // Adicionado supabase às dependências
+    }, [user]);
 
     const handleLogout = async () => {
         await signOut();
@@ -314,43 +304,69 @@ export default function Perfil() {
         setIsEditing(!isEditing);
     };
 
-    const handleSavePassword = async (passwordData: PasswordData) => {
-        console.log("=== USANDO API PARA ALTERAR SENHA ===");
-        setPasswordLoading(true);
-
-        try {
-            const changePasswordData: ChangePasswordData = {
-                currentPassword: passwordData.currentPassword,
-                newPassword: passwordData.newPassword
-            };
-
-            const result = await PasswordService.changePassword(changePasswordData);
-
-            if (result.error) {
-                alert(`Erro: ${result.error}`);
-                return;
-            }
-
-            console.log("✅ SENHA ALTERADA VIA API!");
-            alert("Senha alterada com sucesso!");
-            setShowPasswordModal(false);
-
-        } catch (error) {
-            console.error('❌ ERRO NA API:', error);
-            alert("Erro inesperado ao alterar senha");
-        } finally {
-            setPasswordLoading(false);
-        }
+    const handleSavePassword = async (data: PasswordData) => {
+        console.log('Dados de senha para salvar:', data);
     };
 
     const [isMenuOpen, setIsMenuOpen] = useState(false);
+    const toggleMenu = () => setIsMenuOpen(!isMenuOpen);
+    const closeMenu = () => setIsMenuOpen(false);
 
-    const toggleMenu = () => {
-        setIsMenuOpen(!isMenuOpen);
+    // NOVO: Função para disparar o clique no input de arquivo
+    const handleUploadButtonClick = () => {
+        fileInputRef.current?.click();
     };
 
-    const closeMenu = () => {
-        setIsMenuOpen(false);
+    // NOVO: Função para lidar com a seleção e upload do arquivo
+    const handleFileChange = async (event: ChangeEvent<HTMLInputElement>) => {
+        if (!event.target.files || event.target.files.length === 0) {
+            return;
+        }
+
+        const file = event.target.files[0];
+        if (!user) {
+            alert("Você precisa estar logado para enviar uma foto.");
+            return;
+        }
+
+        const fileExt = file.name.split('.').pop();
+        const fileName = `${Math.random()}.${fileExt}`;
+        const filePath = `profiles/${user.id}/${fileName}`;
+
+        try {
+            // 1. Faz o upload para o Supabase Storage
+            const { error: uploadError } = await supabase.storage
+                .from('avatars') // Nome do seu bucket
+                .upload(filePath, file);
+
+            if (uploadError) throw uploadError;
+
+            // 2. Atualiza a coluna 'foto_usuario' na tabela 'perfis'
+            const { error: updateError } = await supabase
+                .from('perfis')
+                .update({ foto_usuario: filePath })
+                .eq('id', user.id);
+
+            if (updateError) throw updateError;
+
+            // 3. Atualiza a URL da foto no estado local para refletir a mudança na tela
+            const { data: publicUrlData } = supabase
+                .storage
+                .from('avatars')
+                .getPublicUrl(filePath);
+
+            if (publicUrlData) {
+                setProfileData(prev => ({ ...prev, photoUrl: publicUrlData.publicUrl }));
+            }
+
+            alert("Foto de perfil atualizada com sucesso!");
+
+        } catch (error) {
+            console.error("Erro ao enviar a foto:", error);
+            if (error instanceof Error) {
+                alert(`Não foi possível enviar a foto: ${error.message}`);
+            }
+        }
     };
 
     return (
@@ -374,27 +390,24 @@ export default function Perfil() {
                                             className={pageStyles.profilePhoto}
                                             width={80}
                                             height={80}
+                                            key={profileData.photoUrl}
                                             onError={() => {
                                                 setProfileData(prev => ({ ...prev, photoUrl: '/foto_padrao.png' }));
                                             }}
                                         />
-                                        <input
-                                            ref={fileInputRef}
-                                            type="file"
-                                            accept="image/png,image/jpeg,image/jpg,image/webp"
-                                            style={{ display: 'none' }}
-                                            onChange={handlePhotoSelected}
-                                        />
-                                        <button
-                                            className={pageStyles.uploadPhotoButton}
-                                            onClick={openFilePicker}
-                                            disabled={uploadingPhoto}
-                                            title={uploadingPhoto ? 'Enviando foto...' : 'Atualizar foto de perfil'}
-                                        >
+                                        <button className={styles.uploadPhotoButton}>
                                             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
                                                 <path d="M12 9V3H9V9H3V12H9V18H12V12H18V9H12Z" />
                                             </svg>
                                         </button>
+                                        {/* NOVO: Input de arquivo escondido */}
+                                        <input
+                                            type="file"
+                                            ref={fileInputRef}
+                                            onChange={handleFileChange}
+                                            style={{ display: 'none' }}
+                                            accept="image/png, image/jpeg"
+                                        />
                                     </div>
                                     <div className={pageStyles.profileText}>
                                         <h1 className={pageStyles.profileName}>{profileData.fullName}</h1>
