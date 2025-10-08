@@ -3,86 +3,15 @@
 .main {
     font-family: "League Spartan", sans-serif;
 }
- 
-.header {
-    background-color: white;
-    color: #0400BA;
-    font-weight: 700;
-    font-size: 20px;
-    border-radius: 30px;
-    width: 100%;
-    max-width: 1300px; 
-    margin: 0 auto;  
-    margin-top: 20px; 
-    padding: 15px 20px; 
-    box-shadow: 0 0 13px rgb(147, 155, 238);
-    box-sizing: border-box;
-    position: relative;
-}
-
-@media (max-width: 1350px) {
-    .header {
-        margin-left: 20px;
-        margin-right: 20px;
-        max-width: calc(100% - 40px);
-    }
-}
-
-@media (max-width: 768px) {
-    .header {
-        font-size: 18px;
-        padding: 12px 15px;
-        border-radius: 20px;
-        margin-top: 15px;
-        margin-left: 15px;
-        margin-right: 15px;
-        max-width: calc(100% - 30px);
-    }
-}
-
-.header_list {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 30px;
-    list-style: none;
-    margin: 0;
-    padding: 0;
-    width: 100%;
-}
-
-.header_image {
-    display: flex;
-    align-items: center;
-}
-
-.header_text {
-    display: flex;
-    gap: 30px;
-    list-style: none;
-    margin: 0;
-    padding: 0;
-    align-items: center;
-}
-
-.header_a {
-    font-size: 23px;
-    text-decoration: none;
-    color: inherit;
-    transition: opacity 0.3s ease;
-    white-space: nowrap;
-}
-
-.header_a:hover {
-    opacity: 0.7;
-}
 
 .section {
     padding: clamp(2rem, 8vw, 5rem) clamp(1rem, 4vw, 2rem);
+
 }
 
 .container {
     max-width: min(64rem, 95%);
+    margin-top: 90px;
     margin-left: auto;
     margin-right: auto;
     text-align: center;

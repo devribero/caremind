@@ -15,7 +15,7 @@ export default function ChooseProfile() {
         if (type === 'individual') {
             router.push('/login');
         } else {
-            router.push('/family_plan');
+            router.push('/login_family');
         }
     }
 
@@ -27,10 +27,10 @@ export default function ChooseProfile() {
                 <div className={styles.profileOptions}>
                     <div className={styles.profileCard} onClick={() => handleProfileSelect('individual')}>
                         <Image
-                            src="/user.svg"
+                            src="/icons/user.webp"
                             alt="Uso Individual"
-                            width={64}
-                            height={64}
+                            width={80}
+                            height={80}
                         />
                         <h2>Uso Individual</h2>
                         <p>Gerencie seus próprios medicamentos e rotinas</p>
@@ -38,10 +38,10 @@ export default function ChooseProfile() {
                     </div>
                     <div className={styles.profileCard} onClick={() => handleProfileSelect('family')}>
                         <Image
-                            src="/family.svg"
+                            src="/icons/teamwork.webp"
                             alt="Plano Família"
-                            width={64}
-                            height={64}
+                            width={80}
+                            height={80}
                         />
                         <h2>Plano Família</h2>
                         <p>Gerencie medicamentos para você e seus familiares</p>

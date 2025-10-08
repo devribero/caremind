@@ -65,7 +65,7 @@ export default function AuthPage() {
         if (error) setError('Email ou senha incorretos');
         else router.push('/dashboard');
       } else {
-        const { error } = await signUp(email, password, fullName);
+        const { error } = await signUp(email, password, fullName, 'familiar');
         if (error) setError('Erro ao criar conta: ' + error.message);
         else router.push('/dashboard');
       }
