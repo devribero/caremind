@@ -60,6 +60,34 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       console.log('Mudança no estado de autenticação:', event, session?.user?.email);
       setSession(session);
       setUser(session?.user ?? null);
+
+      // Fallback: ao logar, tenta sincronizar metadados pendentes (ex.: phone) se não existirem ainda
+      try {
+        if (event === 'SIGNED_IN' && session?.user) {
+          const currentMeta = session.user.user_metadata as Record<string, any> | undefined;
+          const pendingRaw = typeof window !== 'undefined' ? localStorage.getItem('pendingUserMetadata') : null;
+          if (pendingRaw) {
+            const pending = JSON.parse(pendingRaw) as { full_name?: string; phone?: string } | null;
+            const needsPhone = !currentMeta?.phone && !!pending?.phone;
+            const needsName = !currentMeta?.full_name && !!pending?.full_name;
+            if (needsPhone || needsName) {
+              await supabase.auth.updateUser({
+                data: {
+                  full_name: needsName ? pending?.full_name : currentMeta?.full_name,
+                  phone: needsPhone ? pending?.phone : currentMeta?.phone,
+                },
+              });
+            }
+            // Limpa pendências após tentativa
+            if (typeof window !== 'undefined') {
+              localStorage.removeItem('pendingUserMetadata');
+            }
+          }
+        }
+      } catch (syncErr) {
+        console.warn('Falha ao sincronizar metadados pendentes no SIGNED_IN:', syncErr);
+      }
+
       setLoading(false);
     });
 
