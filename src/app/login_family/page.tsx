@@ -6,7 +6,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useRouter } from 'next/navigation';
 import { Button } from "@/components/ui/button";
 import styles from './page.module.css';
-import { Header } from '@/components/headers/HeaderLogin'
+import { Header } from '@/components/headers/HeaderChoose'
 
 export default function AuthPage() {
   const [isLogin, setIsLogin] = useState(true);

@@ -76,16 +76,94 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   const signUp = async (email: string, password: string, fullName?: string, accountType: 'individual' | 'familiar' = 'individual') => {
-    return await supabase.auth.signUp({
-      email,
-      password,
-      options: {
-        data: {
-          full_name: fullName,
-          account_type: accountType,
+    try {
+      // Primeiro, registra o usuário na autenticação
+      const authResponse = await supabase.auth.signUp({
+        email,
+        password,
+        options: {
+          data: {
+            full_name: fullName,
+            account_type: accountType,
+          },
         },
-      },
-    });
+      });
+      
+      console.log("Resposta de autenticação:", authResponse);
+      
+      // Se o registro de autenticação for bem-sucedido, cria o perfil no banco de dados
+      if (authResponse.data.user && !authResponse.error) {
+        const userId = authResponse.data.user.id;
+        
+        // Tenta inserir o perfil na tabela 'perfis' com o nome explícito
+        const profileData = {
+          user_id: userId,
+          nome: fullName || 'Sem nome', // Nome explícito
+          tipo: accountType,
+          email: email,
+          created_at: new Date().toISOString()
+        };
+        
+        console.log("Tentando inserir perfil com nome:", fullName);
+        
+        // Primeiro, vamos verificar se já existe um perfil para este usuário
+        const { data: existingProfile } = await supabase
+          .from('perfis')
+          .select('*')
+          .eq('user_id', userId)
+          .single();
+          
+        if (existingProfile) {
+          // Se já existe, atualiza o perfil existente
+          const { error: updateError } = await supabase
+            .from('perfis')
+            .update({ 
+              nome: fullName,
+              tipo: accountType,
+              email: email
+            })
+            .eq('user_id', userId);
+            
+          if (updateError) {
+            console.error('Erro ao atualizar perfil:', updateError);
+          } else {
+            console.log('Perfil atualizado com sucesso!');
+          }
+        } else {
+          // Se não existe, insere um novo perfil
+          const { error: insertError } = await supabase
+            .from('perfis')
+            .insert([profileData]);
+            
+          if (insertError) {
+            console.error('Erro ao criar perfil:', insertError);
+            
+            // Tenta uma abordagem alternativa - RLS pode estar bloqueando
+            const { error: rpcError } = await supabase.rpc('criar_perfil', {
+              p_user_id: userId,
+              p_nome: fullName || 'Sem nome',
+              p_tipo: accountType,
+              p_email: email
+            });
+            
+            if (rpcError) {
+              console.error('Erro ao criar perfil via RPC:', rpcError);
+            } else {
+              console.log('Perfil criado com sucesso via RPC!');
+            }
+          } else {
+            console.log('Perfil criado com sucesso!');
+          }
+        }
+      } else if (authResponse.error) {
+        console.error('Erro na autenticação:', authResponse.error);
+      }
+      
+      return authResponse;
+    } catch (error) {
+      console.error('Erro inesperado no signUp:', error);
+      throw error;
+    }
   };
 
   const signOut = async () => {
