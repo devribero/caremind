@@ -1,11 +1,11 @@
-@import url('https://fonts.googleapis.com/css2?family=League+Spartan:wght@100..900&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap');
 
 .main {
   display: flex;
   flex-direction: column;
   min-height: 100vh;
   background-color: #f0f2f5;
-  font-family: "League Spartan", sans-serif;
+  font-family: "Poppins", sans-serif; /* alterado para Poppins */
 }
 
 .content {
@@ -17,31 +17,39 @@
 }
 
 .content_title {
-  text-decoration: underline;
-  text-decoration-color: #0400BA;
-  text-decoration-thickness: 2px;
-  font-size: 40px;
-  color: black;
-  font-weight: 400;
+  font-family: "Poppins", sans-serif;
+  font-size: 48px;
+  font-weight: 700;
+  color: #0400BA;
+  text-align: left;
+  margin-top: 40px;
+  margin-bottom: 40px;
+  position: relative;
+}
+
+.content_title::after {
+  content: "";
+  position: absolute;
+  bottom: -8px;
+  left: 0;
+  width: 100px;
+  height: 4px;
+  background-color: #0400BA;
+  border-radius: 2px;
 }
 
 .headerContainer {
-  position: sticky; /* ou fixed, dependendo do seu design */
+  position: sticky;
   top: 0;
-  z-index: 950; /* Z-index alto, mas abaixo do sidebar */
+  z-index: 950;
   width: 100%;
   transition: margin-left 0.3s ease-in-out, width 0.3s ease-in-out;
 }
 
-/* NOVO: Classe que "empurra" o header */
 .headerPushed {
-  /* IMPORTANTE: O valor aqui DEVE SER IGUAL à largura do seu sidebar! */
   margin-left: 280px;
-  width: calc(100% - 280px); /* Ajusta a largura para preencher o espaço restante */
+  width: calc(100% - 280px);
 }
-
-/* ======================================================= */
-/* Estilos do conteúdo principal (que você já tem) */
 
 .mainContent {
   transition: margin-left 0.3s ease-in-out;
@@ -53,44 +61,193 @@
   margin-left: 280px; 
 }
 
+/* Report Cards Grid */
+.reportGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 24px;
+  margin-bottom: 30px;
+}
+
+.reportCard {
+  background: white;
+  padding: 24px;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.cardTitle {
+  font-size: 20px;
+  font-weight: 600;
+  color: #333;
+  margin-bottom: 20px;
+}
+
+.progressWrapper {
+  margin-bottom: 16px;
+}
+
+.progressLabel {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 8px;
+  font-size: 14px;
+  color: #666;
+}
+
+.progressBar {
+  width: 100%;
+}
+
+.progressBar progress {
+  width: 100%;
+  height: 12px;
+  border-radius: 6px;
+  overflow: hidden;
+}
+
+.progressBar progress::-webkit-progress-bar {
+  background-color: #e0e0e0;
+  border-radius: 6px;
+}
+
+.progressBar progress::-webkit-progress-value {
+  background-color: #0400BA;
+  border-radius: 6px;
+  transition: width 0.3s ease;
+}
+
+.progressBar progress::-moz-progress-bar {
+  background-color: #0400BA;
+  border-radius: 6px;
+}
+
+.progressBarRed progress::-webkit-progress-value {
+  background-color: #dc3545;
+}
+
+.progressBarRed progress::-moz-progress-bar {
+  background-color: #dc3545;
+}
+
+/* Chart Container */
+.chartContainer {
+  background: white;
+  padding: 24px;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  margin-bottom: 30px;
+}
+
+.chartTitle {
+  font-size: 20px;
+  font-weight: 600;
+  color: #333;
+  margin-bottom: 8px;
+}
+
+.chartSubtitle {
+  font-size: 14px;
+  color: #666;
+  font-weight: 400;
+  margin-bottom: 20px;
+}
+
+/* Report Container */
+.reportContainer {
+  background: white;
+  padding: 24px;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  margin-bottom: 30px;
+}
+
+/* History Table */
+.historyTable {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 16px;
+}
+
+.historyTable thead {
+  background-color: #f8f9fa;
+}
+
+.historyTable th {
+  padding: 12px;
+  text-align: left;
+  font-weight: 600;
+  color: #333;
+  border-bottom: 2px solid #e0e0e0;
+}
+
+.historyTable td {
+  padding: 12px;
+  border-bottom: 1px solid #e0e0e0;
+  color: #666;
+}
+
+.historyTable tbody tr:hover {
+  background-color: #f8f9fa;
+}
+
+.statusTomado {
+  color: #28a745;
+  font-weight: 600;
+}
+
+.statusPerdido {
+  color: #dc3545;
+  font-weight: 600;
+}
+
 /* Responsive design */
 @media (max-width: 768px) {
-  .header {
-    padding: 15px;
-    border-radius: 0 0 20px 20px;
-  }
-  
-  .headerContent {
-    flex-direction: column;
-    gap: 15px;
-    text-align: center;
-  }
-  
-  .title {
-    font-size: 2rem;
-  }
-  
-  .welcomeText {
-    font-size: 1rem;
-  }
-  
   .content {
     padding: 0 15px;
+  }
+
+  .content_title {
+    font-size: 32px;
+  }
+
+  .reportGrid {
+    grid-template-columns: 1fr;
+    gap: 16px;
+  }
+
+  .reportCard,
+  .chartContainer,
+  .reportContainer {
+    padding: 16px;
+  }
+
+  .historyTable {
+    font-size: 14px;
+  }
+
+  .historyTable th,
+  .historyTable td {
+    padding: 8px;
   }
 }
 
 @media (max-width: 480px) {
-  .header {
-    padding: 12px;
-    border-radius: 0 0 15px 15px;
+  .content_title {
+    font-size: 28px;
   }
-  
-  .title {
-    font-size: 1.75rem;
+
+  .cardTitle,
+  .chartTitle {
+    font-size: 18px;
   }
-  
-  .logoutButton {
-    padding: 10px 20px;
-    font-size: 14px;
+
+  .historyTable {
+    font-size: 12px;
+  }
+
+  .historyTable th,
+  .historyTable td {
+    padding: 6px;
   }
 }

@@ -7,6 +7,7 @@
   --font-family: "League Spartan", sans-serif;
 }
 
+
 @media (prefers-color-scheme: dark) {
   :root {
     --background: white;
@@ -58,3 +59,5 @@ input[type='number'] {
   -moz-appearance: textfield;
   appearance: textfield;
 }
+
+
