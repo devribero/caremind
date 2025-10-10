@@ -1,6 +1,5 @@
 'use client';
 
-// 1. O useState já estava importado, ótimo!
 import { useState, useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useRouter } from 'next/navigation';
@@ -23,14 +22,12 @@ export default function AuthPage() {
   const { signIn, signUp, user, loading: authLoading } = useAuth();
   const router = useRouter();
 
-  // Redireciona para o dashboard se o usuário já estiver logado
   useEffect(() => {
     if (!authLoading && user) {
       router.push('/dashboard');
     }
   }, [user, authLoading, router]);
 
-  // Mostra loading enquanto verifica a autenticação
   if (authLoading) {
     return (
       <main className={styles.main}>
@@ -39,7 +36,8 @@ export default function AuthPage() {
           justifyContent: 'center', 
           alignItems: 'center', 
           height: '100vh',
-          fontSize: '18px'
+          fontSize: '18px',
+          color: 'white'
         }}>
           Carregando...
         </div>
@@ -89,6 +87,12 @@ export default function AuthPage() {
 
   return (
     <main className={styles.main}>
+      {/* Efeito de ondas animadas */}
+      <div className={styles.waves}>
+        <div className={styles.wave}></div>
+        <div className={styles.wave}></div>
+        <div className={styles.wave}></div>
+      </div>
 
       <Header />
 
@@ -223,7 +227,6 @@ export default function AuthPage() {
                 {loading ? 'Carregando...' : isLogin ? 'Entrar' : 'Registrar'}
               </Button>
             </form>
-
 
             <div className={styles.switchMode}>
               <p className={styles.switchText}>

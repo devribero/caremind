@@ -1,11 +1,10 @@
 'use client';
 
 import { useEffect } from 'react';
-import { useAuth } from '@/contexts/AuthContext'; // Importe seu hook
+import { useAuth } from '@/contexts/AuthContext';
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 
-// Importe seus componentes normais
 import { Header } from '@/components/headers/HeaderDashboard';
 import DashboardClient from '@/components/DashboardClient';
 import { FullScreenLoader } from '@/components/FullScreenLoader';
@@ -18,12 +17,12 @@ export default function Dashboard() {
   const router = useRouter();
 
   const toggleMenu = () => {
-        setIsMenuOpen(!isMenuOpen);
-      };
+    setIsMenuOpen(!isMenuOpen);
+  };
     
-      const closeMenu = () => {
-        setIsMenuOpen(false);
-      };
+  const closeMenu = () => {
+    setIsMenuOpen(false);
+  };
 
   useEffect(() => {
     if (!loading && !user) {
@@ -33,34 +32,41 @@ export default function Dashboard() {
 
   if (loading) {
     return (
-        <div className={styles.loadingContainer}>
-            <FullScreenLoader />
-        </div>
+      <div className={styles.loadingContainer}>
+        <FullScreenLoader />
+      </div>
     );
   }
 
   if (user) {
     return (
-        <div className={styles.dashboardContainer}>
-            <div className={styles.headerContainer}>
-                <Header
-                  isMenuOpen={isMenuOpen}
-                  onMenuToggle={toggleMenu}
-                />
-                <Sidebar
-                  isOpen={isMenuOpen}
-                  onClose={closeMenu}
-                />
-            </div>
-            <main className={styles.mainContent}>
-                <div className={styles.content}>
-                    <h1 className={styles.content_title}>Dashboard</h1>
-                    <section className={styles.content_info}>
-                        <DashboardClient />
-                    </section>
-                </div>
-            </main>
+      <div className={styles.dashboardContainer}>
+        {/* Efeito de ondas */}
+        <div className={styles.waves}>
+          <div className={styles.wave}></div>
+          <div className={styles.wave}></div>
+          <div className={styles.wave}></div>
         </div>
+
+        <div className={styles.headerContainer}>
+          <Header
+            isMenuOpen={isMenuOpen}
+            onMenuToggle={toggleMenu}
+          />
+          <Sidebar
+            isOpen={isMenuOpen}
+            onClose={closeMenu}
+          />
+        </div>
+        <main className={styles.mainContent}>
+          <div className={styles.content}>
+            <h1 className={styles.content_title}>Dashboard</h1>
+            <section className={styles.content_info}>
+              <DashboardClient />
+            </section>
+          </div>
+        </main>
+      </div>
     );
   }
 

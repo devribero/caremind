@@ -1,11 +1,84 @@
 @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap');
 
-.main {
+.dashboardContainer {
   display: flex;
   flex-direction: column;
   min-height: 100vh;
   background-color: #f0f2f5;
-  font-family: "Poppins", sans-serif; /* alterado para Poppins */
+  font-family: "Poppins", sans-serif;
+  position: relative;
+  overflow-x: hidden;
+}
+
+/* Efeito de ondas animadas - mais visível */
+.dashboardContainer::before {
+  content: "";
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  height: 300px;
+  background: linear-gradient(180deg, transparent, rgba(4, 0, 186, 0.08));
+  z-index: 0;
+  pointer-events: none;
+}
+
+.waves {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  height: 250px;
+  z-index: 1;
+  pointer-events: none;
+}
+
+.wave {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 200%;
+  height: 100%;
+  background-repeat: repeat-x;
+  background-size: 50% 100%;
+  animation: waveAnimation 15s linear infinite;
+}
+
+.wave:nth-child(1) {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1200 120' preserveAspectRatio='none'%3E%3Cpath d='M0,60 C300,100 600,20 900,60 C1050,80 1150,100 1200,80 L1200,120 L0,120 Z' fill='%230400BA' fill-opacity='0.35'/%3E%3C/svg%3E");
+  animation-duration: 20s;
+  opacity: 1;
+}
+
+.wave:nth-child(2) {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1200 120' preserveAspectRatio='none'%3E%3Cpath d='M0,80 C200,40 500,100 800,70 C1000,50 1100,90 1200,70 L1200,120 L0,120 Z' fill='%230400BA' fill-opacity='0.45'/%3E%3C/svg%3E");
+  animation-duration: 15s;
+  animation-delay: -5s;
+  opacity: 1;
+}
+
+.wave:nth-child(3) {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1200 120' preserveAspectRatio='none'%3E%3Cpath d='M0,40 C400,80 700,20 1000,50 C1100,60 1150,80 1200,60 L1200,120 L0,120 Z' fill='%230400BA' fill-opacity='0.25'/%3E%3C/svg%3E");
+  animation-duration: 25s;
+  animation-delay: -10s;
+  opacity: 1;
+}
+
+@keyframes waveAnimation {
+  0% {
+    transform: translateX(0);
+  }
+  100% {
+    transform: translateX(-50%);
+  }
+}
+
+.loadingContainer {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh;
+  background-color: #f0f2f5;
 }
 
 .content {
@@ -14,6 +87,8 @@
   width: 100%;
   margin: 0 auto;
   padding: 0 20px;
+  position: relative;
+  z-index: 10;
 }
 
 .content_title {
@@ -37,28 +112,26 @@
   background-color: #0400BA;
   border-radius: 2px;
 }
+
 .headerContainer {
-  position: sticky; /* ou fixed, dependendo do seu design */
+  position: sticky;
   top: 0;
-  z-index: 950; /* Z-index alto, mas abaixo do sidebar */
+  z-index: 950;
   width: 100%;
   transition: margin-left 0.3s ease-in-out, width 0.3s ease-in-out;
 }
 
-/* NOVO: Classe que "empurra" o header */
 .headerPushed {
-  /* IMPORTANTE: O valor aqui DEVE SER IGUAL à largura do seu sidebar! */
   margin-left: 280px;
-  width: calc(100% - 280px); /* Ajusta a largura para preencher o espaço restante */
+  width: calc(100% - 280px);
 }
-
-/* ======================================================= */
-/* Estilos do conteúdo principal (que você já tem) */
 
 .mainContent {
   transition: margin-left 0.3s ease-in-out;
   padding: 24px;
   width: 100%;
+  position: relative;
+  z-index: 10;
 }
 
 .contentPushed {
@@ -67,23 +140,17 @@
 
 /* Responsive design */
 @media (max-width: 768px) {
-  .header {
+  .waves {
+    height: 180px;
+  }
+  
+  .headerContainer {
     padding: 15px;
     border-radius: 0 0 20px 20px;
   }
   
-  .headerContent {
-    flex-direction: column;
-    gap: 15px;
-    text-align: center;
-  }
-  
-  .title {
+  .content_title {
     font-size: 2rem;
-  }
-  
-  .welcomeText {
-    font-size: 1rem;
   }
   
   .content {
@@ -92,17 +159,11 @@
 }
 
 @media (max-width: 480px) {
-  .header {
-    padding: 12px;
-    border-radius: 0 0 15px 15px;
+  .waves {
+    height: 150px;
   }
   
-  .title {
+  .content_title {
     font-size: 1.75rem;
-  }
-  
-  .logoutButton {
-    padding: 10px 20px;
-    font-size: 14px;
   }
 }
