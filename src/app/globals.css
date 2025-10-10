@@ -23,7 +23,8 @@ body {
 
 body {
   color: var(--foreground);
-  background: var(--background);
+  /* Fundo global com o mesmo gradiente da landing/login para evitar "faixa branca" ao lado da barra de rolagem */
+  background: linear-gradient(135deg, #a8b8ff 0%, #9b7eff 100%);
   font-family: "League Spartan", sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
@@ -61,3 +62,55 @@ input[type='number'] {
 }
 
 
+
+/* ==========================================
+   Scrollbar global: trilha transparente, só mostra o thumb
+   ========================================== */
+/* Firefox */
+html {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(4, 0, 186, 0.6) transparent; /* thumb | track */
+}
+
+/* Aplicar também no body para cobrir motores que estilizam no body */
+body {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(4, 0, 186, 0.6) transparent;
+  /* Evita "vazios" ao lado quando a barra aparece/desaparece */
+  scrollbar-gutter: stable;
+}
+
+/* Fundo do html igual ao body para eliminar qualquer faixa branca lateral */
+html { background: linear-gradient(135deg, #a8b8ff 0%, #9b7eff 100%); }
+
+/* WebKit (Chrome, Edge, Safari) */
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: linear-gradient(135deg, #0400ba 0%, #020054 100%);
+  border-radius: 10px;
+  border: 2px solid transparent; /* cria borda para destacar o thumb sem trilha */
+  background-clip: padding-box;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: linear-gradient(135deg, #0600e0 0%, #020044 100%);
+}
+
+/* Escopos específicos no body para cobrir algumas variações de engine */
+body::-webkit-scrollbar { width: 10px; height: 10px; }
+body::-webkit-scrollbar-track { background: transparent; }
+body::-webkit-scrollbar-thumb { background: linear-gradient(135deg, #0400ba 0%, #020054 100%); border-radius: 10px; border: 2px solid transparent; background-clip: padding-box; }
+body::-webkit-scrollbar-thumb:hover { background: linear-gradient(135deg, #0600e0 0%, #020044 100%); }
+body::-webkit-scrollbar-corner { background: transparent; }
+
+/* Garantir que nenhum canto/trilha pinte de branco */
+::-webkit-scrollbar-corner { background: transparent; }
+::-webkit-scrollbar-track-piece { background: transparent; }

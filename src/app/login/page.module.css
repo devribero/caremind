@@ -3,9 +3,12 @@
 .main {
     font-family: "League Spartan", sans-serif;
     min-height: 100vh;
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    height: 100vh;
+    background: linear-gradient(135deg, #a8b8ff 0%, #9b7eff 100%); /* Gradiente mais claro */
     position: relative;
     overflow: hidden;
+    display: flex;
+    flex-direction: column;
 }
 
 /* Efeito de ondas animadas no fundo */
@@ -72,30 +75,44 @@
 }
 
 .section {
-    padding: clamp(2rem, 8vw, 5rem) clamp(1rem, 4vw, 2rem);
+    padding: 0;
     position: relative;
     z-index: 10;
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-start; /* Alterado para começar do topo */
+    align-items: center;
+    width: 100%;
+    min-height: 100vh;
 }
 
 .container {
     max-width: min(64rem, 95%);
-    margin-top: 90px;
-    margin-left: auto;
-    margin-right: auto;
+    margin: 0 auto;
     text-align: center;
-    padding: 0 1rem;
+    padding: 0;
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-start; /* Alterado para começar do topo */
+    gap: 1rem; /* Gap reduzido entre logo e card */
 }
 
 .logoWrapper {
-    margin-bottom: clamp(1rem, 4vw, 2rem);
+    margin: 1rem 0 1.5rem 0; /* Margem superior bem reduzida */
+    position: relative;
+    z-index: 15;
 }
 
 .logo {
     display: block;
-    margin: 0 auto clamp(1rem, 3vw, 1.5rem) auto;
-    height: clamp(4rem, 10vw, 6rem);
+    margin: 0 auto;
+    height: clamp(3rem, 8vw, 5rem); /* Logo um pouco menor */
     max-width: 100%;
     object-fit: contain;
+    filter: drop-shadow(0 4px 8px rgba(255, 255, 255, 0.3)); /* Destaque na logo */
 }
 
 .title {
@@ -103,25 +120,69 @@
     font-weight: 700;
     color: white;
     margin-bottom: clamp(1rem, 3vw, 1.5rem);
-    line-height: 1.25;
-    word-wrap: break-word;
     text-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
 }
 
 /* Efeito de vidro (Glassmorphism) */
 .formContainer {
-    max-width: 400px;
+    max-width: 380px; /* Largura padrão para login */
+    width: 85%;
     margin: 0 auto;
-    background: rgba(255, 255, 255, 0.15);
+    background: rgba(255, 255, 255, 0.25);
     backdrop-filter: blur(20px);
     -webkit-backdrop-filter: blur(20px);
-    padding: 2rem;
-    border-radius: 20px;
-    box-shadow: 
-        0 8px 32px 0 rgba(31, 38, 135, 0.37),
+    padding: clamp(1rem, 2.5vw, 1.75rem);
+    border-radius: 18px;
+    box-shadow:
+        0 6px 24px 0 rgba(31, 38, 135, 0.3),
         inset 0 1px 1px 0 rgba(255, 255, 255, 0.3);
     border: 1px solid rgba(255, 255, 255, 0.18);
     position: relative;
+    transition: max-width 0.3s ease; /* Transição suave */
+    min-height: auto; /* Remove altura mínima fixa */
+}
+
+/* Quando estiver no modo de registro, aumenta a largura */
+.formContainer:has(.register-mode) {
+    max-width: 800px;
+    padding: clamp(1.25rem, 2.5vw, 2rem); /* Padding otimizado para registro */
+    gap: 1.25rem; /* Espaçamento interno do card */
+}
+
+/* Layout de duas colunas para registro */
+.registerColumns {
+    display: flex;
+    gap: 2rem;
+    width: 100%;
+    position: relative;
+    align-items: flex-start;
+}
+
+/* Linha vertical sutil entre as colunas */
+.registerColumns::after {
+    content: "";
+    position: absolute;
+    left: 50%;
+    top: 0;
+    bottom: 0;
+    width: 1px;
+    background: linear-gradient(180deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+    transform: translateX(-50%);
+}
+
+.registerColumn {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+    justify-content: flex-start;
+    min-height: 100%;
+    padding: 0;
+}
+
+/* Campos específicos para registro em coluna */
+.registerColumn .inputGroup {
+    margin-bottom: 0; /* Remove margem inferior para melhor aproveitamento */
 }
 
 /* Brilho sutil no topo do card */
@@ -129,33 +190,27 @@
     content: "";
     position: absolute;
     top: 0;
-    left: 0;
     right: 0;
     height: 1px;
     background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.5), transparent);
 }
 
-.form {
-    display: flex;
-    flex-direction: column;
-    gap: 1.5rem;
-}
-
 .inputGroup {
     display: flex;
     flex-direction: column;
-    gap: 0.5rem;
-    text-align: left;
+    gap: 0.75rem;
+    margin-bottom: 1rem;
 }
-
 .inputGroup label {
     font-size: 16px;
     font-weight: 600;
     color: white;
-    margin-bottom: 0.25rem;
+    margin-bottom: 0.25rem; /* Margem muito pequena */
     text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+    text-align: left;
+    width: 100%;
+    order: -1;
 }
-
 .input {
     padding: 12px 16px;
     border: 2px solid rgba(255, 255, 255, 0.2);
@@ -166,6 +221,8 @@
     background: rgba(255, 255, 255, 0.9);
     color: #2d3748;
     backdrop-filter: blur(10px);
+    width: 100%;
+    box-sizing: border-box;
 }
 
 .input:focus {
@@ -175,8 +232,25 @@
     background: rgba(255, 255, 255, 0.95);
 }
 
-.input::placeholder {
-    color: #a0aec0;
+.inputGroup select {
+    padding: 12px 16px;
+    border: 2px solid rgba(255, 255, 255, 0.2);
+    border-radius: 12px;
+    font-size: 16px;
+    font-family: inherit;
+    transition: all 0.3s ease;
+    background: rgba(255, 255, 255, 0.9);
+    color: #2d3748;
+    backdrop-filter: blur(10px);
+    width: 100%;
+    box-sizing: border-box;
+}
+
+.inputGroup select:focus {
+    outline: none;
+    border-color: rgba(255, 255, 255, 0.5);
+    box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.2);
+    background: rgba(255, 255, 255, 0.95);
 }
 
 .checkboxGroup {
@@ -184,6 +258,8 @@
     align-items: flex-start;
     gap: 0.75rem;
     text-align: left;
+    margin: 0.5rem 0; /* Margem reduzida */
+    padding: 0.5rem 0; /* Padding interno */
 }
 
 .checkboxGroup input[type="checkbox"] {
@@ -191,6 +267,7 @@
     flex-shrink: 0;
     margin-top: 2px;
     accent-color: #0400ba;
+    transform: scale(1.1); /* Checkbox ligeiramente maior */
 }
 
 .checkboxGroup label {
@@ -198,6 +275,7 @@
     color: white;
     line-height: 1.4;
     text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+    cursor: pointer;
 }
 
 .link {
@@ -287,37 +365,69 @@
 }
 
 .switchMode {
-    margin-top: 2rem;
-    padding-top: 1.5rem;
-    border-top: 1px solid rgba(255, 255, 255, 0.2);
+    margin-top: 1rem; /* Pequena margem do botão de entrar */
+    padding-top: 0;
+    border-top: none;
+    text-align: left; /* Alinhado à direita */
 }
 
 .switchText {
     color: white;
-    margin-bottom: 1rem;
     font-size: 14px;
     text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+    display: inline; /* Para ficar na mesma linha */
 }
 
 .switchButton {
     background: none;
     border: none;
     color: white;
-    font-size: 16px;
+    font-size: 14px; /* Mesmo tamanho do texto */
     font-weight: 600;
     cursor: pointer;
     text-decoration: underline;
     font-family: inherit;
     transition: opacity 0.3s ease;
     text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+    display: inline; /* Para ficar na mesma linha */
+    margin-left: 0.25rem; /* Pequeno espaço entre o ? e o botão */
 }
 
 .switchButton:hover {
     opacity: 0.8;
 }
 
+/* Botão Voltar ao Início (substituto do Criar Conta) */
+.backButtonContainer {
+    margin: 0.5rem 0 0 0; /* Margem superior reduzida */
+    text-align: center;
+}
+
+.backButton {
+    background: rgba(255, 255, 255, 0.15);
+    backdrop-filter: blur(15px);
+    -webkit-backdrop-filter: blur(15px);
+    border: 1px solid rgba(255, 255, 255, 0.18);
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+    color: white;
+    padding: 12px 24px;
+    border-radius: 12px;
+    text-decoration: none;
+    font-weight: 600;
+    font-size: 16px;
+    transition: all 0.3s ease;
+    display: inline-block;
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+.backButton:hover {
+    background-color: rgba(255, 255, 255, 0.25);
+    border-color: rgba(255, 255, 255, 0.3);
+    transform: translateY(-1px);
+}
+
 .forgotPassword {
-    text-align: right;
+    text-align: left;
     margin-top: -0.5rem;
     margin-bottom: 1rem;
 }
@@ -346,61 +456,143 @@
     .waves {
         height: 180px;
     }
+
+    .backButton {
+        padding: 10px 20px;
+        font-size: 14px;
+    }
+}
+
+@media (max-width: 768px) {
+    .waves {
+        height: 180px;
+    }
+
+    .formContainer {
+        max-width: 85vw; /* Card ainda menor em tablets */
+        width: 85%;
+        padding: clamp(0.875rem, 2vw, 1.5rem);
+    }
+
+    .backButton {
+        padding: 10px 20px;
+        font-size: 14px;
+    }
 }
 
 @media (max-width: 640px) {
     .formContainer {
-        margin: 0 1rem;
-        padding: 1.5rem;
-    }
-    
-    .header {
-        font-size: 16px;
-        padding: 10px 15px;
+        max-width: 95vw; /* Usa quase toda a largura em dispositivos menores */
+        width: 95%;
+        margin: 0 0.5rem;
+        padding: clamp(0.75rem, 2vw, 1.25rem);
         border-radius: 15px;
-        margin-top: 10px;
-        margin-left: 15px;
-        margin-right: 15px;
-        max-width: calc(100% - 30px);
     }
-    
-    .header_list {
-        flex-direction: row;
-        justify-content: space-between;
-        align-items: center;
-        gap: 15px;
-    }
-    
-    .header_text {
-        display: none;
-    }
-    
-    .header_a {
-        font-size: 16px;
-    }
-    
+
     .forgotPassword {
         text-align: center;
         margin-top: 0.5rem;
         margin-bottom: 1rem;
     }
-    
+
     .linkButton {
+        font-size: 13px;
+    }
+}
+
+/* Responsive design */
+@media (max-width: 768px) {
+    .waves {
+        height: 180px;
+    }
+
+    .formContainer {
+        max-width: 85vw;
+        width: 85%;
+        padding: clamp(0.875rem, 2vw, 1.5rem);
+    }
+}
+
+/* Responsive design */
+@media (max-width: 768px) {
+    .waves {
+        height: 180px;
+    }
+
+    .formContainer {
+        max-width: 85vw;
+        width: 85%;
+        padding: clamp(0.875rem, 2vw, 1.5rem);
+    }
+
+    .registerColumns {
+        flex-direction: column;
+        gap: 1.5rem;
+    }
+
+    .registerColumns::after {
+        display: none;
+    }
+
+    .backButton {
+        padding: 10px 20px;
+        font-size: 14px;
+    }
+}
+
+@media (max-width: 640px) {
+    .formContainer {
+        max-width: 95vw;
+        width: 95%;
+        margin: 0 0.5rem;
+        padding: clamp(0.75rem, 2vw, 1.25rem);
+        border-radius: 15px;
+    }
+
+    .forgotPassword {
+        text-align: center;
+        margin-top: 0.5rem;
+        margin-bottom: 1rem;
+    }
+
+    .linkButton {
+        font-size: 13px;
+    }
+
+    .backButton {
+        padding: 8px 16px;
         font-size: 13px;
     }
 }
 
 @media (max-width: 480px) {
     .formContainer {
-        padding: 1rem;
-        margin: 0 0.5rem;
+        padding: clamp(0.625rem, 1.5vw, 0.875rem);
+        margin: 0 0.25rem;
+        border-radius: 12px;
+        max-width: calc(100vw - 0.5rem);
     }
-    
+
     .title {
-        font-size: clamp(1.5rem, 5vw, 2.5rem);
+        font-size: clamp(1.125rem, 3.5vw, 1.5rem);
+        margin-bottom: 0.875rem;
     }
-    
+
     .waves {
-        height: 150px;
+        height: 120px;
+    }
+
+    .input {
+        padding: 8px 10px;
+        font-size: 13px;
+    }
+
+    .form {
+        gap: 1rem;
+    }
+
+    .backButton {
+        padding: 8px 12px;
+        font-size: 12px;
     }
 }

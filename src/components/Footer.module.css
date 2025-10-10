@@ -1,12 +1,14 @@
 /* Estilo principal do rodapé */
 .footer {
-    background-color: #ffffff;
+    position: relative;
     color: black;
     padding: 60px 0;
     font-size: 15px;
-    border-top: solid 0.3px black;
-    border-radius: 20px;
+    background: #ffffff;
+    /* full-bleed background without causing horizontal scroll */
 }
+
+/* Removido pseudo-elemento; full-bleed é gerenciado por box-shadow/clip-path */
 
 .footerContainer {
     max-width: 1200px;

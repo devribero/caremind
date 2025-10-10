@@ -1,15 +1,12 @@
-@import url('https://fonts.googleapis.com/css2?family=League+Spartan:wght@100..900&display=swap');
-
 /* ==========================================
-   BASE
+   BASE - Estilo da tela de login
    ========================================== */
 .main {
     font-family: "League Spartan", sans-serif;
-}
+    min-height: 100vh;
+    background: linear-gradient(135deg, #a8b8ff 0%, #9b7eff 100%);
 
-/* ==========================================
-   HEADER E NAVEGAÇÃO
-   ========================================== */
+}
 .header {
     background-color: white;
     color: #0400BA;
@@ -782,4 +779,232 @@
         margin-right: 20px;
         max-width: calc(100% - 40px);
     }
+}
+/* ==========================================
+   ONDAS (fundo animado como a tela de login)
+   ========================================== */
+.waves {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    height: 250px;
+    z-index: 1;
+    pointer-events: none;
+}
+
+.wave {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-repeat: repeat-x;
+    background-size: 200% 100%;
+    animation: waveAnimation 15s linear infinite;
+}
+
+.wave:nth-child(1) {
+    /* Onda periódica: começo e fim na mesma altura e inclinação (sem emendas) */
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1200 120' preserveAspectRatio='none'%3E%3Cpath d='M0,60 C150,90 450,30 600,60 S1050,90 1200,60 L1200,120 L0,120 Z' fill='%230400BA' fill-opacity='0.20'/%3E%3C/svg%3E");
+    animation-duration: 20s;
+    opacity: 1;
+}
+
+.wave:nth-child(2) {
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1200 120' preserveAspectRatio='none'%3E%3Cpath d='M0,70 C200,90 400,50 600,70 S1000,90 1200,70 L1200,120 L0,120 Z' fill='%230400BA' fill-opacity='0.25'/%3E%3C/svg%3E");
+    animation-duration: 15s;
+    animation-delay: -5s;
+    opacity: 1;
+}
+
+.wave:nth-child(3) {
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1200 120' preserveAspectRatio='none'%3E%3Cpath d='M0,55 C150,65 450,45 600,55 S1050,65 1200,55 L1200,120 L0,120 Z' fill='%230400BA' fill-opacity='0.15'/%3E%3C/svg%3E");
+    animation-duration: 25s;
+    animation-delay: -10s;
+    opacity: 1;
+}
+
+@keyframes waveAnimation {
+    0% { background-position-x: 0; }
+    100% { background-position-x: -50%; }
+}
+
+/* ==========================================
+   HERO SECTION (landing)
+   ========================================== */
+.heroSection {
+    position: relative;
+    z-index: 2; /* acima das ondas */
+    padding: 80px 20px 40px;
+}
+
+.heroContainer {
+    max-width: 1200px;
+    margin: 0 auto;
+    display: grid;
+    grid-template-columns: 1.1fr 0.9fr;
+    gap: 40px;
+    align-items: center;
+}
+
+.heroContent {
+    color: white;
+}
+
+.heroTitle {
+    font-size: clamp(32px, 4.5vw, 56px);
+    font-weight: 800;
+    line-height: 1.15;
+    margin: 0 0 16px 0;
+    text-shadow: 0 2px 10px rgba(0,0,0,0.2);
+}
+
+.heroDescription {
+    font-size: clamp(16px, 2vw, 20px);
+    color: #eef2ff;
+    line-height: 1.6;
+    margin: 0 0 28px 0;
+    max-width: 620px;
+}
+
+.heroButton { display: flex; gap: 16px; }
+
+.ctaButton {
+    background: linear-gradient(135deg, #0400ba 0%, #020054 100%) !important;
+    color: white !important;
+    border-radius: 12px !important;
+    padding: 16px 24px !important;
+    box-shadow: 0 4px 15px rgba(4,0,186,0.3) !important;
+    border: 1px solid rgba(255,255,255,0.25) !important;
+}
+
+.ctaButton:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(4,0,186,0.4) !important; }
+
+.heroImage { display: flex; justify-content: center; align-items: center; }
+.heroImg { filter: drop-shadow(0 12px 30px rgba(0,0,0,0.25)); border-radius: 16px; }
+
+/* ==========================================
+   FEATURES SECTION
+   ========================================== */
+.featuresSection {
+    position: relative;
+    z-index: 2;
+    padding: 10px 20px 80px; /* pequeno respiro ap�s o hero */
+}
+
+.sectionTitle {
+    color: white;
+    font-size: clamp(24px, 3.5vw, 36px);
+    font-weight: 700;
+    margin: 0 0 24px 0;
+    text-align: left;
+    text-shadow: 0 2px 10px rgba(0,0,0,0.2);
+}
+
+.featuresGrid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+    gap: 24px;
+}
+
+.featureCard {
+    background: rgba(255,255,255,0.25);
+    backdrop-filter: blur(14px);
+    -webkit-backdrop-filter: blur(14px);
+    border: 1px solid rgba(255,255,255,0.25);
+    border-radius: 16px;
+    padding: 20px;
+    color: #1a202c;
+    box-shadow: 0 6px 24px rgba(31,38,135,0.25);
+    transition: transform .2s ease, box-shadow .2s ease;
+    text-align: left;
+}
+
+.featureCard:hover { transform: translateY(-4px); box-shadow: 0 10px 28px rgba(31,38,135,0.3); }
+
+.featureIcon {
+    width: 56px;
+    height: 56px;
+    padding: 12px;
+    border-radius: 14px;
+    background: rgba(255, 255, 255, 0.6);
+    border: 1px solid rgba(4, 0, 186, 0.15);
+    box-shadow: 0 6px 18px rgba(31, 38, 135, 0.2);
+    margin-bottom: 10px;
+    display: inline-block;
+    object-fit: contain;
+}
+
+/* ==========================================
+   RESPONSIVE (hero/waves)
+   ========================================== */
+@media (max-width: 900px) {
+    .heroContainer { grid-template-columns: 1fr; gap: 24px; }
+    .heroImage { order: -1; }
+}
+
+@media (max-width: 768px) {
+    .waves { height: 180px; }
+}
+
+@media (max-width: 480px) {
+    .waves { height: 120px; }
+}
+
+/* ===== Landing fixes: waves/footer layering, features grid, typography, header gap ===== */
+
+/* Footer acima das ondas */
+.footerWrapper {
+  position: relative;
+  z-index: 5;
+}
+
+/* Ondas atr�s de tudo */
+.waves { z-index: 0 !important; }
+
+/* Permite full-bleed do footer; impede overflow vertical das ondas */
+.main { position: relative; overflow-x: visible; overflow-y: hidden; }
+
+/* Remover linha branca acima do header */
+.header { margin-top: 0 !important; }
+
+/* Grade 3x3 no desktop, responsivo */
+.featuresGrid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr) !important;
+  gap: 28px;
+}
+
+@media (max-width: 1024px) {
+  .featuresGrid { grid-template-columns: repeat(2, 1fr) !important; }
+}
+
+@media (max-width: 640px) {
+  .featuresGrid { grid-template-columns: 1fr !important; }
+}
+
+/* Tipografia dos cards */
+.featureIcon {
+  width: 56px;
+  height: 56px;
+}
+
+.featureCard h3 {
+  font-size: 20px;
+  font-weight: 700;
+  color: #1a202c;
+  margin: 0 0 8px 0;
+}
+
+.featureCard p {
+  font-size: 16px;
+  line-height: 1.6;
+  color: #2d3748;
+  margin: 0;
+}
+
+/* T�tulo da se��o maior */
+.sectionTitle {
+  font-size: clamp(28px, 4vw, 42px) !important;
 }

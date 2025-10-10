@@ -1,229 +1,113 @@
-/* HeaderDashboard.module.css */
+/* HeaderLogin.module.css - Versão Final (Botão Voltar Fixo + Classe da Logo Centralizada) */
+@import url('https://fonts.googleapis.com/css2?family=League+Spartan:wght@100..900&display=swap');
 
+
+/* --- Header Container (Apenas para Posicionamento do Botão "Voltar") --- */
 .header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 16px 24px;
-  background-color: #f8f9fa;
-  border-bottom: 1px solid #dee2e6;
+    display: flex;
+    justify-content: flex-start; /* Alinha o conteúdo à esquerda */
+    align-items: center;
+
+    /* Torna o cabeçalho fixo, invisível e flutuante */
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    padding: 24px clamp(20px, 4vw, 50px);
+
+    background: transparent;
+    box-shadow: none;
+    border: none;
+    z-index: 1000;
+
+    font-family: "League Spartan", sans-serif;
 }
 
-/* NOVO: Classe para alinhar o logo e o botão de menu */
+/* Esconde containers internos que não são o botão "Voltar" */
 .headerLeft {
-  display: flex;
-  align-items: center;
-  gap: 20px; /* Espaço entre o botão e o logo */
+    display: none;
 }
 
-/* A position: relative é essencial para posicionar o menu dropdown */
+/* Garante que o container do botão apareça */
 .profileContainer {
-  position: relative;
-  align-items: center;
-  justify-content: center;
+    display: flex;
 }
 
+/* --- Estilo do Botão "Voltar ao Início" (Classe .actions) --- */
 .actions {
-  display: flex;
-  align-items: center;
-  gap: 16px;
-  cursor: pointer;
-  padding: 8px;
-  border-radius: 8px;
-  transition: background-color 0.2s ease;
-  user-select: none;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    cursor: pointer;
+    padding: 12px 18px;
+    border-radius: 12px;
+    transition: all 0.3s ease;
+
+    /* Estilo Glassmorphism */
+    background: rgba(255, 255, 255, 0.15);
+    backdrop-filter: blur(15px);
+    -webkit-backdrop-filter: blur(15px);
+    border: 1px solid rgba(255, 255, 255, 0.18);
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+    user-select: none;
 }
 
 .actions:hover {
-  background-color: #e9ecef;
+    background-color: rgba(255, 255, 255, 0.25);
+    border-color: rgba(255, 255, 255, 0.3);
+    transform: translateY(-1px);
 }
 
 .welcomeText {
-  margin: 0;
-  color: #0400BA;
-  font-weight: 500;
-  font-size: 25px;
-}
-
-.dropdownMenu {
-  position: absolute;
-  top: calc(100% + 8px);
-  right: 0;
-  background-color: white;
-  border-radius: 8px;
-  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.12);
-  border: 1px solid #dee2e6;
-  z-index: 100;
-  width: 180px;
-  overflow: hidden;
-  display: flex;
-  flex-direction: column;
-  padding: 8px 0;
-}
-
-.dropdownMenu a, .dropdownLogout {
-  font-size: 18px;
-}
-
-.dropdownItem {
-  padding: 10px 20px;
-  color: #212529;
-  text-decoration: none;
-  font-size: 16px;
-  background: none;
-  border: none;
-  width: 100%;
-  text-align: left;
-  cursor: pointer;
-  transition: background-color 0.2s ease;
-}
-
-.dropdownItem:hover {
-  background-color: #f8f9fa;
-}
-
-.dropdownLogout {
-  color: #e63946;
-  font-weight: 500;
-}
-
-.person {
-  color: black;
-}
-
-/* ============================================= */
-/* Estilos do Menu Hambúrguer                  */
-/* ============================================= */
-.hamburger {
-  display: flex; 
-  flex-direction: column;
-  gap: 4px;
-  cursor: pointer;
-  z-index: 1001;
-  background: none;
-  border: none;
-  padding: 5px;
-}
-
-.hamburger span {
-  width: 28px;
-  height: 3px;
-  background-color: #0400BA; /* Cor primária do seu projeto */
-  transition: all 0.3s ease-in-out;
-  border-radius: 2px;
-}
-
-/* Animação do "X" */
-.hamburger.active span:nth-child(1) {
-  transform: rotate(45deg) translate(6px, 6px);
-}
-.hamburger.active span:nth-child(2) {
-  opacity: 0;
-}
-.hamburger.active span:nth-child(3) {
-  transform: rotate(-45deg) translate(6px, -6px);
-}
-
-/* Responsividade para tablets */
-@media (max-width: 1024px) {
-  .header {
-    padding: 14px 20px;
-  }
-  
-  .welcomeText {
-    font-size: 22px;
-  }
-  
-  .dropdownMenu {
-    width: 160px;
-  }
-}
-
-/* Responsividade para dispositivos móveis */
-@media (max-width: 768px) {
-  .header {
-    padding: 12px 16px;
-  }
-  
-  .headerLeft {
-    gap: 15px;
-  }
-  
-  .welcomeText {
-    font-size: 20px;
-  }
-  
-  .actions {
-    padding: 6px;
-  }
-  
-  .dropdownMenu {
-    width: 140px;
-    right: -10px;
-  }
-  
-  .dropdownItem {
-    padding: 8px 16px;
-    font-size: 14px;
-  }
-  
-  .hamburger span {
-    width: 24px;
-    height: 2.5px;
-  }
-}
-
-/* Responsividade para telas pequenas */
-@media (max-width: 480px) {
-  .header {
-    padding: 10px 12px;
-  }
-  
-  .headerLeft {
-    gap: 10px;
-  }
-  
-  .welcomeText {
-    font-size: 18px;
-  }
-  
-  .actions {
-    padding: 4px;
-  }
-  
-  .dropdownMenu {
-    width: 120px;
-    right: -15px;
-  }
-  
-  .dropdownItem {
-    padding: 6px 12px;
-    font-size: 13px;
-  }
-  
-  .hamburger span {
-    width: 22px;
-    height: 2px;
-  }
-}
-
-/* Responsividade para telas muito pequenas */
-@media (max-width: 360px) {
-  .header {
-    padding: 8px 10px;
-  }
-  
-  .welcomeText {
+    margin: 0;
+    color: white;
+    font-weight: 600;
     font-size: 16px;
-  }
-  
-  .dropdownMenu {
-    width: 110px;
-    right: -20px;
-  }
-  
-  .dropdownItem {
-    padding: 5px 10px;
-    font-size: 12px;
-  }
+    text-decoration: none;
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+/* ----------------------------------------------------------------- */
+/* --- CLASSE PARA POSICIONAMENTO DA LOGO (CENTRALIZADA ACIMA) --- */
+/* ----------------------------------------------------------------- */
+.logoAboveLogin {
+    /* POSICIONAMENTO: Absoluto e Centralizado */
+    position: absolute;
+    top: 50px; /* Distância do topo */
+    left: 50%;
+    transform: translateX(-50%); /* Centraliza perfeitamente */
+    z-index: 900;
+}
+
+.logoAboveLogin img {
+    height: auto;
+    width: clamp(150px, 15vw, 250px);
+    /*Destaque suave na Logo */
+    filter: drop-shadow(0 0 8px rgba(255, 255, 255, 0.5));
+}
+
+/* --- Media Queries --- */
+
+@media (max-width: 768px) {
+    .header {
+        padding: 16px 20px;
+    }
+
+    .actions {
+        padding: 10px 14px;
+        border-radius: 10px;
+    }
+
+    .welcomeText {
+        font-size: 14px;
+    }
+
+    .logoAboveLogin {
+        top: 30px;
+    }
+
+    .logoAboveLogin img {
+        width: 120px;
+    }
 }
