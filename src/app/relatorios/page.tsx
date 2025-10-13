@@ -79,7 +79,7 @@ export default function Relatorios() {
   useEffect(() => {
     const fetchEventos = async () => {
       if (!user) {
-        router.push('/login');
+        router.push('/auth');
         return;
       }
 

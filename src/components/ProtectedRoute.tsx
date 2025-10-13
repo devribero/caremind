@@ -14,7 +14,7 @@ export default function ProtectedRoute({ children }: ProtectedRouteProps) {
 
   useEffect(() => {
     if (!loading && !user) {
-      router.push('/login');
+      router.push('/auth');
     }
   }, [user, loading, router]);
 
@@ -32,7 +32,7 @@ export default function ProtectedRoute({ children }: ProtectedRouteProps) {
   if (!user) {
     return (
       <div className="min-h-screen flex items-center justify-center">
-        <p>Redirecionando para login...</p>
+        <p>Redirecionando para autenticação...</p>
       </div>
     );
   }

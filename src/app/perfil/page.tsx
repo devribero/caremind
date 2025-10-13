@@ -218,7 +218,7 @@ export default function Perfil() {
 
     const handleLogout = async () => {
         await signOut();
-        router.push('/login');
+        router.push('/auth');
     };
 
     const handleInputChange = (e: ChangeEvent<HTMLInputElement>) => {
@@ -347,7 +347,7 @@ export default function Perfil() {
             
             // Desconecta o usuário após a mudança de senha, forçando um novo login com a nova senha
             await signOut();
-            router.push('/login');
+            router.push('/auth');
 
         } catch (error) {
             console.error("Erro ao salvar senha:", error);

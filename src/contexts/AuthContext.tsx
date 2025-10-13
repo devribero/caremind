@@ -125,11 +125,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         
         // Tenta inserir o perfil na tabela 'perfis' com o nome explícito
         const profileData = {
-          user_id: userId,
-          nome: fullName || 'Sem nome', // Nome explícito
+          id: userId,
+          nome: fullName || 'Sem nome',
           tipo: accountType,
-          email: email,
-          created_at: new Date().toISOString()
         };
         
         console.log("Tentando inserir perfil com nome:", fullName);
@@ -138,7 +136,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         const { data: existingProfile } = await supabase
           .from('perfis')
           .select('*')
-          .eq('user_id', userId)
+          .eq('id', userId)
           .single();
           
         if (existingProfile) {
@@ -148,9 +146,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             .update({ 
               nome: fullName,
               tipo: accountType,
-              email: email
             })
-            .eq('user_id', userId);
+            .eq('id', userId);
             
           if (updateError) {
             console.error('Erro ao atualizar perfil:', updateError);
@@ -165,20 +162,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             
           if (insertError) {
             console.error('Erro ao criar perfil:', insertError);
-            
-            // Tenta uma abordagem alternativa - RLS pode estar bloqueando
-            const { error: rpcError } = await supabase.rpc('criar_perfil', {
-              p_user_id: userId,
-              p_nome: fullName || 'Sem nome',
-              p_tipo: accountType,
-              p_email: email
-            });
-            
-            if (rpcError) {
-              console.error('Erro ao criar perfil via RPC:', rpcError);
-            } else {
-              console.log('Perfil criado com sucesso via RPC!');
-            }
           } else {
             console.log('Perfil criado com sucesso!');
           }

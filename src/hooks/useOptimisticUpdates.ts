@@ -2,19 +2,19 @@
 
 import { useCallback } from 'react';
 
-interface OptimisticUpdateOptions<T> {
-  onSuccess?: (updatedItem: T) => void;
+interface OptimisticUpdateOptions<T, R = T> {
+  onSuccess?: (updatedItem: R) => void;
   onError?: (error: Error, originalItem: T) => void;
 }
 
-export function useOptimisticUpdates<T extends { id: string }>() {
+export function useOptimisticUpdates<T extends { id: string | number }>() {
   const executeOptimisticUpdate = useCallback(async <R = T>(
     currentItems: T[],
     setItems: (updater: (items: T[]) => T[]) => void,
     itemId: string,
     optimisticUpdate: (item: T) => T,
     apiCall: () => Promise<R>,
-    options: OptimisticUpdateOptions<T> = {}
+    options: OptimisticUpdateOptions<T, R> = {}
   ): Promise<R | null> => {
     // Snapshot para rollback
     const originalItems = [...currentItems];
@@ -26,7 +26,7 @@ export function useOptimisticUpdates<T extends { id: string }>() {
 
     try {
       const result = await apiCall();
-      options.onSuccess?.(result as T);
+      options.onSuccess?.(result);
       return result;
     } catch (error) {
       const err = error instanceof Error ? error : new Error('Erro inesperado');

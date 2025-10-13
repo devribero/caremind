@@ -63,7 +63,7 @@ export default function Home() {
               Assistente virtual com integração por voz para auxiliar idosos no gerenciamento de medicações e rotinas diárias. Mais autonomia para eles, mais tranquilidade para a família.
             </p>
             <div className={styles.heroButton}>
-              <Link href="/login">
+              <Link href="/auth">
                 <Button size="lg" className={styles.ctaButton}>
                   Começar agora
                 </Button>

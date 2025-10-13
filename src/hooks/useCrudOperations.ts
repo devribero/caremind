@@ -5,7 +5,7 @@ import { useAuthRequest } from './useAuthRequest';
 import { useModalState } from './useModalState';
 import { useOptimisticUpdates } from './useOptimisticUpdates';
 
-interface CrudOperationsConfig<T extends { id: string }> {
+interface CrudOperationsConfig<T extends { id: string | number }> {
   endpoint: string;
   onSuccess?: {
     create?: (item: T) => void;
@@ -21,7 +21,7 @@ interface CrudOperationsConfig<T extends { id: string }> {
   };
 }
 
-export function useCrudOperations<T extends { id: string }>(
+export function useCrudOperations<T extends { id: string | number }>(
   config: CrudOperationsConfig<T>
 ) {
   const [items, setItems] = useState<T[]>([]);
@@ -45,6 +45,7 @@ export function useCrudOperations<T extends { id: string }>(
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Erro ao carregar dados';
       setError(errorMessage);
+      // 🎯 ATENÇÃO AQUI: Mudança de tipo de erro (create => read/fetch)
       config.onError?.read?.(errorMessage);
     } finally {
       setLoading(false);
