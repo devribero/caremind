@@ -34,7 +34,7 @@ export async function POST(request: NextRequest) {
         }
 
         // Criar cliente do Supabase
-        const supabase = createClient();
+        const supabase = await createClient();
 
         // Verificar se o usuário está autenticado
         const { data: { user }, error: authError } = await supabase.auth.getUser();

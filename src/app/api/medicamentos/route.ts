@@ -22,7 +22,7 @@ export async function GET(request: Request) {
   const token = authHeader?.startsWith('Bearer ')
     ? authHeader.slice('Bearer '.length)
     : undefined;
-  const supabase = createClient(token);
+  const supabase = await createClient(token);
 
   try {
     let user = null as null | { id: string };
@@ -72,7 +72,7 @@ export async function POST(request: Request) {
   const token = authHeader?.startsWith('Bearer ')
     ? authHeader.slice('Bearer '.length)
     : undefined;
-  const supabase = createClient(token);
+  const supabase = await createClient(token);
 
   try {
     let user = null as null | { id: string };

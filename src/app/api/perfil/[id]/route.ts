@@ -19,7 +19,7 @@ export async function OPTIONS() {
 // ================================================================= //
 export async function PUT(request: NextRequest) {
   try {
-      const supabase = createClient();
+      const supabase = await createClient();
 
       // 1. Verifica se o usuário está autenticado
       const { data: { user }, error: authError } = await supabase.auth.getUser();
@@ -64,7 +64,7 @@ export async function PUT(request: NextRequest) {
 // DELETE - Excluir uma tarefa
 // ================================================================= //
 export async function DELETE(request: Request, context: { params: { id: string } }) {
-  const supabase = createClient();
+  const supabase = await createClient();
 
   try {
     // Support Bearer token as well as cookie session

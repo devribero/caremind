@@ -51,7 +51,7 @@ export default function Remedios() {
     const handleSaveMedicamento = async (
         nome: string, dosagem: string | null, frequencia: any, quantidade: number
     ) => {
-        // ... sua lógica de salvar ...
+        // lógica de salvar 
         const { data: { session } } = await supabase.auth.getSession();
         if (!session) { alert('Usuário não autenticado. Faça login para continuar.'); return; }
         const response = await fetch('/api/medicamentos', {

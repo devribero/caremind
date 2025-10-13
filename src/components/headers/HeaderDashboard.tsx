@@ -1,12 +1,12 @@
 'use client';
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/contexts/AuthContext';
 import Link from 'next/link';
 import Image from 'next/image';
 import styles from './HeaderDashboard.module.css';
 import { IoPersonCircleOutline } from "react-icons/io5";
-import { createClient } from '@/lib/supabase/client'; // NOVO: Importar o createClient
+import { createClient } from '@/lib/supabase/client';
 
 interface HeaderProps {
     isMenuOpen: boolean;
@@ -16,47 +16,63 @@ interface HeaderProps {
 export function Header({ isMenuOpen, onMenuToggle }: HeaderProps) {
     const { user, signOut } = useAuth();
     const router = useRouter();
-    const supabase = createClient(); // NOVO: Instanciar o Supabase client
+    const supabase = createClient();
 
     const [isProfileOpen, setIsProfileOpen] = useState(false);
-    // NOVO: Estado para armazenar a URL da foto do perfil
     const [photoUrl, setPhotoUrl] = useState<string | null>(null);
     const profileMenuRef = useRef<HTMLDivElement>(null);
 
-    // NOVO: useEffect para buscar a foto do perfil do usuário
-    useEffect(() => {
-        const fetchProfilePhoto = async () => {
-            if (user) {
-                try {
-                    // 1. Busca o caminho da foto na sua tabela 'perfis'
-                    const { data: profile, error } = await supabase
-                        .from('perfis')
-                        .select('foto_usuario')
-                        .eq('id', user.id)
-                        .single();
+    // useCallback para estabilizar a função
+    const fetchProfilePhoto = useCallback(async () => {
+        if (!user) {
+            setPhotoUrl(null);
+            return;
+        }
 
-                    if (error) throw error;
+        try {
+            // 1. Busca o caminho da foto na tabela 'perfis'
+            const { data: profile, error } = await supabase
+                .from('perfis')
+                .select('foto_usuario')
+                .eq('id', user.id)
+                .single();
 
-                    // 2. Se houver um caminho, busca a URL pública no Storage
-                    if (profile && profile.foto_usuario) {
-                        const { data: publicUrlData } = supabase
-                            .storage
-                            .from('avatars') // Nome do seu bucket
-                            .getPublicUrl(profile.foto_usuario);
-
-                        if (publicUrlData) {
-                            setPhotoUrl(publicUrlData.publicUrl);
-                        }
-                    }
-                } catch (error) {
-                    console.error("Erro ao buscar foto do perfil:", error);
-                    setPhotoUrl(null); // Garante que o ícone seja mostrado em caso de erro
+            // Se não encontrar o perfil ou não houver foto, não é um erro crítico
+            if (error) {
+                if (error.code === 'PGRST116') {
+                    // Nenhum perfil encontrado - isso é normal para novos usuários
+                    console.log('Perfil não encontrado para o usuário');
+                } else {
+                    console.error("Erro ao buscar perfil:", error.message);
                 }
+                setPhotoUrl(null);
+                return;
             }
-        };
 
+            // 2. Se houver um caminho, busca a URL pública no Storage
+            if (profile?.foto_usuario) {
+                const { data: publicUrlData } = supabase
+                    .storage
+                    .from('avatars')
+                    .getPublicUrl(profile.foto_usuario);
+
+                if (publicUrlData?.publicUrl) {
+                    setPhotoUrl(publicUrlData.publicUrl);
+                } else {
+                    setPhotoUrl(null);
+                }
+            } else {
+                setPhotoUrl(null);
+            }
+        } catch (error) {
+            console.error("Erro inesperado ao buscar foto do perfil:", error);
+            setPhotoUrl(null);
+        }
+    }, [user, supabase]);
+
+    useEffect(() => {
         fetchProfilePhoto();
-    }, [user, supabase]); // Executa sempre que o usuário mudar
+    }, [fetchProfilePhoto]);
 
     const handleLogout = async () => {
         await signOut();
@@ -96,16 +112,14 @@ export function Header({ isMenuOpen, onMenuToggle }: HeaderProps) {
 
             <div className={styles.profileContainer} ref={profileMenuRef}>
                 <div className={styles.actions} onClick={() => setIsProfileOpen(!isProfileOpen)}>
-
-                    {/* LÓGICA ALTERADA: Renderização condicional da foto ou ícone */}
                     {photoUrl ? (
                         <Image
                             src={photoUrl}
                             alt="Foto de perfil"
                             width={35}
                             height={35}
-                            className={styles.profilePicture} // Classe para deixar a foto redonda
-                            key={photoUrl} // Ajuda a recarregar a imagem se a URL mudar
+                            className={styles.profilePicture}
+                            key={photoUrl}
                         />
                     ) : (
                         <IoPersonCircleOutline className={styles.person} size={35} />

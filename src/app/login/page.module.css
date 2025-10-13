@@ -81,7 +81,7 @@
     flex: 1;
     display: flex;
     flex-direction: column;
-    justify-content: flex-start; /* Alterado para começar do topo */
+    justify-content: center; /* Centralizado verticalmente */
     align-items: center;
     width: 100%;
     min-height: 100vh;
@@ -96,8 +96,8 @@
     display: flex;
     flex-direction: column;
     align-items: center;
-    justify-content: flex-start; /* Alterado para começar do topo */
-    gap: 1rem; /* Gap reduzido entre logo e card */
+    justify-content: center; /* Centralizado verticalmente */
+    gap: 1rem;
 }
 
 .logoWrapper {
@@ -142,47 +142,32 @@
     min-height: auto; /* Remove altura mínima fixa */
 }
 
-/* Quando estiver no modo de registro, aumenta a largura */
+/* Quando estiver no modo de registro, mantém largura padrão */
 .formContainer:has(.register-mode) {
-    max-width: 800px;
-    padding: clamp(1.25rem, 2.5vw, 2rem); /* Padding otimizado para registro */
-    gap: 1.25rem; /* Espaçamento interno do card */
+    max-width: 380px;
+    padding: clamp(1rem, 2.5vw, 1.75rem);
 }
 
-/* Layout de duas colunas para registro */
+/* Layout de coluna única para registro */
 .registerColumns {
-    display: flex;
-    gap: 2rem;
-    width: 100%;
-    position: relative;
-    align-items: flex-start;
-}
-
-/* Linha vertical sutil entre as colunas */
-.registerColumns::after {
-    content: "";
-    position: absolute;
-    left: 50%;
-    top: 0;
-    bottom: 0;
-    width: 1px;
-    background: linear-gradient(180deg, transparent, rgba(255, 255, 255, 0.3), transparent);
-    transform: translateX(-50%);
-}
-
-.registerColumn {
-    flex: 1;
     display: flex;
     flex-direction: column;
     gap: 0.75rem;
-    justify-content: flex-start;
-    min-height: 100%;
-    padding: 0;
+    width: 100%;
+    position: relative;
+    align-items: stretch;
+}
+
+.registerColumn {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+    width: 100%;
 }
 
 /* Campos específicos para registro em coluna */
 .registerColumn .inputGroup {
-    margin-bottom: 0; /* Remove margem inferior para melhor aproveitamento */
+    margin-bottom: 0;
 }
 
 /* Brilho sutil no topo do card */
@@ -435,7 +420,7 @@
 .linkButton {
     background: none;
     border: none;
-    color: white;
+    color: #ff4444;
     text-decoration: underline;
     cursor: pointer;
     font-family: "League Spartan", sans-serif;

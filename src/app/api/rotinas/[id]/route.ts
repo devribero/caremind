@@ -26,7 +26,7 @@ export async function PATCH(request: NextRequest, { params }: { params: { id: st
   const token = authHeader?.startsWith('Bearer ')
     ? authHeader.slice('Bearer '.length)
     : undefined;
-  const supabase = createClient(token);
+  const supabase = await createClient(token);
 
   try {
     const { data: { user } } = await supabase.auth.getUser(token);
@@ -84,7 +84,7 @@ export async function DELETE(request: NextRequest, { params }: { params: { id: s
   const token = authHeader?.startsWith('Bearer ')
     ? authHeader.slice('Bearer '.length)
     : undefined;
-  const supabase = createClient(token);
+  const supabase = await createClient(token);
 
   try {
     const { data: { user } } = await supabase.auth.getUser(token);

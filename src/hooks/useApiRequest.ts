@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useRef } from 'react';
 
 interface ApiRequestState<T> {
   data: T | null;
@@ -20,21 +20,25 @@ export function useApiRequest<T = any>(options: UseApiRequestOptions = {}) {
     error: null,
   });
 
+  // Use useRef para evitar problemas com dependências
+  const optionsRef = useRef(options);
+  optionsRef.current = options;
+
   const execute = useCallback(async (requestFn: () => Promise<T>) => {
     setState(prev => ({ ...prev, loading: true, error: null }));
 
     try {
       const data = await requestFn();
       setState({ data, loading: false, error: null });
-      options.onSuccess?.(data);
+      optionsRef.current.onSuccess?.(data);
       return data;
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'Erro inesperado';
       setState(prev => ({ ...prev, loading: false, error: errorMessage }));
-      options.onError?.(errorMessage);
+      optionsRef.current.onError?.(errorMessage);
       throw error;
     }
-  }, [options]);
+  }, []); // Dependências vazias, usa optionsRef
 
   const reset = useCallback(() => {
     setState({

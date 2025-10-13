@@ -21,7 +21,7 @@ export async function OPTIONS() {
 // PATCH - Atualizar uma tarefa
 // ================================================================= //
 export async function PATCH(request: Request, context: { params: { id: string } }) {
-  const supabase = createClient();
+  const supabase = await createClient();
 
   try {
     // Support Bearer token as well as cookie session
@@ -99,7 +99,7 @@ export async function PATCH(request: Request, context: { params: { id: string } 
 // DELETE - Excluir uma tarefa
 // ================================================================= //
 export async function DELETE(request: Request, context: { params: { id: string } }) {
-  const supabase = createClient();
+  const supabase = await createClient();
 
   try {
     // Support Bearer token as well as cookie session
