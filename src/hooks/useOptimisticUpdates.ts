@@ -10,28 +10,19 @@ interface OptimisticUpdateOptions<T> {
 export function useOptimisticUpdates<T extends { id: string }>() {
   const executeOptimisticUpdate = useCallback(async <R = T>(
     currentItems: T[],
+    setItems: (updater: (items: T[]) => T[]) => void,
     itemId: string,
     optimisticUpdate: (item: T) => T,
     apiCall: () => Promise<R>,
     options: OptimisticUpdateOptions<T> = {}
   ): Promise<R | null> => {
-    // Store original state for rollback
+    // Snapshot para rollback
     const originalItems = [...currentItems];
 
-    // Apply optimistic update
-    const optimisticItems = currentItems.map(item =>
-      item.id === itemId ? optimisticUpdate(item) : item
+    // Aplica atualização otimista imediatamente
+    setItems(() =>
+      currentItems.map(item => (item.id === itemId ? optimisticUpdate(item) : item))
     );
-
-    // This would be called by the consuming hook to update state
-    const applyOptimisticUpdate = (updateState: (items: T[]) => void) => {
-      updateState(optimisticItems);
-    };
-
-    // This would be called by the consuming hook to rollback
-    const rollbackUpdate = (updateState: (items: T[]) => void) => {
-      updateState(originalItems);
-    };
 
     try {
       const result = await apiCall();
@@ -39,7 +30,10 @@ export function useOptimisticUpdates<T extends { id: string }>() {
       return result;
     } catch (error) {
       const err = error instanceof Error ? error : new Error('Erro inesperado');
-      options.onError?.(err, originalItems.find(item => item.id === itemId)!);
+      // Rollback em caso de erro
+      setItems(() => originalItems);
+      const original = originalItems.find(item => item.id === itemId)!;
+      options.onError?.(err, original);
       throw err;
     }
   }, []);
