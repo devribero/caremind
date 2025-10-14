@@ -5,8 +5,8 @@ import { usePersistentState } from '@/hooks/usePersistentState';
 import { useRouter } from 'next/navigation';
 
 // Componentes e hooks
-import { Header } from '@/components/headers/HeaderDashboard';
-import { Sidebar } from '@/components/Sidebar';
+import { ClientAreaHeader } from '@/components/ClientAreaHeader';
+import { ClientSidebar } from '@/components/ClientSidebar';
 import { useAuth } from '@/contexts/AuthContext';
 import { FullScreenLoader } from '@/components/FullScreenLoader';
 import { AddRotinaForm } from '@/components/forms/AddRotinaForm';
@@ -50,10 +50,9 @@ export default function Rotinas() {
     },
   });
 
-  // Funções de menu
-  const [isMenuOpen, setIsMenuOpen] = usePersistentState<boolean>('ui.rotinas.menuOpen', false);
-  const toggleMenu = () => setIsMenuOpen(!isMenuOpen);
-  const closeMenu = () => setIsMenuOpen(false);
+  // Funções da barra lateral (colapsar/expandir)
+  const [isSidebarCollapsed, setIsSidebarCollapsed] = usePersistentState<boolean>('ui.sidebar.collapsed', false);
+  const toggleSidebar = () => setIsSidebarCollapsed(!isSidebarCollapsed);
 
   // Handlers para formulários
   const handleSaveRotina = async (
@@ -115,10 +114,19 @@ export default function Rotinas() {
 
   return (
     <main className={styles.main}>
-      <Header isMenuOpen={isMenuOpen} onMenuToggle={toggleMenu} />
-      <Sidebar isOpen={isMenuOpen} onClose={closeMenu} />
+      <ClientAreaHeader />
+      <ClientSidebar collapsed={isSidebarCollapsed} onToggle={toggleSidebar} />
 
-      <div className={`${isMenuOpen ? styles.contentPushed : ''} ${styles.mainContent}`}>
+      <div
+        className={`${styles.mainContent}`}
+        style={{
+          marginLeft: isSidebarCollapsed ? 80 : 280,
+          transition: 'margin-left 0.25s ease',
+          paddingTop: 16,
+          position: 'relative',
+          zIndex: 2,
+        }}
+      >
         <div className={styles.content}>
           <div className={styles.pageHeader}>
             <h1 className={styles.content_title}>Rotinas</h1>
