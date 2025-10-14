@@ -5,8 +5,8 @@ import { usePersistentState } from '@/hooks/usePersistentState';
 import { useRouter } from 'next/navigation';
 
 // Componentes e hooks
-import { ClientAreaHeader } from '@/components/ClientAreaHeader';
 import { ClientSidebar } from '@/components/ClientSidebar';
+import { ClientContentHeader } from '@/components/ClientContentHeader';
 import { useAuth } from '@/contexts/AuthContext';
 import { FullScreenLoader } from '@/components/FullScreenLoader';
 import { AddRotinaForm } from '@/components/forms/AddRotinaForm';
@@ -129,7 +129,7 @@ export default function Rotinas() {
       >
         <div className={styles.content}>
           <div className={styles.pageHeader}>
-            <h1 className={styles.content_title}>Rotinas</h1>
+            <ClientContentHeader title="Rotinas" collapsed={isSidebarCollapsed} onToggle={toggleSidebar} />
           </div>
 
           <section className={styles.content_info}>

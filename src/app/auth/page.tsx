@@ -17,6 +17,7 @@ export default function AuthPage() {
   const [confirmPassword, setConfirmPassword] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+  const [accountType, setAccountType] = useState<'individual' | 'familiar'>('individual');
 
   const { signIn, signUp, user, loading: authLoading } = useAuth();
   const router = useRouter();
@@ -70,7 +71,7 @@ export default function AuthPage() {
         if (error) setError('Email ou senha incorretos');
         else router.push('/dashboard');
       } else {
-        const { error } = await signUp(email, password, fullName);
+        const { error } = await signUp(email, password, fullName, accountType);
         if (error) setError('Erro ao criar conta: ' + error.message);
         else router.push('/onboarding');
       }
@@ -165,6 +166,20 @@ export default function AuthPage() {
                         required
                       />
                     </div>
+
+                    <div className={styles.inputGroup}>
+                      <label htmlFor="accountType">Tipo de conta</label>
+                      <select
+                        id="accountType"
+                        value={accountType}
+                        onChange={(e) => setAccountType(e.target.value as 'individual' | 'familiar')}
+                        className={styles.input}
+                        required
+                      >
+                        <option value="individual">Individual</option>
+                        <option value="familiar">Familiar</option>
+                      </select>
+                    </div>
                   </div>
                 </div>
               )}
@@ -227,6 +242,7 @@ export default function AuthPage() {
                     setPassword('');
                     setFullName('');
                     setConfirmPassword('');
+                    setAccountType('individual');
                   }}
                   className={styles.switchButton}
                 >
@@ -254,3 +270,4 @@ export default function AuthPage() {
     </main>
   );
 }
+

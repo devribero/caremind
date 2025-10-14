@@ -122,12 +122,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       if (authResponse.data.user && !authResponse.error) {
         const userId = authResponse.data.user.id;
         
-        // Tenta inserir o perfil na tabela 'perfis' com o nome explícito
+        // Dados do perfil seguindo o schema: chave estrangeira em user_id
         const profileData = {
-          id: userId,
+          user_id: userId,
           nome: fullName || 'Sem nome',
           tipo: accountType,
-        };
+        } as const;
         
         console.log("Tentando inserir perfil com nome:", fullName);
         
@@ -135,7 +135,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         const { data: existingProfile } = await supabase
           .from('perfis')
           .select('*')
-          .eq('id', userId)
+          .eq('user_id', userId)
           .single();
           
         if (existingProfile) {
@@ -146,7 +146,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
               nome: fullName,
               tipo: accountType,
             })
-            .eq('id', userId);
+            .eq('user_id', userId);
             
           if (updateError) {
             console.error('Erro ao atualizar perfil:', updateError);

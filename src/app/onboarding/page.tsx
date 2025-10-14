@@ -51,7 +51,7 @@ export default function OnboardingPage() {
 
     const tipo = (data?.tipo as string | undefined)?.toLowerCase();
     // Rotas-alvo conforme requisito; se não existirem, usar fallback
-    const target = tipo === 'familiar' ? '/familiar-dashboard' : '/individual-dashboard';
+    const target = tipo === 'familiar' ? '/familiar-dashboard' : '/dashboard';
     // Fallback para rota existente caso as específicas não existam
     router.push(target || '/dashboard');
   };

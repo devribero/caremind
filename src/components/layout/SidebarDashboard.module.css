@@ -1,0 +1,138 @@
+.sidebar {
+  position: fixed;
+  inset: 0 auto 0 0;
+  width: 280px;
+  background: #0400b9;
+  color: #ffffff;
+  display: flex;
+  flex-direction: column;
+  border-right: 1px solid rgba(255,255,255,0.1);
+  z-index: 30;
+}
+
+.topArea {
+  padding: 20px 16px 12px 16px;
+}
+
+.logoRow {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 14px;
+}
+
+.logoCircle {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: #ffffff;
+  color: #0400b9;
+  display: grid;
+  place-items: center;
+  font-weight: 700;
+  font-size: 12px;
+}
+
+.logoText {
+  font-weight: 700;
+  letter-spacing: 0.2px;
+}
+
+.userBox {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  background: rgba(255,255,255,0.08);
+  padding: 10px;
+  border-radius: 10px;
+}
+
+.avatar {
+  width: 36px;
+  height: 36px;
+}
+
+.avatarImg, .avatarFallback {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  object-fit: cover;
+  background: rgba(255,255,255,0.2);
+  display: grid;
+  place-items: center;
+}
+
+.userText {
+  display: flex;
+  flex-direction: column;
+  line-height: 1.2;
+}
+
+.userName {
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.userEmail {
+  font-size: 12px;
+  opacity: 0.8;
+}
+
+.nav {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 10px 8px;
+  margin-top: 8px;
+}
+
+.navItem {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 12px;
+  border-radius: 8px;
+  color: #ffffff;
+  text-decoration: none;
+  opacity: 0.95;
+}
+
+.navItem:hover {
+  background: rgba(255,255,255,0.12);
+}
+
+.active {
+  background: rgba(255,255,255,0.18);
+}
+
+.icon {
+  display: grid;
+  place-items: center;
+  opacity: 0.95;
+}
+
+.label {
+  font-size: 14px;
+}
+
+.bottomArea {
+  margin-top: auto;
+  padding: 12px;
+}
+
+.logoutBtn {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 12px;
+  border-radius: 8px;
+  border: none;
+  background: rgba(255,255,255,0.12);
+  color: #ffffff;
+  cursor: pointer;
+}
+
+.logoutBtn:hover {
+  background: rgba(255,255,255,0.18);
+}

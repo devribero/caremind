@@ -5,8 +5,8 @@ import { useRouter } from 'next/navigation';
 import { usePersistentState } from '@/hooks/usePersistentState';
 
 // Componentes e hooks
-import { ClientAreaHeader } from '@/components/ClientAreaHeader';
 import { ClientSidebar } from '@/components/ClientSidebar';
+import { ClientContentHeader } from '@/components/ClientContentHeader';
 import { useAuth } from '@/contexts/AuthContext';
 import { FullScreenLoader } from '@/components/FullScreenLoader';
 import { AddMedicamentoForm } from '@/components/forms/AddMedicamentoForm';
@@ -125,7 +125,6 @@ export default function Remedios() {
 
   return (
     <main className={styles.main}>
-      <ClientAreaHeader />
       <ClientSidebar collapsed={isSidebarCollapsed} onToggle={toggleSidebar} />
 
       <div
@@ -140,7 +139,7 @@ export default function Remedios() {
       >
         <div className={styles.content}>
           <div className={styles.pageHeader}>
-            <h1 className={styles.content_title}>Remédios</h1>
+            <ClientContentHeader title="Remédios" collapsed={isSidebarCollapsed} onToggle={toggleSidebar} />
           </div>
 
           <section className={styles.content_info}>
