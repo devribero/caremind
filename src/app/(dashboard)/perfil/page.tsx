@@ -1,11 +1,9 @@
 'use client'
 
-import { Header } from '@/components/headers/HeaderDashboard';
-import pageStyles from '@/app/perfil/page.module.css';
-import modalStyles from '@/app/perfil/modal.module.css';
+import pageStyles from '@/app/(dashboard)/perfil/page.module.css';
+import modalStyles from '@/app/(dashboard)/perfil/modal.module.css';
 import { useAuth } from '@/contexts/AuthContext';
 import { createClient } from '@/lib/supabase/client';
-import { Sidebar } from '@/components/Sidebar';
 import { useState, useEffect, ChangeEvent, useRef } from 'react';
 import { usePersistentState } from '@/hooks/usePersistentState';
 import { useRouter } from 'next/navigation';
@@ -371,147 +369,139 @@ export default function Perfil() {
 
     return (
         <main className={pageStyles.main}>
-            <Header isMenuOpen={isMenuOpen} onMenuToggle={toggleMenu} />
-            <Sidebar isOpen={isMenuOpen} onClose={closeMenu} />
-            <div className={`${isMenuOpen ? pageStyles.contentPushed : ''} ${pageStyles.mainContent}`}>
+            <div className={pageStyles.mainContent}>
                 <div className={pageStyles.content}>
                     <div className={pageStyles.pageHeader}>
                         <h1 className={pageStyles.content_title}>Perfil</h1>
                     </div>
-
                     <section className={pageStyles.content_info}>
                         <div className={pageStyles.profileSection}>
                             <div className={pageStyles.profileHeader}>
                                 <div className={pageStyles.profileInfo}>
-                                    <div className={pageStyles.profilePhotoContainer}>
-                                        <Image
-                                            src={profileData.photoUrl}
-                                            alt="Foto de Perfil"
-                                            className={pageStyles.profilePhoto}
-                                            width={80}
-                                            height={80}
-                                            key={profileData.photoUrl}
-                                            onError={() => {
-                                                setProfileData(prev => ({ ...prev, photoUrl: '/foto_padrao.png' }));
-                                            }}
-                                        />
-                                        {/* CORRIGIDO: Adicionado pageStyles e onClick */}
+                                        <div className={pageStyles.profilePhotoContainer}>
+                                            <Image
+                                                src={profileData.photoUrl}
+                                                alt="Foto de Perfil"
+                                                className={pageStyles.profilePhoto}
+                                                width={80}
+                                                height={80}
+                                                key={profileData.photoUrl}
+                                                onError={() => {
+                                                    setProfileData(prev => ({ ...prev, photoUrl: '/foto_padrao.png' }));
+                                                }}
+                                            />
+                                            <button 
+                                                className={pageStyles.uploadPhotoButton} 
+                                                onClick={handleUploadButtonClick}
+                                                disabled={uploadingPhoto}
+                                            >
+                                                {uploadingPhoto ? (
+                                                    <svg className={pageStyles.spinner} viewBox="0 0 50 50">
+                                                        <circle className={pageStyles.path} cx="25" cy="25" r="20" fill="none" strokeWidth="5"></circle>
+                                                    </svg>
+                                                ) : (
+                                                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
+                                                        <path d="M12 9V3H9V9H3V12H9V18H12V12H18V9H12Z" />
+                                                    </svg>
+                                                )}
+                                            </button>
+                                            <input
+                                                type="file"
+                                                ref={fileInputRef}
+                                                onChange={handleFileChange}
+                                                style={{ display: 'none' }}
+                                                accept="image/png, image/jpeg"
+                                                disabled={uploadingPhoto}
+                                            />
+                                        </div>
+                                        <div className={pageStyles.profileText}>
+                                            <h1 className={pageStyles.profileName}>{profileData.fullName}</h1>
+                                            <span className={pageStyles.profileEmail}>{profileData.email}</span>
+                                        </div>
+                                    </div>
+                                    <div className={pageStyles.profileActions}>
                                         <button 
-                                            className={pageStyles.uploadPhotoButton} 
-                                            onClick={handleUploadButtonClick}
-                                            disabled={uploadingPhoto}
+                                            className={pageStyles.actionButton} 
+                                            onClick={() => setShowPasswordModal(true)}
+                                            disabled={passwordLoading || uploadingPhoto}
                                         >
-                                            {uploadingPhoto ? (
-                                                <svg className={pageStyles.spinner} viewBox="0 0 50 50">
-                                                    <circle className={pageStyles.path} cx="25" cy="25" r="20" fill="none" strokeWidth="5"></circle>
-                                                </svg>
-                                            ) : (
-                                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
-                                                    <path d="M12 9V3H9V9H3V12H9V18H12V12H18V9H12Z" />
-                                                </svg>
-                                            )}
+                                            Alterar Senha
                                         </button>
-                                        {/* CORRIGIDO: Input de arquivo escondido */}
-                                        <input
-                                            type="file"
-                                            ref={fileInputRef}
-                                            onChange={handleFileChange}
-                                            style={{ display: 'none' }}
-                                            accept="image/png, image/jpeg"
-                                            disabled={uploadingPhoto}
-                                        />
-                                    </div>
-                                    <div className={pageStyles.profileText}>
-                                        <h1 className={pageStyles.profileName}>{profileData.fullName}</h1>
-                                        <span className={pageStyles.profileEmail}>{profileData.email}</span>
+                                        <button className={pageStyles.actionButton}>Contatos</button>
+                                        <button className={pageStyles.logoutButton} onClick={handleLogout}>Logout</button>
                                     </div>
                                 </div>
-                                <div className={pageStyles.profileActions}>
-                                    <button 
-                                        className={pageStyles.actionButton} 
-                                        onClick={() => setShowPasswordModal(true)}
-                                        disabled={passwordLoading || uploadingPhoto}
-                                    >
-                                        Alterar Senha
-                                    </button>
-                                    <button className={pageStyles.actionButton}>Contatos</button>
-                                    <button className={pageStyles.logoutButton} onClick={handleLogout}>Logout</button>
-                                </div>
-                            </div>
-
-                            <div className={pageStyles.infoCard}>
-                                <h2 className={pageStyles.cardTitle}>Informações do Perfil</h2>
-                                <div className={pageStyles.infoGrid}>
-                                    {/* Campos de Input */}
-                                    <div className={pageStyles.infoField}>
-                                        <label htmlFor="fullName" className={pageStyles.fieldLabel}>Nome Completo</label>
-                                        <input
-                                            type="text"
-                                            id="fullName"
-                                            name="fullName"
-                                            value={profileData.fullName}
-                                            onChange={handleInputChange}
-                                            className={pageStyles.fieldInput}
-                                            disabled={!isEditing}
-                                        />
+                                <div className={pageStyles.infoCard}>
+                                    <h2 className={pageStyles.cardTitle}>Informações do Perfil</h2>
+                                    <div className={pageStyles.infoGrid}>
+                                        <div className={pageStyles.infoField}>
+                                            <label htmlFor="fullName" className={pageStyles.fieldLabel}>Nome Completo</label>
+                                            <input
+                                                type="text"
+                                                id="fullName"
+                                                name="fullName"
+                                                value={profileData.fullName}
+                                                onChange={handleInputChange}
+                                                className={pageStyles.fieldInput}
+                                                disabled={!isEditing}
+                                            />
+                                        </div>
+                                        <div className={pageStyles.infoField}>
+                                            <label htmlFor="email" className={pageStyles.fieldLabel}>Email</label>
+                                            <input
+                                                type="email"
+                                                id="email"
+                                                name="email"
+                                                value={profileData.email}
+                                                className={pageStyles.fieldInput}
+                                                disabled
+                                            />
+                                        </div>
+                                        <div className={pageStyles.infoField}>
+                                            <label htmlFor="phone" className={pageStyles.fieldLabel}>Telefone</label>
+                                            <input
+                                                type="text"
+                                                id="phone"
+                                                name="phone"
+                                                value={profileData.phone}
+                                                onChange={handleInputChange}
+                                                className={pageStyles.fieldInput}
+                                                disabled={!isEditing}
+                                            />
+                                        </div>
+                                        <div className={pageStyles.infoField}>
+                                            <label htmlFor="dob" className={pageStyles.fieldLabel}>Data de Nascimento</label>
+                                            <input
+                                                type="date"
+                                                id="dob"
+                                                name="dob"
+                                                value={profileData.dob}
+                                                onChange={handleInputChange}
+                                                className={pageStyles.fieldInput}
+                                                disabled={!isEditing}
+                                            />
+                                        </div>
                                     </div>
-                                    <div className={pageStyles.infoField}>
-                                        <label htmlFor="email" className={pageStyles.fieldLabel}>Email</label>
-                                        <input
-                                            type="email"
-                                            id="email"
-                                            name="email"
-                                            value={profileData.email}
-                                            className={pageStyles.fieldInput}
-                                            disabled // Email geralmente não é editável diretamente
-                                        />
+                                    <div className={pageStyles.editButtonContainer}>
+                                        <button
+                                            className={pageStyles.editProfileButton}
+                                            onClick={handleEditProfile}
+                                            disabled={uploadingPhoto || passwordLoading}
+                                        >
+                                            {isEditing ? 'Salvar Perfil' : 'Editar Perfil'}
+                                        </button>
                                     </div>
-                                    <div className={pageStyles.infoField}>
-                                        <label htmlFor="phone" className={pageStyles.fieldLabel}>Telefone</label>
-                                        <input
-                                            type="text"
-                                            id="phone"
-                                            name="phone"
-                                            value={profileData.phone}
-                                            onChange={handleInputChange}
-                                            className={pageStyles.fieldInput}
-                                            disabled={!isEditing}
-                                        />
-                                    </div>
-                                    <div className={pageStyles.infoField}>
-                                        <label htmlFor="dob" className={pageStyles.fieldLabel}>Data de Nascimento</label>
-                                        <input
-                                            type="date"
-                                            id="dob"
-                                            name="dob"
-                                            value={profileData.dob}
-                                            onChange={handleInputChange}
-                                            className={pageStyles.fieldInput}
-                                            disabled={!isEditing}
-                                        />
-                                    </div>
-                                </div>
-                                <div className={pageStyles.editButtonContainer}>
-                                    <button
-                                        className={pageStyles.editProfileButton}
-                                        onClick={handleEditProfile}
-                                        disabled={uploadingPhoto || passwordLoading}
-                                    >
-                                        {isEditing ? 'Salvar Perfil' : 'Editar Perfil'}
-                                    </button>
                                 </div>
                             </div>
-                        </div>
-                        {/* CORRIGIDO: Passando a prop 'loading' */}
-                        <ChangePasswordModal 
-                            show={showPasswordModal} 
-                            onClose={() => setShowPasswordModal(false)} 
-                            onSave={handleSavePassword}
-                            loading={passwordLoading}
-                        />
-                    </section>
+                            <ChangePasswordModal 
+                                show={showPasswordModal} 
+                                onClose={() => setShowPasswordModal(false)} 
+                                onSave={handleSavePassword}
+                                loading={passwordLoading}
+                            />
+                        </section>
+                    </div>
                 </div>
-            </div>
-        </main>
-    );
+            </main>
+        );
 }

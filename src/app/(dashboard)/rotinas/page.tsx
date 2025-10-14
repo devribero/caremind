@@ -1,12 +1,9 @@
 'use client';
 
 import React from 'react';
-import { usePersistentState } from '@/hooks/usePersistentState';
 import { useRouter } from 'next/navigation';
 
 // Componentes e hooks
-import { ClientSidebar } from '@/components/ClientSidebar';
-import { ClientContentHeader } from '@/components/ClientContentHeader';
 import { useAuth } from '@/contexts/AuthContext';
 import { FullScreenLoader } from '@/components/FullScreenLoader';
 import { AddRotinaForm } from '@/components/forms/AddRotinaForm';
@@ -49,10 +46,6 @@ export default function Rotinas() {
       delete: (error) => alert(`Erro ao excluir rotina: ${error}`),
     },
   });
-
-  // Funções da barra lateral (colapsar/expandir)
-  const [isSidebarCollapsed, setIsSidebarCollapsed] = usePersistentState<boolean>('ui.sidebar.collapsed', false);
-  const toggleSidebar = () => setIsSidebarCollapsed(!isSidebarCollapsed);
 
   // Handlers para formulários
   const handleSaveRotina = async (
@@ -114,37 +107,23 @@ export default function Rotinas() {
 
   return (
     <main className={styles.main}>
-      <ClientAreaHeader />
-      <ClientSidebar collapsed={isSidebarCollapsed} onToggle={toggleSidebar} />
-
-      <div
-        className={`${styles.mainContent}`}
-        style={{
-          marginLeft: isSidebarCollapsed ? 80 : 280,
-          transition: 'margin-left 0.25s ease',
-          paddingTop: 16,
-          position: 'relative',
-          zIndex: 2,
-        }}
-      >
-        <div className={styles.content}>
-          <div className={styles.pageHeader}>
-            <ClientContentHeader title="Rotinas" collapsed={isSidebarCollapsed} onToggle={toggleSidebar} />
-          </div>
-
-          <section className={styles.content_info}>
-            {!loading && !error && (
-              <div className={styles.actionsContainer}>
-                <button className={styles.addButton} onClick={() => addModal.open()}>
-                  <span className={styles.addIcon}>+</span>
-                  Adicionar Rotina
-                </button>
-              </div>
-            )}
-
-            {renderContent()}
-          </section>
+      <div className={styles.content}>
+        <div className={styles.pageHeader}>
+          <h1 className={styles.content_title}>Rotinas</h1>
         </div>
+
+        <section className={styles.content_info}>
+          {!loading && !error && (
+            <div className={styles.actionsContainer}>
+              <button className={styles.addButton} onClick={() => addModal.open()}>
+                <span className={styles.addIcon}>+</span>
+                Adicionar Rotina
+              </button>
+            </div>
+          )}
+
+          {renderContent()}
+        </section>
       </div>
 
       <Modal isOpen={addModal.isOpen} onClose={addModal.close} title="Adicionar rotina">

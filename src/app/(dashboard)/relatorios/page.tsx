@@ -6,12 +6,10 @@
 
 import { useState, useEffect, useMemo } from 'react';
 import { Bar } from 'react-chartjs-2';
-import { Header } from '@/components/headers/HeaderDashboard';
 import { useAuth } from '@/contexts/AuthContext';
 import { useRouter } from 'next/navigation';
 import { createClient } from '@/lib/supabase/client';
-import { Sidebar } from '@/components/Sidebar';
-import { usePersistentState } from '@/hooks/usePersistentState';
+import { FullScreenLoader } from '@/components/FullScreenLoader';
 import {
   Chart as ChartJS,
   CategoryScale,
@@ -47,9 +45,6 @@ export default function Relatorios() {
   const supabase = useMemo(() => createClient(), []);
   const [loading, setLoading] = useState(true);
   const [eventos, setEventos] = useState<EventoHistorico[]>([]);
-  const [isMenuOpen, setIsMenuOpen] = usePersistentState<boolean>('ui.relatorios.menuOpen', false);
-  const toggleMenu = () => setIsMenuOpen(!isMenuOpen);
-  const closeMenu = () => setIsMenuOpen(false);
 
   const chartOptions: any = {
     responsive: true,
@@ -246,10 +241,8 @@ export default function Relatorios() {
   if (loading) {
     return (
       <div className={styles.main}>
-        <Header isMenuOpen={isMenuOpen} onMenuToggle={toggleMenu} />
-        <Sidebar isOpen={isMenuOpen} onClose={closeMenu} />
         <div className={styles.content}>
-          <p>Carregando relatórios...</p>
+          <FullScreenLoader />
         </div>
       </div>
     );
@@ -257,8 +250,6 @@ export default function Relatorios() {
 
   return (
     <div className={styles.main}>
-      <Header isMenuOpen={isMenuOpen} onMenuToggle={toggleMenu} />
-      <Sidebar isOpen={isMenuOpen} onClose={closeMenu} />
       <div className={styles.content}>
         <h1 className={styles.content_title}>Histórico de Medicamentos e Rotinas</h1>
         
@@ -330,25 +321,25 @@ export default function Relatorios() {
                 </tr>
               </thead>
               <tbody>
-                {eventos.length > 0 ? (
-                  eventos.map((evento) => (
-                    <tr key={evento.id}>
-                      <td>{formatarData(evento.horario)}</td>
-                      <td>{formatarHora(evento.horario)}</td>
-                      <td>{evento.tipo}</td>
-                      <td>{evento.nome}</td>
-                      <td className={getStatusClassName(evento.status)}>
-                        {evento.status}
-                      </td>
-                    </tr>
-                  ))
-                ) : (
-                  <tr>
-                    <td colSpan={5} style={{ textAlign: 'center', padding: '20px' }}>
-                      Nenhum evento encontrado. Os eventos serão registrados automaticamente quando você adicionar medicamentos ou rotinas.
-                    </td>
-                  </tr>
-                )}
+                {eventos.length > 0
+                  ? eventos.map((evento) => (
+                      <tr key={evento.id}>
+                        <td>{formatarData(evento.horario)}</td>
+                        <td>{formatarHora(evento.horario)}</td>
+                        <td>{evento.tipo}</td>
+                        <td>{evento.nome}</td>
+                        <td className={getStatusClassName(evento.status)}>
+                          {evento.status}
+                        </td>
+                      </tr>
+                    ))
+                  : (
+                      <tr>
+                        <td colSpan={5} style={{ textAlign: 'center', padding: '20px' }}>
+                          Nenhum evento encontrado. Os eventos serão registrados automaticamente quando você adicionar medicamentos ou rotinas.
+                        </td>
+                      </tr>
+                    )}
               </tbody>
             </table>
           </div>

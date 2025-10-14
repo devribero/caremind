@@ -4,8 +4,7 @@ import { useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useRouter } from 'next/navigation';
 import { FullScreenLoader } from '@/components/FullScreenLoader';
-import AppLayout from '@/components/layout/AppLayout';
-import DashboardOverview from '@/components/dashboard/DashboardOverview';
+import DashboardClient from '@/components/DashboardClient';
 
 export default function Dashboard() {
   const { user, loading } = useAuth(); 
@@ -22,11 +21,7 @@ export default function Dashboard() {
   }
 
   if (user) {
-    return (
-      <AppLayout>
-        <DashboardOverview />
-      </AppLayout>
-    );
+    return <DashboardClient />;
   }
 
   return null;
