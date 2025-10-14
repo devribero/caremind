@@ -1,6 +1,11 @@
 /* Estilo principal do rodapé */
 .footer {
-    position: relative;
+    position: relative ;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    width: 100%;
+    z-index: 50;
     color: black;
     padding: 60px 0;
     font-size: 15px;

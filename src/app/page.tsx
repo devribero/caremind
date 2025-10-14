@@ -218,9 +218,9 @@ export default function Home() {
         </div>
       </section>
 
-      <div className={styles.footerWrapper}>
+      <footer>
         <Footer />
-      </div>
+      </footer>
     </main>
   );
 }

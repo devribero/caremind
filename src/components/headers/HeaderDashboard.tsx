@@ -39,10 +39,7 @@ export function Header({ isMenuOpen, onMenuToggle }: HeaderProps) {
 
             // Se não encontrar o perfil ou não houver foto, não é um erro crítico
             if (error) {
-                if (error.code === 'PGRST116') {
-                    // Nenhum perfil encontrado - isso é normal para novos usuários
-                    console.log('Perfil não encontrado para o usuário');
-                } else {
+                if (error.code !== 'PGRST116') {
                     console.error("Erro ao buscar perfil:", error.message);
                 }
                 setPhotoUrl(null);

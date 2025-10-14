@@ -76,8 +76,6 @@ html {
 body {
   scrollbar-width: thin;
   scrollbar-color: rgba(4, 0, 186, 0.6) transparent;
-  /* Evita "vazios" ao lado quando a barra aparece/desaparece */
-  scrollbar-gutter: stable;
 }
 
 /* Fundo do html igual ao body para eliminar qualquer faixa branca lateral */

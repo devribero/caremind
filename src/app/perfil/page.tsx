@@ -7,6 +7,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { createClient } from '@/lib/supabase/client';
 import { Sidebar } from '@/components/Sidebar';
 import { useState, useEffect, ChangeEvent, useRef } from 'react';
+import { usePersistentState } from '@/hooks/usePersistentState';
 import { useRouter } from 'next/navigation';
 import Image from 'next/image';
 import { PasswordService, ChangePasswordData } from '@/lib/services/passwordService';
@@ -173,7 +174,7 @@ export default function Perfil() {
         photoUrl: '/foto_padrao.png'
     });
     const [showPasswordModal, setShowPasswordModal] = useState(false);
-    const [isMenuOpen, setIsMenuOpen] = useState(false);
+    const [isMenuOpen, setIsMenuOpen] = usePersistentState<boolean>('ui.perfil.menuOpen', false);
 
     const fileInputRef = useRef<HTMLInputElement>(null); // ADICIONADO
     const BUCKET_NAME = process.env.NEXT_PUBLIC_SUPABASE_BUCKET || 'avatars'; // ADICIONADO

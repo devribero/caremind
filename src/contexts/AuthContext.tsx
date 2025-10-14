@@ -57,7 +57,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const {
       data: { subscription },
     } = supabase.auth.onAuthStateChange(async (event, session) => {
-      console.log('Mudança no estado de autenticação:', event, session?.user?.email);
       setSession(session);
       setUser(session?.user ?? null);
 
@@ -85,7 +84,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           }
         }
       } catch (syncErr) {
-        console.warn('Falha ao sincronizar metadados pendentes no SIGNED_IN:', syncErr);
+        // opcional: silenciar avisos não-críticos
       }
 
       setLoading(false);

@@ -4,6 +4,7 @@ import { useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
+import { usePersistentState } from '@/hooks/usePersistentState';
 
 import { Header } from '@/components/headers/HeaderDashboard';
 import DashboardClient from '@/components/DashboardClient';
@@ -12,7 +13,7 @@ import { Sidebar } from '@/components/Sidebar';
 import styles from './page.module.css';
 
 export default function Dashboard() {
-  const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [isMenuOpen, setIsMenuOpen] = usePersistentState<boolean>('ui.dashboard.menuOpen', false);
   const { user, loading } = useAuth(); 
   const router = useRouter();
 
