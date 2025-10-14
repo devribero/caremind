@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { LoadingProvider } from "@/contexts/LoadingContext";
 import { ProfileProvider } from "@/contexts/ProfileContext";
+import { Waves } from "@/components/Waves";
 import "./globals.css";
 
 export const metadata: Metadata = {
@@ -20,6 +21,7 @@ export default function RootLayout({
         <AuthProvider>
           <LoadingProvider>
             <ProfileProvider>
+              <Waves />
               {children}
             </ProfileProvider>
           </LoadingProvider>
