@@ -1,12 +1,12 @@
 'use client';
-import { useState, useEffect, useRef, useCallback } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/contexts/AuthContext';
+import { useProfile } from '@/contexts/ProfileContext';
 import Link from 'next/link';
 import Image from 'next/image';
 import styles from './HeaderDashboard.module.css';
 import { IoPersonCircleOutline } from "react-icons/io5";
-import { createClient } from '@/lib/supabase/client';
 
 interface HeaderProps {
     isMenuOpen: boolean;
@@ -15,61 +15,11 @@ interface HeaderProps {
 
 export function Header({ isMenuOpen, onMenuToggle }: HeaderProps) {
     const { user, signOut } = useAuth();
+    const { photoUrl } = useProfile();
     const router = useRouter();
-    const supabase = createClient();
 
     const [isProfileOpen, setIsProfileOpen] = useState(false);
-    const [photoUrl, setPhotoUrl] = useState<string | null>(null);
     const profileMenuRef = useRef<HTMLDivElement>(null);
-
-    // useCallback para estabilizar a função
-    const fetchProfilePhoto = useCallback(async () => {
-        if (!user) {
-            setPhotoUrl(null);
-            return;
-        }
-
-        try {
-            // 1. Busca o caminho da foto na tabela 'perfis'
-            const { data: profile, error } = await supabase
-                .from('perfis')
-                .select('foto_usuario')
-                .eq('id', user.id)
-                .single();
-
-            // Se não encontrar o perfil ou não houver foto, não é um erro crítico
-            if (error) {
-                if (error.code !== 'PGRST116') {
-                    console.error("Erro ao buscar perfil:", error.message);
-                }
-                setPhotoUrl(null);
-                return;
-            }
-
-            // 2. Se houver um caminho, busca a URL pública no Storage
-            if (profile?.foto_usuario) {
-                const { data: publicUrlData } = supabase
-                    .storage
-                    .from('avatars')
-                    .getPublicUrl(profile.foto_usuario);
-
-                if (publicUrlData?.publicUrl) {
-                    setPhotoUrl(publicUrlData.publicUrl);
-                } else {
-                    setPhotoUrl(null);
-                }
-            } else {
-                setPhotoUrl(null);
-            }
-        } catch (error) {
-            console.error("Erro inesperado ao buscar foto do perfil:", error);
-            setPhotoUrl(null);
-        }
-    }, [user, supabase]);
-
-    useEffect(() => {
-        fetchProfilePhoto();
-    }, [fetchProfilePhoto]);
 
     const handleLogout = async () => {
         await signOut();

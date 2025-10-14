@@ -2,6 +2,7 @@
 
 import React from 'react';
 import { useRouter } from 'next/navigation';
+import { usePersistentState } from '@/hooks/usePersistentState';
 
 // Componentes e hooks
 import { Header } from '@/components/headers/HeaderDashboard';
@@ -17,63 +18,62 @@ import { useCrudOperations } from '@/hooks/useCrudOperations';
 import styles from './page.module.css';
 
 type Medicamento = {
-  id: string;
-  nome: string;
-  dosagem?: string;
-  frequencia?: any;
-  quantidade?: number;
-  created_at: string;
+  id: string;
+  nome: string;
+  dosagem?: string;
+  frequencia?: any;
+  quantidade?: number;
+  created_at: string;
 };
 
 // Assinatura de dados de atualização sem 'id' e 'created_at'
 type UpdateMedicamentoData = Omit<Medicamento, 'id' | 'created_at'>;
 
 export default function Remedios() {
-  // Hooks e estados
-  const { user } = useAuth();
-  const router = useRouter();
+  // Hooks e estados
+  const { user } = useAuth();
+  const router = useRouter();
 
-  // Usar o hook CRUD personalizado
-  const {
-    items: medicamentos,
-    loading,
-    error,
-    addModal,
-    editModal,
-    createItem,
-    updateItem,
-    deleteItem,
-    editItem,
-  } = useCrudOperations<Medicamento>({
-    endpoint: '/api/medicamentos',
-    onError: {
-      create: (error) => alert(`Erro ao criar medicamento: ${error}`),
-      update: (error) => alert(`Erro ao atualizar medicamento: ${error}`),
-      delete: (error) => alert(`Erro ao excluir medicamento: ${error}`),
-    },
-  });
+  // Usar o hook CRUD personalizado
+  const {
+    items: medicamentos,
+    loading,
+    error,
+    addModal,
+    editModal,
+    createItem,
+    updateItem,
+    deleteItem,
+    editItem,
+  } = useCrudOperations<Medicamento>({
+    endpoint: '/api/medicamentos',
+    onError: {
+      create: (error) => alert(`Erro ao criar medicamento: ${error}`),
+      update: (error) => alert(`Erro ao atualizar medicamento: ${error}`),
+      delete: (error) => alert(`Erro ao excluir medicamento: ${error}`),
+    },
+  });
 
-  // Funções de menu
-  const [isMenuOpen, setIsMenuOpen] = React.useState(false);
-  const toggleMenu = () => setIsMenuOpen(!isMenuOpen);
-  const closeMenu = () => setIsMenuOpen(false);
+  // Funções de menu
+  const [isMenuOpen, setIsMenuOpen] = usePersistentState<boolean>('ui.remedios.menuOpen', false);
 
-  // Handlers para formulários
-  const handleSaveMedicamento = async (
-    nome: string,
-    dosagem: string | null,
-    frequencia: any,
-    quantidade: number
-  ) => {
-    // Criar novo item
-    await createItem({
-      nome,
-      dosagem,
-      frequencia,
-      quantidade,
-      created_at: new Date().toISOString(),
-    } as Omit<Medicamento, 'id'>);
-  };
+  const toggleMenu = () => setIsMenuOpen(!isMenuOpen);
+  const closeMenu = () => setIsMenuOpen(false);
+
+  const handleSaveMedicamento = async (
+    nome: string,
+    dosagem: string | null,
+    frequencia: any,
+    quantidade: number
+  ) => {
+    await createItem({
+      nome,
+      dosagem,
+      frequencia,
+      quantidade,
+      created_at: new Date().toISOString(),
+    } as Omit<Medicamento, 'id'>);
+  };
 
   const handleUpdateMedicamento = async (
     nome: string,

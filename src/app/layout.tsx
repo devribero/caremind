@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { LoadingProvider } from "@/contexts/LoadingContext";
+import { ProfileProvider } from "@/contexts/ProfileContext";
 import "./globals.css";
 
 export const metadata: Metadata = {
@@ -18,7 +19,9 @@ export default function RootLayout({
       <body>
         <AuthProvider>
           <LoadingProvider>
-            {children}
+            <ProfileProvider>
+              {children}
+            </ProfileProvider>
           </LoadingProvider>
         </AuthProvider>
       </body>

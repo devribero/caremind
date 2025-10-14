@@ -1,6 +1,7 @@
 'use client';
 
 import React from 'react';
+import { usePersistentState } from '@/hooks/usePersistentState';
 import { useRouter } from 'next/navigation';
 
 // Componentes e hooks
@@ -50,7 +51,7 @@ export default function Rotinas() {
   });
 
   // Funções de menu
-  const [isMenuOpen, setIsMenuOpen] = React.useState(false);
+  const [isMenuOpen, setIsMenuOpen] = usePersistentState<boolean>('ui.rotinas.menuOpen', false);
   const toggleMenu = () => setIsMenuOpen(!isMenuOpen);
   const closeMenu = () => setIsMenuOpen(false);
 

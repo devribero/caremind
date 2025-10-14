@@ -10,6 +10,8 @@ import { Header } from '@/components/headers/HeaderDashboard';
 import { useAuth } from '@/contexts/AuthContext';
 import { useRouter } from 'next/navigation';
 import { createClient } from '@/lib/supabase/client';
+import { Sidebar } from '@/components/Sidebar';
+import { usePersistentState } from '@/hooks/usePersistentState';
 import {
   Chart as ChartJS,
   CategoryScale,
@@ -45,6 +47,9 @@ export default function Relatorios() {
   const supabase = useMemo(() => createClient(), []);
   const [loading, setLoading] = useState(true);
   const [eventos, setEventos] = useState<EventoHistorico[]>([]);
+  const [isMenuOpen, setIsMenuOpen] = usePersistentState<boolean>('ui.relatorios.menuOpen', false);
+  const toggleMenu = () => setIsMenuOpen(!isMenuOpen);
+  const closeMenu = () => setIsMenuOpen(false);
 
   const chartOptions: any = {
     responsive: true,
@@ -241,7 +246,8 @@ export default function Relatorios() {
   if (loading) {
     return (
       <div className={styles.main}>
-        <Header />
+        <Header isMenuOpen={isMenuOpen} onMenuToggle={toggleMenu} />
+        <Sidebar isOpen={isMenuOpen} onClose={closeMenu} />
         <div className={styles.content}>
           <p>Carregando relatórios...</p>
         </div>
@@ -251,7 +257,8 @@ export default function Relatorios() {
 
   return (
     <div className={styles.main}>
-      <Header />
+      <Header isMenuOpen={isMenuOpen} onMenuToggle={toggleMenu} />
+      <Sidebar isOpen={isMenuOpen} onClose={closeMenu} />
       <div className={styles.content}>
         <h1 className={styles.content_title}>Histórico de Medicamentos e Rotinas</h1>
         
