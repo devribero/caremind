@@ -877,6 +877,8 @@
 .heroButton { display: flex; gap: 16px; }
 
 .ctaButton {
+    font-weight: 500;
+    font-family: 'League Spartan', sans-serif;
     background: linear-gradient(135deg, #0400ba 0%, #020054 100%) !important;
     color: white !important;
     border-radius: 12px !important;
