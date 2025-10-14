@@ -95,7 +95,7 @@ const estadoInicialRotinas: RotinasData = {
 
 // ===== COMPONENTE PRINCIPAL =====
 
-export default function DashboardClient(): React.ReactElement {
+export default function DashboardClient({ readOnly = false }: { readOnly?: boolean }): React.ReactElement {
     // Estados para controle do modal
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [modalType, setModalType] = useState<'medicamento' | 'rotina'>('medicamento');
@@ -606,23 +606,25 @@ export default function DashboardClient(): React.ReactElement {
                             <strong>{med.nome}</strong>
                             <span>{med.dosagem} - {formatarFrequencia(med.frequencia)}</span>
                         </div>
-                        <div className={styles.item_actions}>
-                            <button
-                                onClick={() => handleToggleStatus(med.id)}
-                                className={`${styles.statusButton} ${med.concluido ? styles.completed : ''}`}
-                                aria-label={med.concluido ? 'Desfazer' : 'Concluir'}
-                                title={med.concluido ? 'Desfazer' : 'Concluir'}
-                            >
-                                {med.concluido ? <FiX /> : <FiCheck />}
-                            </button>
-                            <button onClick={() => openModal('medicamento', med)} className={styles.icon_button}><FiEdit2 /></button>
-                            <button onClick={() => confirmarExclusao('medicamentos', med.id)} className={`${styles.icon_button} ${styles.danger}`}><FiTrash2 /></button>
-                        </div>
+                        {!readOnly && (
+                            <div className={styles.item_actions}>
+                                <button
+                                    onClick={() => handleToggleStatus(med.id)}
+                                    className={`${styles.statusButton} ${med.concluido ? styles.completed : ''}`}
+                                    aria-label={med.concluido ? 'Desfazer' : 'Concluir'}
+                                    title={med.concluido ? 'Desfazer' : 'Concluir'}
+                                >
+                                    {med.concluido ? <FiX /> : <FiCheck />}
+                                </button>
+                                <button onClick={() => openModal('medicamento', med)} className={styles.icon_button}><FiEdit2 /></button>
+                                <button onClick={() => confirmarExclusao('medicamentos', med.id)} className={`${styles.icon_button} ${styles.danger}`}><FiTrash2 /></button>
+                            </div>
+                        )}
                     </li>
                 ))}
             </ul>
         );
-    }, [medicamentos.lista, openModal, formatarFrequencia, handleToggleStatus, confirmarExclusao]);
+    }, [medicamentos.lista, openModal, formatarFrequencia, handleToggleStatus, confirmarExclusao, readOnly]);
 
     // Renderização da lista de rotinas
     const listaRotinas = useMemo(() => {
@@ -641,38 +643,42 @@ export default function DashboardClient(): React.ReactElement {
                                 <span>{rot.descricao}</span>
                             ) : null}
                         </div>
-                        <div className={styles.item_actions}>
-                            <button
-                                onClick={() => handleToggleRotinaStatus(rot.id)}
-                                className={`${styles.statusButton} ${rot.concluido ? styles.completed : ''}`}
-                                aria-label={rot.concluido ? 'Desfazer' : 'Concluir'}
-                                title={rot.concluido ? 'Desfazer' : 'Concluir'}
-                            >
-                                {rot.concluido ? <FiX /> : <FiCheck />}
-                            </button>
-                            <button onClick={() => handleEditRotina(rot)} className={styles.icon_button}>
-                                <FiEdit2 />
-                            </button>
-                            <button onClick={() => confirmarExclusao('rotinas', rot.id)} className={`${styles.icon_button} ${styles.danger}`}>
-                                <FiTrash2 />
-                            </button>
-                        </div>
+                        {!readOnly && (
+                            <div className={styles.item_actions}>
+                                <button
+                                    onClick={() => handleToggleRotinaStatus(rot.id)}
+                                    className={`${styles.statusButton} ${rot.concluido ? styles.completed : ''}`}
+                                    aria-label={rot.concluido ? 'Desfazer' : 'Concluir'}
+                                    title={rot.concluido ? 'Desfazer' : 'Concluir'}
+                                >
+                                    {rot.concluido ? <FiX /> : <FiCheck />}
+                                </button>
+                                <button onClick={() => handleEditRotina(rot)} className={styles.icon_button}>
+                                    <FiEdit2 />
+                                </button>
+                                <button onClick={() => confirmarExclusao('rotinas', rot.id)} className={`${styles.icon_button} ${styles.danger}`}>
+                                    <FiTrash2 />
+                                </button>
+                            </div>
+                        )}
                     </li>
                 ))}
             </ul>
         );
-    }, [rotinas.lista, handleEditRotina, handleToggleRotinaStatus]);
+    }, [rotinas.lista, handleEditRotina, handleToggleRotinaStatus, readOnly]);
 
     return (
         <div className={styles.dashboard_client}>
-            <div className={styles.actions}>
-                <button className={`${styles.button} ${styles.primary}`} onClick={() => openModal('medicamento')}>
-                    <FiPlus size={16} /> Adicionar Medicamento
-                </button>
-                <button className={styles.button} onClick={() => openModal('rotina')}>
-                    <FiPlus size={16} /> Adicionar Rotina
-                </button>
-            </div>
+            {!readOnly && (
+                <div className={styles.actions}>
+                    <button className={`${styles.button} ${styles.primary}`} onClick={() => openModal('medicamento')}>
+                        <FiPlus size={16} /> Adicionar Medicamento
+                    </button>
+                    <button className={styles.button} onClick={() => openModal('rotina')}>
+                        <FiPlus size={16} /> Adicionar Rotina
+                    </button>
+                </div>
+            )}
 
             <div className={styles.cards_container}>
             <div className={styles.card}>
@@ -685,9 +691,11 @@ export default function DashboardClient(): React.ReactElement {
                         style={{ width: `${medicamentos.total ? (medicamentos.concluidos / medicamentos.total) * 100 : 0}%` }}
                     />
                 </div>
-                <button className={styles.add_btn} onClick={() => openModal('medicamento')}>
-                    <FiPlus size={16} /> Adicionar Medicamento
-                </button>
+                {!readOnly && (
+                    <button className={styles.add_btn} onClick={() => openModal('medicamento')}>
+                        <FiPlus size={16} /> Adicionar Medicamento
+                    </button>
+                )}
             </div>
             
             <div className={styles.card}>
@@ -700,9 +708,11 @@ export default function DashboardClient(): React.ReactElement {
                         style={{ width: `${rotinas.total ? (rotinas.concluidas / rotinas.total) * 100 : 0}%` }}
                     />
                 </div>
-                <button className={styles.add_btn} onClick={() => openModal('rotina')}>
-                    <FiPlus size={16} /> Adicionar Rotina
-                </button>
+                {!readOnly && (
+                    <button className={styles.add_btn} onClick={() => openModal('rotina')}>
+                        <FiPlus size={16} /> Adicionar Rotina
+                    </button>
+                )}
             </div>
         </div>
 
@@ -722,18 +732,20 @@ export default function DashboardClient(): React.ReactElement {
             </div>
         </div>
 
-        {renderModal}
+        {!readOnly && renderModal}
         
-        <ConfirmDialog
-            isOpen={confirmDialog.isOpen}
-            title={confirmDialog.title}
-            message={confirmDialog.message}
-            confirmText="Excluir"
-            cancelText="Cancelar"
-            onConfirm={confirmDialog.onConfirm || (() => {})}
-            onCancel={fecharConfirmacao}
-            danger
-        />
+        {!readOnly && (
+            <ConfirmDialog
+                isOpen={confirmDialog.isOpen}
+                title={confirmDialog.title}
+                message={confirmDialog.message}
+                confirmText="Excluir"
+                cancelText="Cancelar"
+                onConfirm={confirmDialog.onConfirm || (() => {})}
+                onCancel={fecharConfirmacao}
+                danger
+            />
+        )}
     </div>
     );
 }

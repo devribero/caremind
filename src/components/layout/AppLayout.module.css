@@ -10,10 +10,14 @@
   width: calc(100% - 280px);
   background: #f8fafc;
   min-height: 100vh;
+  position: relative;
+  z-index: 2; /* above global waves */
 }
 
 .contentArea {
   padding: 20px;
+  position: relative;
+  z-index: 3;
 }
 
 @media (max-width: 1024px) {
