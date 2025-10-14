@@ -29,8 +29,18 @@ export default function SidebarDashboard({ collapsed }: { collapsed: boolean }) 
     <aside className={`${styles.sidebar} ${collapsed ? styles.collapsed : ""}`}>
       <div className={styles.topArea}>
         <div className={styles.logoRow}>
-          <span className={styles.logoText}>Caremind</span>
+          {!collapsed && <span className={styles.logoText}>Caremind</span>}
         </div>
+      </div>
+      <nav className={styles.nav}>
+        <NavItem href="/dashboard" label="Dashboard" icon={IoHomeOutline} />
+        <NavItem href="/relatorios" label="Relatórios" icon={IoBarChartOutline} />
+        <NavItem href="/rotinas" label="Rotinas" icon={IoClipboardOutline} />
+        <NavItem href="/remedios" label="Remédios" icon={IoMedkitOutline} />
+        <NavItem href="/perfil" label="Perfil" icon={IoPersonOutline} />
+        <NavItem href="/configuracoes" label="Configurações" icon={IoSettingsOutline} />
+      </nav>
+      <div className={styles.bottomArea}>
         <div className={styles.userBox}>
           <div className={styles.avatar}>
             {photoUrl ? (
@@ -47,15 +57,6 @@ export default function SidebarDashboard({ collapsed }: { collapsed: boolean }) 
           )}
         </div>
       </div>
-      <nav className={styles.nav}>
-        <NavItem href="/dashboard" label="Dashboard" icon={IoHomeOutline} />
-        <NavItem href="/relatorios" label="Relatórios" icon={IoBarChartOutline} />
-        <NavItem href="/rotinas" label="Rotinas" icon={IoClipboardOutline} />
-        <NavItem href="/remedios" label="Remédios" icon={IoMedkitOutline} />
-        <NavItem href="/perfil" label="Perfil" icon={IoPersonOutline} />
-        <NavItem href="/configuracoes" label="Configurações" icon={IoSettingsOutline} />
-      </nav>
-      {/* logout removido daqui; agora no menu do header */}
     </aside>
   );
 }

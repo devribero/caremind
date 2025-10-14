@@ -8,6 +8,11 @@
   flex-direction: column;
   border-right: 1px solid rgba(255,255,255,0.1);
   z-index: 30;
+  transition: width 0.25s ease;
+}
+
+.collapsed {
+  width: 80px;
 }
 
 .topArea {

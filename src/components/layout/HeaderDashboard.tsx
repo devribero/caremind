@@ -1,6 +1,7 @@
 "use client";
 import { usePathname } from "next/navigation";
-import { IoNotificationsOutline, IoMenu } from "react-icons/io5";
+import { IoNotificationsOutline } from "react-icons/io5";
+import { PanelLeftClose, PanelLeftOpen } from "lucide-react";
 import styles from "./HeaderDashboard.module.css";
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
@@ -35,8 +36,8 @@ export default function HeaderDashboard({ collapsed, onToggle }: { collapsed: bo
   return (
     <header className={styles.header}>
       <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-        <button className={styles.iconBtn} aria-label={collapsed ? 'Expandir menu' : 'Recolher menu'} onClick={onToggle}>
-          <IoMenu size={18} />
+        <button className={`${styles.iconBtn} ${styles.menuBtn}`} aria-label={collapsed ? 'Expandir menu' : 'Recolher menu'} onClick={onToggle}>
+          {collapsed ? <PanelLeftOpen size={18} /> : <PanelLeftClose size={18} />}
         </button>
         <h1 className={styles.title}>{title}</h1>
       </div>
