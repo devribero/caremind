@@ -7,7 +7,7 @@ import { usePathname } from "next/navigation";
 import { IoHomeOutline, IoBarChartOutline, IoClipboardOutline, IoMedkitOutline, IoPersonOutline, IoSettingsOutline, IoLogOutOutline } from "react-icons/io5";
 import styles from "./SidebarDashboard.module.css";
 
-export default function SidebarDashboard() {
+export default function SidebarDashboard({ collapsed }: { collapsed: boolean }) {
   const { user, signOut } = useAuth();
   const { photoUrl } = useProfile();
   const pathname = usePathname();
@@ -18,19 +18,18 @@ export default function SidebarDashboard() {
   const NavItem = ({ href, label, icon: Icon }: { href: string; label: string; icon: any }) => {
     const active = pathname === href;
     return (
-      <Link href={href} className={`${styles.navItem} ${active ? styles.active : ""}`}>
+      <Link href={href} className={`${styles.navItem} ${active ? styles.active : ""}`} aria-label={label}>
         <span className={styles.icon}><Icon size={18} /></span>
-        <span className={styles.label}>{label}</span>
+        {!collapsed && <span className={styles.label}>{label}</span>}
       </Link>
     );
   };
 
   return (
-    <aside className={styles.sidebar}>
+    <aside className={`${styles.sidebar} ${collapsed ? styles.collapsed : ""}`}>
       <div className={styles.topArea}>
         <div className={styles.logoRow}>
-          <div className={styles.logoCircle}>CM</div>
-          <span className={styles.logoText}>CareMind</span>
+          <span className={styles.logoText}>Caremind</span>
         </div>
         <div className={styles.userBox}>
           <div className={styles.avatar}>
@@ -40,10 +39,12 @@ export default function SidebarDashboard() {
               <div className={styles.avatarFallback}>👤</div>
             )}
           </div>
-          <div className={styles.userText}>
-            <span className={styles.userName}>{displayName}</span>
-            <span className={styles.userEmail}>{displayEmail}</span>
-          </div>
+          {!collapsed && (
+            <div className={styles.userText}>
+              <span className={styles.userName}>{displayName}</span>
+              <span className={styles.userEmail}>{displayEmail}</span>
+            </div>
+          )}
         </div>
       </div>
       <nav className={styles.nav}>
@@ -54,12 +55,7 @@ export default function SidebarDashboard() {
         <NavItem href="/perfil" label="Perfil" icon={IoPersonOutline} />
         <NavItem href="/configuracoes" label="Configurações" icon={IoSettingsOutline} />
       </nav>
-      <div className={styles.bottomArea}>
-        <button className={styles.logoutBtn} onClick={signOut}>
-          <IoLogOutOutline size={18} />
-          <span>Sair</span>
-        </button>
-      </div>
+      {/* logout removido daqui; agora no menu do header */}
     </aside>
   );
 }
