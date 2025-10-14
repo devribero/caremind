@@ -14,7 +14,7 @@ export function Footer() {
                             <Image src="/logo.png" alt="Logo CareMind" width={300} height={90} />
                         </Link>
                         <p className={styles.footerDescription}>
-                            Cuidado inteligente para quem você ama. Tecnologia que conecta gerações e transforma vidas.
+                            CareMind - tecnologia que aproxima, cuida e protege.
                         </p>
                     </div>
 

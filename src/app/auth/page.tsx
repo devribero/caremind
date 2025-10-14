@@ -2,12 +2,14 @@
 
 import { useState, useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { Button } from "@/components/ui/button";
 import styles from '../login/page.module.css';
 
 export default function AuthPage() {
+  const searchParams = useSearchParams();
+  const mode = searchParams?.get('mode');
   const [isLogin, setIsLogin] = useState(true);
   const [fullName, setFullName] = useState('');
   const [email, setEmail] = useState('');
@@ -24,6 +26,12 @@ export default function AuthPage() {
       router.push('/dashboard');
     }
   }, [user, authLoading, router]);
+
+  useEffect(() => {
+    if (mode === 'register') {
+      setIsLogin(false);
+    }
+  }, [mode]);
 
   if (authLoading) {
     return (
