@@ -23,12 +23,6 @@ export default function Home() {
   if (loading) {
     return (
       <main className={styles.main}>
-        {/* Efeito de ondas animadas para manter consistência visual com a tela de login */}
-        <div className={styles.waves}>
-          <div className={styles.wave}></div>
-          <div className={styles.wave}></div>
-          <div className={styles.wave}></div>
-        </div>
         <div style={{
           display: 'flex',
           justifyContent: 'center',
@@ -45,12 +39,6 @@ export default function Home() {
 
   return (
     <main className={styles.main}>
-      {/* Efeito de ondas animadas para manter consistência visual com a tela de login */}
-      <div className={styles.waves}>
-        <div className={styles.wave}></div>
-        <div className={styles.wave}></div>
-        <div className={styles.wave}></div>
-      </div>
       <Header />
 
       <section className={styles.heroSection}>

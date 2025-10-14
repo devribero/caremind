@@ -42,12 +42,7 @@ export default function Dashboard() {
   if (user) {
     return (
       <div className={styles.dashboardContainer}>
-        {/* Efeito de ondas */}
-        <div className={styles.waves}>
-          <div className={styles.wave}></div>
-          <div className={styles.wave}></div>
-          <div className={styles.wave}></div>
-        </div>
+        {/* ondas globais renderizadas via layout */}
 
         <div className={styles.headerContainer}>
           <Header
