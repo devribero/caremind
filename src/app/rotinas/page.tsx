@@ -63,7 +63,7 @@ export default function Rotinas() {
   ) => {
     await createItem({
       titulo,
-      descricao,
+      descricao: descricao ?? undefined,
       frequencia,
       created_at: new Date().toISOString(),
     } as Omit<Rotina, 'id'>);
@@ -78,7 +78,7 @@ export default function Rotinas() {
 
     await updateItem(editModal.item.id, {
       titulo,
-      descricao,
+      descricao: descricao ?? undefined,
       frequencia,
     });
   };
@@ -127,7 +127,7 @@ export default function Rotinas() {
           <section className={styles.content_info}>
             {!loading && !error && (
               <div className={styles.actionsContainer}>
-                <button className={styles.addButton} onClick={addModal.open}>
+                <button className={styles.addButton} onClick={() => addModal.open()}>
                   <span className={styles.addIcon}>+</span>
                   Adicionar Rotina
                 </button>
