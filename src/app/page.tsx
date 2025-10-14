@@ -168,12 +168,6 @@ export default function Home() {
 
           {/* Card de Impacto Social à direita */}
           <div className={styles.impactContainer}>
-            <div className={styles.iconWrapper}>
-              {/* Coração */}
-              <svg width="34" height="34" viewBox="0 0 24 24" fill="#fff" xmlns="http://www.w3.org/2000/svg">
-                <path d="M12 21s-6.716-4.35-9.428-7.06C.86 12.228.5 10.28 1.343 8.7 2.472 6.6 5.2 5.9 7.183 7.2c.71.47 1.286 1.124 1.68 1.89.394-.766.97-1.42 1.68-1.89 1.983-1.3 4.71-.6 5.84 1.5.843 1.58.483 3.528-1.229 5.24C18.716 16.65 12 21 12 21z"/>
-              </svg>
-            </div>
             <h2 className={styles.title}>Cuidado inteligente que já transforma famílias</h2>
             <p className={styles.description}>
               Com o envelhecimento da população e o aumento dos casos de Alzheimer, o CareMind se tornou uma ferramenta essencial no apoio diário ao cuidado familiar.

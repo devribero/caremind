@@ -52,13 +52,8 @@ export function ProfileProvider({ children }: { children: ReactNode }) {
       if (error) {
         // PGRST116 => not found
         if ((error as any).code === 'PGRST116') {
-          // cria um perfil mínimo
-          const nome = (user.user_metadata as any)?.full_name || null;
-          const { error: insertErr } = await supabase
-            .from('perfis')
-            .insert({ id: user.id, nome });
-          if (insertErr) throw insertErr;
-          setProfile({ id: user.id, nome, tipo: null, foto_usuario: null });
+          // não criar automaticamente; deixar perfil nulo
+          setProfile(null);
           setPhotoUrl(null);
         } else {
           throw error;
@@ -68,7 +63,7 @@ export function ProfileProvider({ children }: { children: ReactNode }) {
         setPhotoUrl(computePublicUrl((data as any)?.foto_usuario ?? null));
       }
     } catch (e) {
-      console.error('ProfileProvider: erro ao obter/criar perfil', e);
+      console.error('ProfileProvider: erro ao obter perfil', e);
       setProfile(null);
       setPhotoUrl(null);
     } finally {

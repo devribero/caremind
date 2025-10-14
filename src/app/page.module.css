@@ -219,19 +219,19 @@
 }
 
 .container_title {
-    margin-top: 100px;
-    font-size: 60px;
-    font-weight: 700;
-    color: #0400ba;
-    margin-bottom: 20px;
-    line-height: 1.2;
+    font-size: clamp(30px, 4.5vw, 50px);
+    font-weight: 800;
+    line-height: 1.15;
+    margin: 0 0 16px 0;
+    text-shadow: 0 2px 10px rgba(0,0,0,0.2);
     display: inline-block;
-    padding: 12px 16px;
     border-radius: 12px;
-    background: rgba(255, 255, 255, 0.22);
-    backdrop-filter: blur(6px);
-    -webkit-backdrop-filter: blur(6px);
-    border: 1px solid rgba(255, 255, 255, 0.25);
+    background: rgba(255, 255, 255, 0.15);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    padding: 20px 24px;
+    box-shadow: 0 8px 32px rgba(31, 38, 135, 0.25);
 }
 
 .description {
@@ -448,6 +448,7 @@
     grid-template-columns: repeat(3, 1fr);
     gap: 20px;
     justify-content: center;
+    align-items: stretch; /* todas as células com a mesma altura */
 }
 
 .statCard {
@@ -455,6 +456,12 @@
     padding: 24px;
     border-radius: 16px;
     box-shadow: 0 4px 15px rgba(224, 231, 255, 0.6);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: 140px; /* altura mínima consistente */
+    gap: 6px; /* espaço entre número e label */
 }
 
 @media (max-width: 1024px) {
@@ -469,11 +476,17 @@
   }
 }
 
+/* Centraliza o botão dentro do card de impacto e adiciona respiro dos benefícios */
+.impactContainer .heroButton {
+  justify-content: center;
+  margin-top: 24px;
+}
+
 .statNumber {
     color: #0400BA;
     font-size: 48px;
     font-weight: 700;
-    margin: 0 0 8px 0;
+    margin: 0 0 4px 0;
 }
 
 .statLabel {
@@ -481,6 +494,14 @@
     font-size: 14px;
     margin: 0;
     font-weight: 500;
+}
+
+/* Ajustes específicos para o 3º benefício (check) */
+.statsGrid .statCard:nth-child(3) .statNumber {
+  margin-bottom: 6px;
+}
+.statsGrid .statCard:nth-child(3) .statLabel {
+  margin-top: 0;
 }
 
 /* ==========================================
@@ -798,61 +819,88 @@
         max-width: calc(100% - 40px);
     }
 }
+
 /* ==========================================
-   ONDAS (fundo animado como a tela de login)
+   ONDAS PERFEITAS (sem bugs)
    ========================================== */
 .waves {
     position: fixed;
     bottom: 0;
     left: 0;
     width: 100%;
-    height: 250px;
+    height: 400px;
     z-index: 1;
     pointer-events: none;
+    overflow: hidden;
 }
 
 .wave {
     position: absolute;
     bottom: 0;
     left: 0;
-    width: 100%;
+    width: 200%;
     height: 100%;
     background-repeat: repeat-x;
-    background-size: 200% 100%;
-    will-change: transform, background-position;
-    animation: waveDrift 18s linear infinite, waveBob 6s ease-in-out infinite;
+    background-size: 50% 100%;
+    will-change: transform; /* Improves animation performance */
 }
 
 .wave:nth-child(1) {
-    /* Onda periódica: começo e fim na mesma altura e inclinação (sem emendas) */
-    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1200 120' preserveAspectRatio='none'%3E%3Cpath d='M0,60 C150,90 450,30 600,60 S1050,90 1200,60 L1200,120 L0,120 Z' fill='%230400BA' fill-opacity='0.20'/%3E%3C/svg%3E");
-    animation-duration: 16s, 5.5s; /* drift, bob */
-    opacity: 1;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1200 250' preserveAspectRatio='none'%3E%3Cpath d='M0,120 C100,80 300,160 600,120 C900,80 1100,160 1200,120 C1300,80 1500,160 1800,120 L1800,250 L0,250 Z' fill='%230018A0' fill-opacity='0.2'/%3E%3C/svg%3E");
+    animation: wave-animation1 20s linear infinite;
+    opacity: 0.9;
 }
 
 .wave:nth-child(2) {
-    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1200 120' preserveAspectRatio='none'%3E%3Cpath d='M0,70 C200,90 400,50 600,70 S1000,90 1200,70 L1200,120 L0,120 Z' fill='%230400BA' fill-opacity='0.25'/%3E%3C/svg%3E");
-    animation-duration: 22s, 7s;
-    animation-delay: -4s, -1s;
-    opacity: 1;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1200 250' preserveAspectRatio='none'%3E%3Cpath d='M0,140 C150,100 350,180 600,140 C850,100 1050,180 1200,140 C1350,100 1550,180 1800,140 L1800,250 L0,250 Z' fill='%23003A8C' fill-opacity='0.3'/%3E%3C/svg%3E");
+    animation: wave-animation2 16s linear infinite reverse;
+    opacity: 0.8;
 }
 
 .wave:nth-child(3) {
-    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1200 120' preserveAspectRatio='none'%3E%3Cpath d='M0,55 C150,65 450,45 600,55 S1050,65 1200,55 L1200,120 L0,120 Z' fill='%230400BA' fill-opacity='0.15'/%3E%3C/svg%3E");
-    animation-duration: 28s, 8.5s;
-    animation-delay: -8s, -2s;
-    opacity: 1;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1200 250' preserveAspectRatio='none'%3E%3Cpath d='M0,160 C200,120 400,200 600,160 C800,120 1000,200 1200,160 C1400,120 1600,200 1800,160 L1800,250 L0,250 Z' fill='%23005C8A' fill-opacity='0.4'/%3E%3C/svg%3E");
+    animation: wave-animation3 24s linear infinite;
+    opacity: 0.7;
 }
 
-@keyframes waveDrift {
-    0% { background-position-x: 0; }
-    100% { background-position-x: -100%; }
+@keyframes wave-animation1 {
+    0% {
+        transform: translateX(0);
+    }
+    100% {
+        transform: translateX(-50%);
+    }
 }
 
-@keyframes waveBob {
-    0% { transform: translateY(0); }
-    50% { transform: translateY(6px); }
-    100% { transform: translateY(0); }
+@keyframes wave-animation2 {
+    0% {
+        transform: translateX(0);
+    }
+    100% {
+        transform: translateX(-50%);
+    }
+}
+
+@keyframes wave-animation3 {
+    0% {
+        transform: translateX(0);
+    }
+    100% {
+        transform: translateX(-50%);
+    }
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .waves {
+        height: 300px;
+    }
+}
+
+@media (max-width: 480px) {
+    .waves {
+        height: 200px;
+    }
 }
 
 /* ==========================================
@@ -878,18 +926,14 @@
 }
 
 .heroTitle {
-    font-size: clamp(32px, 4.5vw, 56px);
+    font-size: clamp(30px, 4.5vw, 50px);
     font-weight: 800;
     line-height: 1.15;
     margin: 0 0 16px 0;
     text-shadow: 0 2px 10px rgba(0,0,0,0.2);
     display: inline-block;
-    padding: 12px 16px;
     border-radius: 12px;
-    background: rgba(255, 255, 255, 0.22);
-    backdrop-filter: blur(6px);
-    -webkit-backdrop-filter: blur(6px);
-    border: 1px solid rgba(255, 255, 255, 0.25);
+    text-align: left;
 }
 
 .heroDescription {
@@ -908,9 +952,10 @@
     background: linear-gradient(135deg, #0400ba 0%, #020054 100%) !important;
     color: white !important;
     border-radius: 12px !important;
-    padding: 16px 24px !important;
+    padding: 16px 20px !important;
     box-shadow: 0 4px 15px rgba(4,0,186,0.3) !important;
     border: 1px solid rgba(255,255,255,0.25) !important;
+    font-size: 18px;
 }
 
 .ctaButton:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(4,0,186,0.4) !important; }
