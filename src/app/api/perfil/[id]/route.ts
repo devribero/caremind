@@ -15,48 +15,60 @@ export async function OPTIONS() {
 }
 
 // ================================================================= //
-// PATCH - Atualizar uma tarefa
+// PUT - Atualizar perfil (nome, telefone, data_nascimento, foto_usuario)
 // ================================================================= //
-export async function PUT(request: NextRequest) {
+export async function PUT(request: NextRequest, { params }: { params: { id: string } }) {
   try {
-      const supabase = await createClient();
+    const supabase = await createClient();
 
-      // 1. Verifica se o usuário está autenticado
-      const { data: { user }, error: authError } = await supabase.auth.getUser();
+    // 1. Verifica se o usuário está autenticado
+    const { data: { user }, error: authError } = await supabase.auth.getUser();
+    if (authError || !user) {
+      return NextResponse.json({ error: 'Usuário não autenticado' }, { status: 401 });
+    }
 
-      if (authError || !user) {
-          return NextResponse.json({ error: 'Usuário não autenticado' }, { status: 401 });
-      }
+    const { id } = params;
+    if (!id) {
+      return NextResponse.json({ error: 'ID do perfil não fornecido.' }, { status: 400 });
+    }
 
-      // 2. Extrai os dados do corpo da requisição
-      const { fullName, phone, dob } = await request.json();
+    // 2. Extrai os dados do corpo da requisição (todos opcionais)
+    const body = await request.json();
+    const {
+      fullName,
+      phone,
+      dob,
+      foto_usuario,
+    }: { fullName?: string; phone?: string; dob?: string; foto_usuario?: string } = body || {};
 
-      // 3. Validação básica (pode ser expandida)
-      if (!fullName) {
-          return NextResponse.json({ error: 'O nome completo é obrigatório.' }, { status: 400 });
-      }
+    const updatePayload: Record<string, any> = {};
+    if (typeof fullName === 'string') updatePayload.nome = fullName;
+    if (typeof phone === 'string') updatePayload.telefone = phone;
+    if (typeof dob === 'string') updatePayload.data_nascimento = dob;
+    if (typeof foto_usuario === 'string') updatePayload.foto_usuario = foto_usuario;
 
-      // 4. Atualiza os dados na tabela 'perfis'
-      const { error: updateError } = await supabase
-          .from('perfis')
-          .update({
-              nome: fullName,
-              // Futuramente, você pode adicionar outros campos aqui, como:
-              // telefone: phone,
-              // data_nascimento: dob,
-          })
-          .eq('id', user.id);
+    if (Object.keys(updatePayload).length === 0) {
+      return NextResponse.json({ error: 'Nenhum campo para atualizar.' }, { status: 400 });
+    }
 
-      if (updateError) {
-          console.error('Erro do Supabase ao atualizar o perfil:', updateError);
-          return NextResponse.json({ error: 'Não foi possível atualizar o perfil no banco de dados.' }, { status: 500 });
-      }
+    // 3. Atualiza o registro que pertence ao usuário atual
+    const { data: updated, error: updateError } = await supabase
+      .from('perfis')
+      .update(updatePayload)
+      .eq('id', id)
+      .eq('id', user.id) // garante que só atualiza o próprio perfil
+      .select('id, nome, foto_usuario, telefone, data_nascimento')
+      .single();
 
-      return NextResponse.json({ message: 'Perfil atualizado com sucesso!' }, { status: 200 });
+    if (updateError) {
+      console.error('Erro do Supabase ao atualizar o perfil:', updateError);
+      return NextResponse.json({ error: 'Não foi possível atualizar o perfil.' }, { status: 500 });
+    }
 
+    return NextResponse.json(updated, { status: 200 });
   } catch (error) {
-      console.error('Erro inesperado na API de perfil:', error);
-      return NextResponse.json({ error: 'Erro interno do servidor.' }, { status: 500 });
+    console.error('Erro inesperado na API de perfil:', error);
+    return NextResponse.json({ error: 'Erro interno do servidor.' }, { status: 500 });
   }
 }
 

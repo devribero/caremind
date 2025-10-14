@@ -15,7 +15,7 @@ export async function OPTIONS() {
 }
 
 // ================================================================= //
-// FUNÇÃO GET - Buscar Medicamentos (Corrigida)
+// GET - Buscar Perfil do usuário autenticado
 // ================================================================= //
 export async function GET(request: Request) {
   const authHeader = request.headers.get('authorization');
@@ -41,22 +41,22 @@ export async function GET(request: Request) {
       );
     }
 
-    const { data: medicamentos, error } = await supabase
+    const { data: perfil, error } = await supabase
       .from('perfis')
-      .select('*')
-      .eq('user_id', user.id)
-      .order('created_at', { ascending: false });
+      .select('id, nome, foto_usuario, telefone, data_nascimento')
+      .eq('id', user.id)
+      .single();
 
     if (error) throw error;
 
-    return NextResponse.json(medicamentos, { headers: corsHeaders });
+    return NextResponse.json(perfil, { headers: corsHeaders });
 
   } catch (error: unknown) {
-    let errorMessage = 'Falha ao buscar Perfil.';
+    let errorMessage = 'Falha ao buscar perfil.';
     if (error instanceof Error) {
       errorMessage = error.message;
     }
-    console.error('Erro em GET /api/peril:', errorMessage);
+    console.error('Erro em GET /api/perfil:', errorMessage);
     return NextResponse.json(
       { erro: errorMessage },
       { status: 500, headers: corsHeaders }

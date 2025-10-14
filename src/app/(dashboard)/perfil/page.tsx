@@ -8,7 +8,7 @@ import { useState, useEffect, ChangeEvent, useRef } from 'react';
 import { usePersistentState } from '@/hooks/usePersistentState';
 import { useRouter } from 'next/navigation';
 import Image from 'next/image';
-import { PasswordService, ChangePasswordData } from '@/lib/services/passwordService';
+import { useAuthRequest } from '@/hooks/useAuthRequest';
 
 // --- DEFINIÇÃO DE TIPOS ---
 interface PasswordData {
@@ -158,6 +158,7 @@ export default function Perfil() {
     const { user, signOut } = useAuth();
     const router = useRouter();
     const supabase = createClient();
+    const { makeRequest } = useAuthRequest();
     
     
     const [isEditing, setIsEditing] = useState(false);
@@ -179,41 +180,30 @@ export default function Perfil() {
 
     useEffect(() => {
         const fetchProfileData = async () => {
-            if (user) {
-                try {
-                    // CORRIGIDO: Variáveis desestruturadas corretamente para evitar conflito de nome
-                    const { data: profile, error: profileError } = await supabase
-                        .from('perfis')
-                        .select('nome, foto_usuario, telefone, data_nascimento') // Adicionei campos phone e dob
-                        .eq('id', user.id)
-                        .single();
-
-                    if (profileError) throw profileError; // Corrigido: Usar profileError
-
-                    if (profile) { 
-                        setProfileData({
-                            fullName: profile.nome || user.user_metadata?.full_name || '',
-                            email: user.email || '',
-                            phone: profile.telefone || '', 
-                            dob: profile.data_nascimento || '', 
-                            photoUrl: profile.foto_usuario || '/foto_padrao.png',
-                        });
-                    }
-                } catch (error) {
-                    console.error("Erro ao buscar dados do perfil:", error);
-                   
-                    setProfileData(prev => ({
-                        ...prev,
-                        fullName: user.user_metadata?.full_name || 'Nome não encontrado',
+            if (!user) return;
+            try {
+                const profile = await makeRequest<any>('/api/perfil');
+                if (profile) {
+                    setProfileData({
+                        fullName: profile.nome || user.user_metadata?.full_name || '',
                         email: user.email || '',
-                        photoUrl: '/foto_padrao.png',
-                    }));
+                        phone: profile.telefone || '',
+                        dob: profile.data_nascimento || '',
+                        photoUrl: profile.foto_usuario || '/foto_padrao.png',
+                    });
                 }
+            } catch (error) {
+                console.error('Erro ao buscar perfil pela API:', error);
+                setProfileData(prev => ({
+                    ...prev,
+                    fullName: user.user_metadata?.full_name || 'Nome não encontrado',
+                    email: user.email || '',
+                    photoUrl: '/foto_padrao.png',
+                }));
             }
         };
-
         fetchProfileData();
-    }, [user]);
+    }, [user, makeRequest]);
 
     const handleLogout = async () => {
         await signOut();
@@ -269,13 +259,11 @@ export default function Perfil() {
 
             const publicUrl = publicData.publicUrl;
 
-            // Atualiza no banco a coluna foto_usuario
-            const { error: updateError } = await supabase
-                .from('perfis')
-                .update({ foto_usuario: publicUrl })
-                .eq('id', user.id);
-
-            if (updateError) throw updateError;
+            // Atualiza via API de perfil
+            await makeRequest(`/api/perfil/${user.id}`, {
+                method: 'PUT',
+                body: JSON.stringify({ foto_usuario: publicUrl }),
+            });
 
             // Atualiza UI
             setProfileData(prev => ({ ...prev, photoUrl: publicUrl }));
@@ -301,17 +289,14 @@ export default function Perfil() {
 
         if (isEditing) {
             try {
-                // Lógica de salvamento quando o isEditing é verdadeiro
-                const { error } = await supabase
-                    .from("perfis")
-                    .update({
-                        nome: profileData.fullName,
-                        telefone: profileData.phone, // Adicionado
-                        data_nascimento: profileData.dob, // Adicionado
-                    })
-                    .eq('id', user.id);
-
-                if (error) throw error;
+                await makeRequest(`/api/perfil/${user.id}`, {
+                    method: 'PUT',
+                    body: JSON.stringify({
+                        fullName: profileData.fullName,
+                        phone: profileData.phone,
+                        dob: profileData.dob,
+                    }),
+                });
                 alert('Perfil atualizado com sucesso!');
             } catch (error) {
                 if (error instanceof Error) {
@@ -324,23 +309,17 @@ export default function Perfil() {
         setIsEditing(!isEditing);
     };
     
-    // CORREÇÃO: Implementação da lógica de salvar a nova senha
+    // Salvar nova senha via API
     const handleSavePassword = async (data: PasswordData) => {
         setPasswordLoading(true);
         try {
-            const passwordService = new PasswordService(supabase);
-            
-            const changeData: ChangePasswordData = {
-                currentPassword: data.currentPassword, 
-                newPassword: data.newPassword 
-            };
-            
-            // O serviço de senha deve lidar com a reautenticação se necessário
-            const { error } = await passwordService.changePassword(changeData);
-
-            if (error) {
-                throw new Error(error.message || "Erro desconhecido ao mudar a senha.");
-            }
+            await makeRequest('/api/change-password', {
+                method: 'POST',
+                body: JSON.stringify({
+                    currentPassword: data.currentPassword,
+                    newPassword: data.newPassword,
+                }),
+            });
 
             alert("Senha alterada com sucesso! Por segurança, você será desconectado para reautenticar.");
             
