@@ -17,7 +17,7 @@ export async function OPTIONS() {
 // ================================================================= //
 // PUT - Atualizar perfil (nome, telefone, data_nascimento, foto_usuario)
 // ================================================================= //
-export async function PUT(request: NextRequest, { params }: { params: { id: string } }) {
+export async function PUT(request: NextRequest, context: { params: Promise<{ id: string }> }) {
   try {
     const supabase = await createClient();
 
@@ -27,7 +27,7 @@ export async function PUT(request: NextRequest, { params }: { params: { id: stri
       return NextResponse.json({ error: 'Usuário não autenticado' }, { status: 401 });
     }
 
-    const { id } = params;
+    const { id } = await context.params;
     if (!id) {
       return NextResponse.json({ error: 'ID do perfil não fornecido.' }, { status: 400 });
     }
@@ -72,7 +72,7 @@ export async function PUT(request: NextRequest, { params }: { params: { id: stri
 // ================================================================= //
 // DELETE - Excluir uma tarefa
 // ================================================================= //
-export async function DELETE(request: Request, context: { params: { id: string } }) {
+export async function DELETE(request: Request, context: { params: Promise<{ id: string }> }) {
   const supabase = await createClient();
 
   try {
@@ -101,7 +101,7 @@ export async function DELETE(request: Request, context: { params: { id: string }
       );
     }
 
-    const { id } = context.params;
+    const { id } = await context.params;
 
     if (!id) {
       return NextResponse.json(
