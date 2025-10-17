@@ -1,7 +1,30 @@
 // Função para verificar se um medicamento deve ser desmarcado com base na sua frequência
-export function shouldResetMedicamento(medicamento: any): boolean {
+
+
+// Define o tipo de frequência
+interface Frequencia {
+    tipo: 'diario' | 'intervalo' | 'dias_alternados' | 'semanal';
+    intervalo_horas?: number; // Usado em 'intervalo'
+    intervalo_dias?: number; // Usado em 'dias_alternados'
+    dias_da_semana?: number[]; // Usado em 'semanal' (0=domingo, 6=sábado)
+    horario?: string; // Usado em 'semanal' (ex: "10:30")
+}
+
+// Define o tipo principal do Medicamento
+interface Medicamento {
+    id: string; // Exemplo
+    nome: string; // Exemplo
+    ultimaAtualizacao?: string | null; // Data da última atualização, opcional
+    data_agendada?: string | null; // Próxima data agendada, opcional
+    frequencia?: Frequencia | null; // Objeto de frequência, opcional
+}
+
+// Função para verificar se um medicamento deve ser desmarcado com base na sua frequência
+// Linha 2: Erro corrigido substituindo 'any' por 'Medicamento'
+export function shouldResetMedicamento(medicamento: Medicamento): boolean {
     if (!medicamento.ultimaAtualizacao) return false;
     
+    // ... o restante da função é o mesmo
     const agora = new Date();
     const ultimaAtualizacao = new Date(medicamento.ultimaAtualizacao);
     const diferencaHoras = (agora.getTime() - ultimaAtualizacao.getTime()) / (1000 * 60 * 60);
@@ -11,17 +34,17 @@ export function shouldResetMedicamento(medicamento: any): boolean {
             case 'diario':
                 // Verifica se já é um novo dia
                 return ultimaAtualizacao.getDate() !== agora.getDate() ||
-                       ultimaAtualizacao.getMonth() !== agora.getMonth() ||
-                       ultimaAtualizacao.getFullYear() !== agora.getFullYear();
+                        ultimaAtualizacao.getMonth() !== agora.getMonth() ||
+                        ultimaAtualizacao.getFullYear() !== agora.getFullYear();
                 
             case 'intervalo':
                 // Verifica se já passou o intervalo de horas
-                return diferencaHoras >= medicamento.frequencia.intervalo_horas;
+                return diferencaHoras >= (medicamento.frequencia.intervalo_horas || Infinity); // Adicionado || Infinity para segurança
                 
             case 'dias_alternados':
                 // Verifica se já passou o número de dias alternados
                 const diasPassados = diferencaHoras / 24;
-                return diasPassados >= medicamento.frequencia.intervalo_dias;
+                return diasPassados >= (medicamento.frequencia.intervalo_dias || Infinity); // Adicionado || Infinity para segurança
                 
             default:
                 return false;
@@ -32,9 +55,11 @@ export function shouldResetMedicamento(medicamento: any): boolean {
 }
 
 // Função para formatar a próxima dose
-export function formatarProximaDose(medicamento: any): string {
+// Linha 33: Erro corrigido substituindo 'any' por 'Medicamento'
+export function formatarProximaDose(medicamento: Medicamento): string {
     if (!medicamento.data_agendada) return 'Data não definida';
     
+    // ... o restante da função é o mesmo
     const data = new Date(medicamento.data_agendada);
     
     if (isNaN(data.getTime())) return 'Data inválida';
@@ -50,9 +75,11 @@ export function formatarProximaDose(medicamento: any): string {
 }
 
 // Função para calcular a próxima dose
-export function calcularProximaDose(medicamento: any): Date | null {
+// Linha 52: Erro corrigido substituindo 'any' por 'Medicamento'
+export function calcularProximaDose(medicamento: Medicamento): Date | null {
     if (!medicamento.data_agendada) return null;
     
+    // ... o restante da função é o mesmo
     const dataAtual = new Date(medicamento.data_agendada);
     if (isNaN(dataAtual.getTime())) return null;
     
@@ -67,28 +94,32 @@ export function calcularProximaDose(medicamento: any): Date | null {
                 
             case 'intervalo':
                 // Adiciona o intervalo de horas
-                proximaData.setHours(proximaData.getHours() + medicamento.frequencia.intervalo_horas);
+                proximaData.setHours(proximaData.getHours() + (medicamento.frequencia.intervalo_horas || 0)); // Adicionado || 0
                 break;
                 
             case 'dias_alternados':
                 // Adiciona o número de dias alternados
-                proximaData.setDate(proximaData.getDate() + medicamento.frequencia.intervalo_dias);
+                proximaData.setDate(proximaData.getDate() + (medicamento.frequencia.intervalo_dias || 0)); // Adicionado || 0
                 break;
                 
             case 'semanal':
-                // Encontra o próximo dia da semana
+                // ... lógica da semana mantida ...
                 const hoje = proximaData.getDay(); // 0 = Domingo, 1 = Segunda, etc.
                 const proximoDia = medicamento.frequencia.dias_da_semana
-                    .sort((a: number, b: number) => a - b)
-                    .find((dia: number) => dia > hoje) || 
-                    Math.min(...medicamento.frequencia.dias_da_semana) + 7;
+                    ? medicamento.frequencia.dias_da_semana
+                        .sort((a: number, b: number) => a - b)
+                        .find((dia: number) => dia > hoje) || 
+                        (Math.min(...medicamento.frequencia.dias_da_semana) + 7)
+                    : hoje + 7; // Caso dias_da_semana não exista
                 
                 const diasParaAdicionar = (proximoDia - hoje + 7) % 7 || 7;
                 proximaData.setDate(proximaData.getDate() + diasParaAdicionar);
                 
                 // Define o horário
-                const [horas, minutos] = medicamento.frequencia.horario.split(':');
-                proximaData.setHours(parseInt(horas, 10), parseInt(minutos, 10), 0, 0);
+                if (medicamento.frequencia.horario) {
+                    const [horas, minutos] = medicamento.frequencia.horario.split(':');
+                    proximaData.setHours(parseInt(horas, 10), parseInt(minutos, 10), 0, 0);
+                }
                 break;
         }
         
