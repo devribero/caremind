@@ -46,7 +46,6 @@ export async function PUT(request: NextRequest, { params }: { params: { id: stri
     if (typeof phone === 'string') updatePayload.telefone = phone;
     if (typeof dob === 'string') updatePayload.data_nascimento = dob;
     if (typeof foto_usuario === 'string') updatePayload.foto_usuario = foto_usuario;
-
     if (Object.keys(updatePayload).length === 0) {
       return NextResponse.json({ error: 'Nenhum campo para atualizar.' }, { status: 400 });
     }
@@ -56,7 +55,7 @@ export async function PUT(request: NextRequest, { params }: { params: { id: stri
       .from('perfis')
       .update(updatePayload)
       .eq('id', id)
-      .eq('id', user.id) // garante que só atualiza o próprio perfil
+      .eq('user_id', user.id) // garante que só atualiza o próprio perfil
       .select('id, nome, foto_usuario, telefone, data_nascimento')
       .single();
 
@@ -64,14 +63,12 @@ export async function PUT(request: NextRequest, { params }: { params: { id: stri
       console.error('Erro do Supabase ao atualizar o perfil:', updateError);
       return NextResponse.json({ error: 'Não foi possível atualizar o perfil.' }, { status: 500 });
     }
-
     return NextResponse.json(updated, { status: 200 });
   } catch (error) {
-    console.error('Erro inesperado na API de perfil:', error);
+    console.error('Erro inesperado na API de Perfis:', error);
     return NextResponse.json({ error: 'Erro interno do servidor.' }, { status: 500 });
   }
 }
-
 // ================================================================= //
 // DELETE - Excluir uma tarefa
 // ================================================================= //

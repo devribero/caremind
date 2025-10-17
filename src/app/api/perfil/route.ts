@@ -14,9 +14,6 @@ export async function OPTIONS() {
   });
 }
 
-// ================================================================= //
-// GET - Buscar Perfil do usuário autenticado
-// ================================================================= //
 export async function GET(request: Request) {
   const authHeader = request.headers.get('authorization');
   const token = authHeader?.startsWith('Bearer ')
@@ -43,8 +40,8 @@ export async function GET(request: Request) {
 
     const { data: perfil, error } = await supabase
       .from('perfis')
-      .select('id, nome, foto_usuario, telefone, data_nascimento')
-      .eq('id', user.id)
+      .select('id, user_id, nome, foto_usuario, telefone, data_nascimento, tipo, codigo_vinculacao')
+      .eq('user_id', user.id)
       .single();
 
     if (error) throw error;

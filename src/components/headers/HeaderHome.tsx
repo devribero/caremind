@@ -33,7 +33,7 @@ export function Header() {
           <a className={styles.header__nav_desktop_item} href="#">Funcionalidades</a>
           <a className={styles.header__nav_desktop_item} href="#">Como Funciona</a>
           <a className={styles.header__nav_desktop_item} href="#">Para Famílias</a>
-          <Link href="/login" className={`${styles.btn} ${styles.btn_primary}`}>
+          <Link href="/auth" className={`${styles.btn} ${styles.btn_primary}`}>
             Área do cliente
           </Link>
         </nav>
@@ -71,7 +71,7 @@ export function Header() {
           <a href="#" onClick={closeMenu}>Funcionalidades</a>
           <a href="#" onClick={closeMenu}>Como Funciona</a>
           <a href="#" onClick={closeMenu}>Para Famílias</a>
-          <Link href="/login" className={`${styles.btn} ${styles.btn_primary}`} onClick={closeMenu}>
+          <Link href="/auth" className={`${styles.btn} ${styles.btn_primary}`} onClick={closeMenu}>
             Área do cliente
           </Link>
         </nav>

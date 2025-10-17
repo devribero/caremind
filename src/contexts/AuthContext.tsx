@@ -2,7 +2,7 @@
 
 'use client';
 
-import { createContext, useContext, useEffect, useState, ReactNode } from 'react';
+import { createContext, useContext, useEffect, useState, ReactNode, useMemo } from 'react';
 import { createClient } from '@/lib/supabase/client'; 
 import { User, Session, AuthResponse, AuthError } from '@supabase/supabase-js';
 
@@ -20,7 +20,7 @@ interface AuthContextType {
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   // 👇 2. Crie a instância do Supabase DENTRO do componente
-  const supabase = createClient(); 
+  const supabase = useMemo( () => createClient(), [] ); 
   
   const [user, setUser] = useState<User | null>(null);
   const [session, setSession] = useState<Session | null>(null);
@@ -58,7 +58,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       data: { subscription },
     } = supabase.auth.onAuthStateChange(async (event, session) => {
       setSession(session);
-      setUser(session?.user ?? null);
+      // Evita atualizar o estado do usuário quando apenas o token é renovado
+      // (ex.: ao focar a aba). Mantém a referência se o id não mudou.
+      setUser((prev) => {
+        const nextUser = session?.user ?? null;
+        if (prev?.id === nextUser?.id) return prev;
+        return nextUser;
+      });
 
       // Fallback: ao logar, tenta sincronizar metadados pendentes (ex.: phone) se não existirem ainda
       try {
@@ -118,20 +124,20 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       
       console.log("Resposta de autenticação:", authResponse);
       
-      // Se o registro de autenticação for bem-sucedido, cria o perfil no banco de dados
+      // Se o registro de autenticação for bem-sucedido, cria o Perfis no banco de dados
       if (authResponse.data.user && !authResponse.error) {
         const userId = authResponse.data.user.id;
         
-        // Dados do perfil seguindo o schema: chave estrangeira em user_id
+        // Dados do Perfis seguindo o schema: chave estrangeira em user_id
         const profileData = {
           user_id: userId,
           nome: fullName || 'Sem nome',
           tipo: accountType,
         } as const;
         
-        console.log("Tentando inserir perfil com nome:", fullName);
+        console.log("Tentando inserir Perfis com nome:", fullName);
         
-        // Primeiro, vamos verificar se já existe um perfil para este usuário
+        // Primeiro, vamos verificar se já existe um Perfis para este usuário
         const { data: existingProfile } = await supabase
           .from('perfis')
           .select('*')
@@ -139,7 +145,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           .single();
           
         if (existingProfile) {
-          // Se já existe, atualiza o perfil existente
+          // Se já existe, atualiza o Perfis existente
           const { error: updateError } = await supabase
             .from('perfis')
             .update({ 
@@ -149,20 +155,20 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             .eq('user_id', userId);
             
           if (updateError) {
-            console.error('Erro ao atualizar perfil:', updateError);
+            console.error('Erro ao atualizar Perfis:', updateError);
           } else {
-            console.log('Perfil atualizado com sucesso!');
+            console.log('Perfis atualizado com sucesso!');
           }
         } else {
-          // Se não existe, insere um novo perfil
+          // Se não existe, insere um novo Perfis
           const { error: insertError } = await supabase
             .from('perfis')
             .insert([profileData]);
             
           if (insertError) {
-            console.error('Erro ao criar perfil:', insertError);
+            console.error('Erro ao criar Perfis:', insertError);
           } else {
-            console.log('Perfil criado com sucesso!');
+            console.log('Perfis criado com sucesso!');
           }
         }
       } else if (authResponse.error) {

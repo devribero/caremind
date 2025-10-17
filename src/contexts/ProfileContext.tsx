@@ -45,8 +45,8 @@ export function ProfileProvider({ children }: { children: ReactNode }) {
       // tenta buscar
       const { data, error } = await supabase
         .from('perfis')
-        .select('id, nome, tipo, foto_usuario')
-        .eq('id', user.id)
+        .select('id, user_id, nome, tipo, foto_usuario')
+        .eq('user_id', user.id)
         .single();
 
       if (error) {
