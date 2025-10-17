@@ -127,7 +127,7 @@ export default function Remedios() {
     const { error: insertError } = await supabase.from('ocr_gerenciamento').insert({
       user_id: user.id,
       image_url: imageUrl,
-      status: 'pending',
+      status: 'PENDENTE',
     });
 
     if (insertError) {
