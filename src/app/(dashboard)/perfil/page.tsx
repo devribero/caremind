@@ -174,6 +174,7 @@ export default function Perfil() {
     });
     const [showPasswordModal, setShowPasswordModal] = useState(false);
     const [isMenuOpen, setIsMenuOpen] = usePersistentState<boolean>('ui.perfil.menuOpen', false);
+    const [showPhotoViewer, setShowPhotoViewer] = useState(false);
 
     const fileInputRef = useRef<HTMLInputElement>(null); // ADICIONADO
     const BUCKET_NAME = process.env.NEXT_PUBLIC_SUPABASE_BUCKET || 'avatars'; // ADICIONADO
@@ -368,6 +369,8 @@ export default function Perfil() {
                                                 onError={() => {
                                                     setProfileData(prev => ({ ...prev, photoUrl: '/foto_padrao.png' }));
                                                 }}
+                                                onClick={() => setShowPhotoViewer(true)}
+                                                style={{ cursor: 'pointer' }}
                                             />
                                             <button 
                                                 className={pageStyles.uploadPhotoButton} 
@@ -406,7 +409,6 @@ export default function Perfil() {
                                         >
                                             Alterar Senha
                                         </button>
-                                        <button className={pageStyles.actionButton}>Contatos</button>
                                         <button className={pageStyles.logoutButton} onClick={handleLogout}>Logout</button>
                                     </div>
                                 </div>
@@ -478,9 +480,30 @@ export default function Perfil() {
                                 onSave={handleSavePassword}
                                 loading={passwordLoading}
                             />
+
+                            {showPhotoViewer && (
+                                <div className={modalStyles.modalOverlay} onClick={() => setShowPhotoViewer(false)}>
+                                    <div
+                                        className={modalStyles.modalContent}
+                                        onClick={(e) => e.stopPropagation()}
+                                        style={{ background: 'transparent', boxShadow: 'none', padding: 0, maxWidth: '90vw' }}
+                                    >
+                                        <span className={modalStyles.modalClose} onClick={() => setShowPhotoViewer(false)}>&times;</span>
+                                        <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', maxHeight: '80vh' }}>
+                                            <Image
+                                                src={profileData.photoUrl}
+                                                alt="Visualização da Foto de Perfil"
+                                                width={1000}
+                                                height={1000}
+                                                style={{ width: 'auto', height: '80vh', objectFit: 'contain', borderRadius: 8 }}
+                                            />
+                                        </div>
+                                    </div>
+                                </div>
+                            )}
                         </section>
                     </div>
                 </div>
             </main>
         );
-}
+    }

@@ -36,7 +36,7 @@ export default function SidebarDashboard({ collapsed }: { collapsed: boolean }) 
         <NavItem href="/dashboard" label="Dashboard" icon={IoHomeOutline} />
         <NavItem href="/relatorios" label="Relatórios" icon={IoBarChartOutline} />
         <NavItem href="/rotinas" label="Rotinas" icon={IoClipboardOutline} />
-        <NavItem href="/remedios" label="Remédios" icon={IoMedkitOutline} />
+        <NavItem href="/remedios" label="Medicamentos" icon={IoMedkitOutline} />
         <NavItem href="/perfil" label="Perfil" icon={IoPersonOutline} />
         <NavItem href="/configuracoes" label="Configurações" icon={IoSettingsOutline} />
       </nav>

@@ -1,6 +1,6 @@
 'use client';
 
-import React from 'react';
+import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
 
 // Componentes e hooks
@@ -10,6 +10,7 @@ import { AddMedicamentoForm } from '@/components/forms/AddMedicamentoForm';
 import { Modal } from '@/components/Modal';
 import MedicamentoCard from '@/components/MedicamentoCard';
 import { useCrudOperations } from '@/hooks/useCrudOperations';
+import { createClient } from '@/lib/supabase/client';
 
 // Estilos
 import styles from './page.module.css';
@@ -30,6 +31,11 @@ export default function Remedios() {
   // Hooks e estados
   const { user } = useAuth();
   const router = useRouter();
+  const [photoModal, setPhotoModal] = useState({
+    isOpen: false,
+    open: () => setPhotoModal(prev => ({ ...prev, isOpen: true })),
+    close: () => setPhotoModal(prev => ({ ...prev, isOpen: false })),
+  });
 
   // Usar o hook CRUD personalizado
   const {
@@ -86,6 +92,55 @@ export default function Remedios() {
     } as UpdateMedicamentoData); // Tipagem mais clara para o payload
   };
 
+  const handlePhotoUpload = async (file: File) => {
+    if (!user) {
+      alert('Usuário não autenticado');
+      return;
+    }
+
+    const supabase = createClient();
+
+    const fileName = `${user.id}/${Date.now()}_${file.name}`;
+
+    console.log('Tentando upload:', fileName);
+
+    const { data, error } = await supabase.storage.from('receitas-medicas').upload(fileName, file);
+
+    if (error) {
+      alert(`Erro ao fazer upload: ${error.message}`);
+      console.error('Upload error:', error);
+      return;
+    }
+
+    console.log('Upload sucesso, obtendo URL pública');
+
+    const { data: publicUrlData } = supabase.storage.from('receitas-medicas').getPublicUrl(fileName);
+    if (!publicUrlData) {
+      alert('Erro ao obter URL pública');
+      return;
+    }
+    const imageUrl = publicUrlData.publicUrl;
+
+    console.log('URL:', imageUrl);
+    console.log('User ID:', user.id);
+
+    const { error: insertError } = await supabase.from('ocr_gerenciamento').insert({
+      user_id: user.id,
+      image_url: imageUrl,
+      status: 'pending',
+    });
+
+    if (insertError) {
+      alert(`Erro ao salvar no banco: ${insertError.message}`);
+      console.error('Insert error:', insertError);
+      return;
+    }
+
+    console.log('Insert sucesso');
+    alert('Foto enviada com sucesso!');
+    photoModal.close();
+  };
+
   // Render content
   const renderContent = () => {
     if (loading) {
@@ -120,7 +175,7 @@ export default function Remedios() {
     <main className={styles.main}>
       <div className={styles.content}>
         <div className={styles.pageHeader}>
-          <h1 className={styles.content_title}>Remédios</h1>
+          <h1 className={styles.content_title}>Medicamentos</h1>
         </div>
 
         <section className={styles.content_info}>
@@ -129,6 +184,10 @@ export default function Remedios() {
               <button className={styles.addButton} onClick={() => addModal.open()}>
                 <span className={styles.addIcon}>+</span>
                 Adicionar Medicamento
+              </button>
+              <button className={styles.addButton} onClick={() => photoModal.open()}>
+                <span className={styles.addIcon}>+</span>
+                Adicionar por Foto
               </button>
             </div>
           )}
@@ -155,6 +214,28 @@ export default function Remedios() {
             }}
           />
         )}
+      </Modal>
+
+      <Modal isOpen={photoModal.isOpen} onClose={photoModal.close} title="Adicionar por Foto">
+        <div className={styles.photoModalContent}>
+          <p className={styles.photoDescription}>Escolha uma opção para adicionar a foto da receita:</p>
+          <label className={styles.photoOption}>
+            <div className={styles.photoIcon}>📁</div>
+            <span className={styles.photoOptionLabel}>Selecionar do dispositivo</span>
+            <input type="file" accept="image/*" className={styles.photoInput} onChange={(e) => {
+              const file = e.target.files?.[0];
+              if (file) handlePhotoUpload(file);
+            }} />
+          </label>
+          <label className={styles.photoOption}>
+            <div className={styles.photoIcon}>📷</div>
+            <span className={styles.photoOptionLabel}>Tirar foto com câmera</span>
+            <input type="file" accept="image/*" capture="environment" className={styles.photoInput} onChange={(e) => {
+              const file = e.target.files?.[0];
+              if (file) handlePhotoUpload(file);
+            }} />
+          </label>
+        </div>
       </Modal>
     </main>
   );
