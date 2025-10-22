@@ -14,12 +14,24 @@
 }
 
 .content_title {
-  text-decoration: underline;
-  text-decoration-color: #0400BA;
-  text-decoration-thickness: 2px;
   font-size: 40px;
-  color: black;
-  font-weight: 400;
+  font-weight: 700;
+  color: #0400BA;
+  text-align: left;
+  margin-top: 40px;
+  margin-bottom: 40px;
+  position: relative;
+}
+
+.content_title::after {
+  content: "";
+  position: absolute;
+  bottom: -8px;
+  left: 0;
+  width: 100px;
+  height: 4px;
+  background-color: #0400BA;
+  border-radius: 2px;
 }
 
 .content_info {

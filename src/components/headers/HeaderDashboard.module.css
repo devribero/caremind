@@ -220,3 +220,23 @@
     font-size: 12px;
   }
 }
+
+/* Estilos para o logo do usuário */
+.userLogo {
+  border-radius: 50%;
+  object-fit: cover;
+  border: 2px solid #0400BA;
+}
+
+.defaultLogo {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #0400BA;
+}
+
+.profilePicture{
+  border-radius: 50%;
+  object-fit: cover;
+  border: 2px solid #0400BA;
+}

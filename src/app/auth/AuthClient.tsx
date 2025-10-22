@@ -5,8 +5,9 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { Button } from "@/components/ui/button";
-import styles from '../login/page.module.css';
+import styles from './page.module.css';
 import { useRouter } from 'next/navigation';  
+import { Header } from '@/components/headers/HeaderHome';
 
 export default function AuthClient() {
   const searchParams = useSearchParams();
@@ -73,8 +74,16 @@ export default function AuthClient() {
         else router.push('/dashboard');
       } else {
         const { error } = await signUp(email, password, fullName, accountType);
-        if (error) setError('Erro ao criar conta: ' + error.message);
-        else router.push('/onboarding');
+        if (error) {
+          console.error('Erro detalhado no signUp:', error);
+          if (error.message.includes('Configuração do Supabase não encontrada')) {
+            setError('❌ Configuração do banco de dados não encontrada. Entre em contato com o suporte.');
+          } else {
+            setError('Erro ao criar conta: ' + error.message);
+          }
+        } else {
+          router.push('/onboarding');
+        }
       }
     } catch {
       setError('Ocorreu um erro inesperado');
@@ -92,17 +101,10 @@ export default function AuthClient() {
         <div className={styles.wave}></div>
       </div>
 
+      <Header />
+      
       <section className={styles.section}>
         <div className={styles.container}>
-          {/* Logo centralizada acima do card */}
-          <div className={styles.logoWrapper}>
-            <img
-              src="/logo.png" // Logo original
-              alt="Logo"
-              className={styles.logo}
-            />
-          </div>
-
           <div className={`${styles.formContainer} ${!isLogin ? styles.registerMode : ''}`}>
             <h1 className={styles.title}>
               {isLogin ? 'Entrar' : 'Registrar'}

@@ -268,6 +268,15 @@ export default function Perfil() {
 
             // Atualiza UI
             setProfileData(prev => ({ ...prev, photoUrl: publicUrl }));
+            
+            // Sinaliza que o perfil foi atualizado para o header
+            localStorage.setItem('profileUpdated', 'true');
+            
+            // Dispara evento customizado para notificar outros componentes
+            window.dispatchEvent(new CustomEvent('profilePhotoUpdated', { 
+                detail: { photoUrl: publicUrl } 
+            }));
+            
             alert('Foto de perfil atualizada com sucesso!');
         } catch (err: any) {
             console.error('Erro ao enviar/atualizar foto:', err);

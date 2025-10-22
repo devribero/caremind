@@ -80,55 +80,66 @@ export default function Home() {
           <h1 className={styles.sectionTitle}>Tecnologia simples para um cuidado completo</h1>
           <div className={styles.featuresGrid}>
             <div className={styles.featureCard}>
-              <img
+              <Image
                 src="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/icons/camera.svg"
                 alt="Camera"
                 className={styles.featureIcon}
+                width={32}height={32}
               />
               <h3>Reconhecimento automático de medicamentos</h3>
               <p>Cadastre com uma foto: o sistema identifica o remédio e cria os lembretes sozinho.</p>
             </div>
             <div className={styles.featureCard}>
-              <img
+              <Image
                 src="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/icons/mic.svg"
                 alt="Microfone"
                 className={styles.featureIcon}
+                width={32}
+                height={32}
               />
               <h3>Comandos por voz</h3>
               <p>Compatível com Alexa e Google Home. Lembretes e confirmações de dose por voz, sem tocar no aparelho.</p>
             </div>
             <div className={styles.featureCard}>
-              <img
+              <Image
                 src="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/icons/bell.svg"
                 alt="Alerta"
                 className={styles.featureIcon}
+                width={32}
+                height={32}
               />
               <h3>Alertas inteligentes</h3>
               <p>O CareMind detecta atrasos e envia avisos antes que o esquecimento se torne um risco.</p>
             </div>
             <div className={styles.featureCard}>
-              <img
+              <Image
                 src="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/icons/people.svg"
                 alt="Pessoas"
                 className={styles.featureIcon}
+                width={32}
+                height={32}
               />
               <h3>Família conectada</h3>
               <p>Parentes recebem notificações instantâneas sobre o andamento da rotina.</p>
             </div>
             <div className={styles.featureCard}>
-              <img
+              <Image
                 src="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/icons/alarm.svg"
                 alt="Alarme"
                 className={styles.featureIcon}
+                width={32}
+                height={32}
               />
               <h3>Rotina personalizada</h3>
               <p>Organize horários de refeições, hidratação e atividades diárias com poucos toques.</p>
             </div>
             <div className={styles.featureCard}>
-              <img
+              <Image
                 src="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/icons/shield.svg"
                 alt="Escudo"
                 className={styles.featureIcon}
+                width={32}
+                height={32}
               />
               <h3>Interface acessível</h3>
               <p>Textos grandes, alto contraste e navegação simples para todos os níveis de familiaridade digital.</p>

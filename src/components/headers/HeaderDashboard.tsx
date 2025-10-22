@@ -15,11 +15,48 @@ interface HeaderProps {
 
 export function Header({ isMenuOpen, onMenuToggle }: HeaderProps) {
     const { user, signOut } = useAuth();
-    const { photoUrl } = useProfile();
+    const { photoUrl, refresh } = useProfile();
     const router = useRouter();
 
     const [isProfileOpen, setIsProfileOpen] = useState(false);
     const profileMenuRef = useRef<HTMLDivElement>(null);
+
+    // Atualiza a foto quando o usuário muda ou quando volta para a página
+    useEffect(() => {
+        const handleVisibilityChange = () => {
+            // Só atualiza se a aba ficou oculta por mais de 5 segundos
+            if (!document.hidden && Date.now() - (window as any).lastVisibilityChange > 5000) {
+                refresh();
+            }
+            (window as any).lastVisibilityChange = Date.now();
+        };
+
+        const handleStorageChange = (e: StorageEvent) => {
+            if (e.key === 'profileUpdated') {
+                refresh();
+                localStorage.removeItem('profileUpdated');
+            }
+        };
+
+        const handleProfilePhotoUpdate = () => {
+            refresh();
+        };
+
+        // Só força refresh inicial se não houver foto em cache
+        if (!photoUrl) {
+            refresh();
+        }
+
+        document.addEventListener('visibilitychange', handleVisibilityChange);
+        window.addEventListener('storage', handleStorageChange);
+        window.addEventListener('profilePhotoUpdated', handleProfilePhotoUpdate);
+
+        return () => {
+            document.removeEventListener('visibilitychange', handleVisibilityChange);
+            window.removeEventListener('storage', handleStorageChange);
+            window.removeEventListener('profilePhotoUpdated', handleProfilePhotoUpdate);
+        };
+    }, [refresh, user?.id, photoUrl]);
 
     const handleLogout = async () => {
         await signOut();
@@ -52,9 +89,6 @@ export function Header({ isMenuOpen, onMenuToggle }: HeaderProps) {
                     <span></span>
                     <span></span>
                 </button>
-                <Link href="/" className={styles.header__logo}>
-                    <Image src="/logo.png" alt="CareMind Logo" width={200} height={63} priority />
-                </Link>
             </div>
 
             <div className={styles.profileContainer} ref={profileMenuRef}>
@@ -63,18 +97,17 @@ export function Header({ isMenuOpen, onMenuToggle }: HeaderProps) {
                         <Image
                             src={photoUrl}
                             alt="Foto de perfil"
-                            width={35}
-                            height={35}
+                            width={40}
+                            height={40}
                             className={styles.profilePicture}
                             key={photoUrl}
+                            priority
+                            loading="eager"
+                            onError={() => refresh()}
                         />
                     ) : (
                         <IoPersonCircleOutline className={styles.person} size={35} />
                     )}
-
-                    <p className={styles.welcomeText}>
-                        {displayName}
-                    </p>
                 </div>
 
                 {isProfileOpen && (

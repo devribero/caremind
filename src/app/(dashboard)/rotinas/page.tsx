@@ -1,6 +1,6 @@
 'use client';
 
-import React from 'react';
+import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
 
 // Componentes e hooks
@@ -10,6 +10,7 @@ import { AddRotinaForm } from '@/components/forms/AddRotinaForm';
 import { Modal } from '@/components/Modal';
 import RotinaCard from '@/components/RotinasCard';
 import { useCrudOperations } from '@/hooks/useCrudOperations';
+import { createClient } from '@/lib/supabase/client';
 
 // Estilos
 import styles from './page.module.css';
@@ -26,6 +27,11 @@ export default function Rotinas() {
   // Hooks e estados
   const { user } = useAuth();
   const router = useRouter();
+  const [photoModal, setPhotoModal] = useState({
+    isOpen: false,
+    open: () => setPhotoModal(prev => ({ ...prev, isOpen: true })),
+    close: () => setPhotoModal(prev => ({ ...prev, isOpen: false })),
+  });
 
   // Usar o hook CRUD personalizado
   const {
@@ -73,6 +79,55 @@ export default function Rotinas() {
       descricao: descricao ?? undefined,
       frequencia,
     });
+  };
+
+  const handlePhotoUpload = async (file: File) => {
+    if (!user) {
+      alert('Usuário não autenticado');
+      return;
+    }
+
+    const supabase = createClient();
+
+    const fileName = `${user.id}/${Date.now()}_${file.name}`;
+
+    console.log('Tentando upload:', fileName);
+
+    const { data, error } = await supabase.storage.from('receitas-medicas').upload(fileName, file);
+
+    if (error) {
+      alert(`Erro ao fazer upload: ${error.message}`);
+      console.error('Upload error:', error);
+      return;
+    }
+
+    console.log('Upload sucesso, obtendo URL pública');
+
+    const { data: publicUrlData } = supabase.storage.from('receitas-medicas').getPublicUrl(fileName);
+    if (!publicUrlData) {
+      alert('Erro ao obter URL pública');
+      return;
+    }
+    const imageUrl = publicUrlData.publicUrl;
+
+    console.log('URL:', imageUrl);
+    console.log('User ID:', user.id);
+
+    const { error: insertError } = await supabase.from('ocr_gerenciamento').insert({
+      user_id: user.id,
+      image_url: imageUrl,
+      status: 'PENDENTE',
+    });
+
+    if (insertError) {
+      alert(`Erro ao salvar no banco: ${insertError.message}`);
+      console.error('Insert error:', insertError);
+      return;
+    }
+
+    console.log('Insert sucesso');
+    alert('Foto enviada com sucesso!');
+    photoModal.close();
   };
 
   // Render content
@@ -138,9 +193,8 @@ export default function Rotinas() {
             rotina={{
               id: editModal.item.id,
               titulo: editModal.item.titulo,
-              descricao: editModal.item.descricao ?? null,
-              frequencia: editModal.item.frequencia ?? null,
-            } as any}
+              descricao: editModal.item.descricao ?? '',
+            }}
           />
         )}
       </Modal>

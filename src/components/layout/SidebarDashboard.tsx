@@ -18,8 +18,13 @@ export default function SidebarDashboard({ collapsed }: { collapsed: boolean }) 
   const NavItem = ({ href, label, icon: Icon }: { href: string; label: string; icon: any }) => {
     const active = pathname === href;
     return (
-      <Link href={href} className={`${styles.navItem} ${active ? styles.active : ""}`} aria-label={label}>
-        <span className={styles.icon}><Icon size={18} /></span>
+      <Link 
+        href={href} 
+        className={`${styles.navItem} ${active ? styles.active : ""}`} 
+        aria-label={label}
+        prefetch={true}
+      >
+        <span className={styles.icon}><Icon size={22} /></span>
         {!collapsed && <span className={styles.label}>{label}</span>}
       </Link>
     );
@@ -44,7 +49,15 @@ export default function SidebarDashboard({ collapsed }: { collapsed: boolean }) 
         <div className={styles.userBox}>
           <div className={styles.avatar}>
             {photoUrl ? (
-              <Image src={photoUrl} alt="Foto de perfil" width={36} height={36} className={styles.avatarImg} />
+              <Image 
+                src={photoUrl} 
+                alt="Foto de perfil" 
+                width={36} 
+                height={36} 
+                className={styles.avatarImg}
+                priority
+                loading="eager"
+              />
             ) : (
               <div className={styles.avatarFallback}>👤</div>
             )}

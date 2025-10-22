@@ -140,7 +140,7 @@ export default function Remedios() {
     alert('Foto enviada com sucesso!');
     photoModal.close();
   };
-
+ 
   // Render content
   const renderContent = () => {
     if (loading) {

@@ -38,12 +38,29 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     // Verifica a sessão atual ao carregar o componente
     const getInitialSession = async () => {
       try {
+        // Cache da sessão para evitar múltiplas verificações
+        const cachedSession = typeof window !== 'undefined' ? 
+          sessionStorage.getItem('supabase_session') : null;
+        
+        if (cachedSession) {
+          const parsedSession = JSON.parse(cachedSession);
+          setSession(parsedSession);
+          setUser(parsedSession?.user ?? null);
+          setLoading(false);
+          return;
+        }
+
         const { data: { session }, error } = await supabase.auth.getSession();
         if (error) {
           console.error('Erro ao obter sessão:', error);
         }
         setSession(session);
         setUser(session?.user ?? null);
+        
+        // Cache da sessão
+        if (typeof window !== 'undefined' && session) {
+          sessionStorage.setItem('supabase_session', JSON.stringify(session));
+        }
       } catch (error) {
         console.error('Erro inesperado ao obter sessão:', error);
       } finally {
@@ -110,6 +127,20 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const signUp = async (email: string, password: string, fullName?: string, accountType: 'individual' | 'familiar' = 'individual') => {
     try {
+      // Verifica se as variáveis de ambiente estão configuradas
+      const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+      const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+      
+      if (!supabaseUrl || !supabaseKey) {
+        console.error('❌ Variáveis de ambiente do Supabase não configuradas!');
+        console.error('URL:', supabaseUrl);
+        console.error('Key:', supabaseKey ? 'Configurada' : 'Não configurada');
+        throw new Error('Configuração do Supabase não encontrada. Verifique o arquivo .env.local');
+      }
+      
+      console.log('✅ Configuração do Supabase encontrada');
+      console.log('URL:', supabaseUrl);
+      
       // Primeiro, registra o usuário na autenticação
       const authResponse = await supabase.auth.signUp({
         email,

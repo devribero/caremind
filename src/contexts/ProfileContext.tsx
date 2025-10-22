@@ -30,6 +30,8 @@ export function ProfileProvider({ children }: { children: ReactNode }) {
 
   const computePublicUrl = (path: string | null | undefined) => {
     if (!path) return null;
+    // Se já é uma URL pública (começa com http), retorna diretamente
+    if (path.startsWith('http')) return path;
     const { data } = supabase.storage.from('avatars').getPublicUrl(path);
     return data?.publicUrl ?? null;
   };
@@ -40,6 +42,26 @@ export function ProfileProvider({ children }: { children: ReactNode }) {
       setPhotoUrl(null);
       return;
     }
+
+    // Verifica cache primeiro
+    const cacheKey = `profile_${user.id}`;
+    const cachedProfile = typeof window !== 'undefined' ? 
+      sessionStorage.getItem(cacheKey) : null;
+    
+    if (cachedProfile) {
+      try {
+        const parsedProfile = JSON.parse(cachedProfile);
+        setProfile(parsedProfile);
+        setPhotoUrl(computePublicUrl(parsedProfile?.foto_usuario ?? null));
+        return;
+      } catch (e) {
+        // Se cache estiver corrompido, limpa e continua
+        if (typeof window !== 'undefined') {
+          sessionStorage.removeItem(cacheKey);
+        }
+      }
+    }
+
     setLoading(true);
     try {
       // tenta buscar
@@ -61,6 +83,11 @@ export function ProfileProvider({ children }: { children: ReactNode }) {
       } else {
         setProfile(data as Profile);
         setPhotoUrl(computePublicUrl((data as any)?.foto_usuario ?? null));
+        
+        // Cache do perfil
+        if (typeof window !== 'undefined') {
+          sessionStorage.setItem(cacheKey, JSON.stringify(data));
+        }
       }
     } catch (e) {
       console.error('ProfileProvider: erro ao obter perfil', e);
@@ -75,6 +102,18 @@ export function ProfileProvider({ children }: { children: ReactNode }) {
     // sempre que trocar o usuário, refaz
     fetchOrCreateProfile();
     // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user?.id]);
+
+  // Listener para mudanças no localStorage
+  useEffect(() => {
+    const handleStorageChange = () => {
+      if (user?.id) {
+        fetchOrCreateProfile();
+      }
+    };
+
+    window.addEventListener('storage', handleStorageChange);
+    return () => window.removeEventListener('storage', handleStorageChange);
   }, [user?.id]);
 
   const value: ProfileContextValue = {

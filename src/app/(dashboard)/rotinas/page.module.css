@@ -1,11 +1,11 @@
-@import url('https://fonts.googleapis.com/css2?family=League+Spartan:wght@100..900&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap');
 
 .main {
   display: flex;
   flex-direction: column;
   min-height: 100vh;
   background-color: transparent;
-  font-family: "League Spartan", sans-serif;
+  font-family: "Poppins", sans-serif; /* alterado para Poppins */
 }
 
 .content {
@@ -17,20 +17,34 @@
 }
 
 .content_title {
-  text-decoration: underline;
-  text-decoration-color: #0400BA;
-  text-decoration-thickness: 2px;
   font-size: 40px;
-  color: black;
-  font-weight: 400;
+  font-weight: 700;
+  color: #0400BA;
+  text-align: left;
+  margin-top: 40px;
+  margin-bottom: 40px;
+  position: relative;
+}
+
+.content_title::after {
+  content: "";
+  position: absolute;
+  bottom: -8px;
+  left: 0;
+  width: 100px;
+  height: 4px;
+  background-color: #0400BA;
+  border-radius: 2px;
 }
 
 .content_info {
-  background-color: transparent;
+  background-color: white;
   border-radius: 20px;
   margin-top: 2rem;
   padding: 1.5rem;
 }
+
+
 
 .headerContainer {
   position: sticky; /* ou fixed, dependendo do seu design */
@@ -134,7 +148,6 @@
 /* Adicione estas classes ao seu arquivo page.module.css */
 
 .pageHeader {
-  /* Mantém o alinhamento do título */
   margin-bottom: 1.5rem;
 }
 
@@ -142,12 +155,13 @@
 
 .actionsContainer {
   margin-bottom: 1.5rem; /* Espaço entre o botão e a lista de cards */
+  display: flex;
+  gap: 1rem;
 }
 
 .addButton {
   background-color: #0400BA; /* Azul do CareMind */
   color: white;
-  font-weight: 600; /* semi-bold */
   font-size: 0.95rem;
   border: none;
   border-radius: 9px; /* Totalmente arredondado */
@@ -179,4 +193,52 @@
     text-align: center;
     color: #6b7280;
     margin: 0;
+}
+
+/* Estilos para o modal de foto */
+.photoModalContent {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  padding: 1rem 0;
+}
+
+.photoDescription {
+  text-align: center;
+  color: #6b7280;
+  margin-bottom: 1rem;
+  font-size: 1rem;
+}
+
+.photoOption {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 1rem;
+  border: 2px dashed #d1d5db;
+  border-radius: 12px;
+  background-color: #f9fafb;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.photoOption:hover {
+  border-color: #0400BA;
+  background-color: #eef2ff;
+}
+
+.photoOptionLabel {
+  font-weight: 600;
+  color: #0400BA;
+  margin-bottom: 0.5rem;
+  cursor: pointer;
+}
+
+.photoInput {
+  display: none;
+}
+
+.photoIcon {
+  font-size: 2rem;
+  margin-bottom: 0.5rem;
 }

@@ -8,6 +8,9 @@ import "./globals.css";
 export const metadata: Metadata = {
   title: "CareMind",
   description: "Assistente virtual para auxiliar idosos no gerenciamento de medicações e rotinas diárias.",
+  icons: {
+    icon: "/favicon.ico",
+  },
 };
 
 export default function RootLayout({
@@ -17,7 +20,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="pt-BR">
-      <body>
+      <body suppressHydrationWarning={true}>
         <AuthProvider>
           <LoadingProvider>
             <ProfileProvider>

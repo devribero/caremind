@@ -1,7 +1,7 @@
 "use client";
 import { usePersistentState } from "@/hooks/usePersistentState";
 import SidebarDashboard from "./SidebarDashboard";
-import HeaderDashboard from "./HeaderDashboard";
+import { Header } from "../headers/HeaderDashboard";
 import styles from "./AppLayout.module.css";
 
 export default function AppLayout({ children }: { children: React.ReactNode }) {
@@ -13,7 +13,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
         className={styles.mainArea}
         style={{ marginLeft: collapsed ? 80 : 280, width: `calc(100% - ${collapsed ? 80 : 280}px)` }}
       >
-        <HeaderDashboard collapsed={collapsed} onToggle={() => setCollapsed((v) => !v)} />
+        <Header isMenuOpen={!collapsed} onMenuToggle={() => setCollapsed((v) => !v)} />
         <div className={styles.contentArea}>{children}</div>
       </div>
     </div>
