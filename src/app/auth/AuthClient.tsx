@@ -7,7 +7,7 @@ import Link from 'next/link';
 import { Button } from "@/components/ui/button";
 import styles from './page.module.css';
 import { useRouter } from 'next/navigation';  
-import { Header } from '@/components/headers/HeaderHome';
+import Image from 'next/image';
 
 export default function AuthClient() {
   const searchParams = useSearchParams();
@@ -101,7 +101,16 @@ export default function AuthClient() {
         <div className={styles.wave}></div>
       </div>
 
-      <Header />
+      <div style={{ display: 'flex', justifyContent: 'center', marginTop: '24px', marginBottom: '-24px' }}>
+        <Image 
+          src="/logo.png" 
+          alt="CareMind Logo" 
+          width={180} 
+          height={57} 
+          priority 
+          style={{ maxWidth: '100%', height: 'auto' }}
+        />
+      </div>
       
       <section className={styles.section}>
         <div className={styles.container}>

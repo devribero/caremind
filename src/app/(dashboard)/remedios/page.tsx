@@ -26,7 +26,6 @@ type Medicamento = {
 
 // Assinatura de dados de atualização sem 'id' e 'created_at'
 type UpdateMedicamentoData = Omit<Medicamento, 'id' | 'created_at'>;
-
 export default function Remedios() {
   // Hooks e estados
   const { user } = useAuth();
@@ -36,6 +35,9 @@ export default function Remedios() {
     open: () => setPhotoModal(prev => ({ ...prev, isOpen: true })),
     close: () => setPhotoModal(prev => ({ ...prev, isOpen: false })),
   });
+  const [photoUploading, setPhotoUploading] = useState(false);
+  const [photoStatus, setPhotoStatus] = useState<string | null>(null);
+  const [photoError, setPhotoError] = useState<string | null>(null);
 
   // Usar o hook CRUD personalizado
   const {
@@ -46,7 +48,6 @@ export default function Remedios() {
     editModal,
     createItem,
     updateItem,
-    deleteItem,
     editItem,
   } = useCrudOperations<Medicamento>({
     endpoint: '/api/medicamentos',
@@ -98,47 +99,61 @@ export default function Remedios() {
       return;
     }
 
+    setPhotoError(null);
+    setPhotoStatus('Enviando foto...');
+    setPhotoUploading(true);
+
     const supabase = createClient();
 
-    const fileName = `${user.id}/${Date.now()}_${file.name}`;
+    try {
+      const fileName = `${user.id}/${Date.now()}_${file.name}`;
+      const { error: uploadError } = await supabase.storage
+        .from('receitas-medicas')
+        .upload(fileName, file);
 
-    console.log('Tentando upload:', fileName);
+      if (uploadError) {
+        setPhotoError(`Erro ao fazer upload: ${uploadError.message}`);
+        alert(`Erro ao fazer upload: ${uploadError.message}`);
+        return;
+      }
 
-    const { data, error } = await supabase.storage.from('receitas-medicas').upload(fileName, file);
+      setPhotoStatus('Gerando link público...');
+      const { data: publicUrlData } = supabase.storage
+        .from('receitas-medicas')
+        .getPublicUrl(fileName);
+      if (!publicUrlData) {
+        setPhotoError('Erro ao obter URL pública');
+        alert('Erro ao obter URL pública');
+        return;
+      }
+      const imageUrl = publicUrlData.publicUrl;
 
-    if (error) {
-      alert(`Erro ao fazer upload: ${error.message}`);
-      console.error('Upload error:', error);
-      return;
+      setPhotoStatus('Registrando processamento...');
+      const { error: insertError } = await supabase
+        .from('ocr_gerenciamento')
+        .insert({
+          user_id: user.id,
+          image_url: imageUrl,
+          status: 'PENDENTE',
+        });
+
+      if (insertError) {
+        setPhotoError(`Erro ao salvar no banco: ${insertError.message}`);
+        alert(`Erro ao salvar no banco: ${insertError.message}`);
+        return;
+      }
+
+      setPhotoStatus('Foto enviada! Processando receita...');
+      alert('Foto enviada com sucesso!');
+      photoModal.close();
+      setPhotoStatus(null);
+    } catch (e) {
+      const errMsg = e instanceof Error ? e.message : 'Erro inesperado';
+      setPhotoError(errMsg);
+      alert(`Erro: ${errMsg}`);
+    } finally {
+      setPhotoUploading(false);
     }
-
-    console.log('Upload sucesso, obtendo URL pública');
-
-    const { data: publicUrlData } = supabase.storage.from('receitas-medicas').getPublicUrl(fileName);
-    if (!publicUrlData) {
-      alert('Erro ao obter URL pública');
-      return;
-    }
-    const imageUrl = publicUrlData.publicUrl;
-
-    console.log('URL:', imageUrl);
-    console.log('User ID:', user.id);
-
-    const { error: insertError } = await supabase.from('ocr_gerenciamento').insert({
-      user_id: user.id,
-      image_url: imageUrl,
-      status: 'PENDENTE',
-    });
-
-    if (insertError) {
-      alert(`Erro ao salvar no banco: ${insertError.message}`);
-      console.error('Insert error:', insertError);
-      return;
-    }
-
-    console.log('Insert sucesso');
-    alert('Foto enviada com sucesso!');
-    photoModal.close();
   };
  
   // Render content
@@ -219,22 +234,30 @@ export default function Remedios() {
       <Modal isOpen={photoModal.isOpen} onClose={photoModal.close} title="Adicionar por Foto">
         <div className={styles.photoModalContent}>
           <p className={styles.photoDescription}>Escolha uma opção para adicionar a foto da receita:</p>
-          <label className={styles.photoOption}>
-            <div className={styles.photoIcon}>📁</div>
-            <span className={styles.photoOptionLabel}>Selecionar do dispositivo</span>
-            <input type="file" accept="image/*" className={styles.photoInput} onChange={(e) => {
-              const file = e.target.files?.[0];
-              if (file) handlePhotoUpload(file);
-            }} />
-          </label>
-          <label className={styles.photoOption}>
-            <div className={styles.photoIcon}>📷</div>
-            <span className={styles.photoOptionLabel}>Tirar foto com câmera</span>
-            <input type="file" accept="image/*" capture="environment" className={styles.photoInput} onChange={(e) => {
-              const file = e.target.files?.[0];
-              if (file) handlePhotoUpload(file);
-            }} />
-          </label>
+          {photoStatus && (
+            <p className={styles.photoDescription}>{photoStatus}</p>
+          )}
+          {photoError && (
+            <p className={styles.errorText}>Erro: {photoError}</p>
+          )}
+          <fieldset disabled={photoUploading} style={{ border: 'none', padding: 0, margin: 0 }}>
+            <label className={styles.photoOption}>
+              <div className={styles.photoIcon}>📁</div>
+              <span className={styles.photoOptionLabel}>Selecionar do dispositivo</span>
+              <input type="file" accept="image/*" className={styles.photoInput} onChange={(e) => {
+                const file = e.target.files?.[0];
+                if (file) handlePhotoUpload(file);
+              }} />
+            </label>
+            <label className={styles.photoOption}>
+              <div className={styles.photoIcon}>📷</div>
+              <span className={styles.photoOptionLabel}>Tirar foto com câmera</span>
+              <input type="file" accept="image/*" capture="environment" className={styles.photoInput} onChange={(e) => {
+                const file = e.target.files?.[0];
+                if (file) handlePhotoUpload(file);
+              }} />
+            </label>
+          </fieldset>
         </div>
       </Modal>
     </main>
