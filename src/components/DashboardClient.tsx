@@ -1,7 +1,7 @@
 'use client';
 
 // Importações básicas do React
-import React, { useState, useEffect, useCallback, useMemo } from 'react';
+import React, { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import { createClient } from '@/lib/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { shouldResetMedicamento } from '@/lib/medicamentoUtils';
@@ -12,7 +12,7 @@ import { ConfirmDialog } from './ConfirmDialog';
 import { AddMedicamentoForm } from './forms/AddMedicamentoForm';
 import { AddRotinaForm } from './forms/AddRotinaForm';
 import { useLoading } from '@/contexts/LoadingContext';
-import { FiEdit2, FiTrash2, FiPlus, FiCheck, FiX } from 'react-icons/fi';
+import { FiPlus, FiAlertTriangle, FiClock } from 'react-icons/fi';
 
 // ===== TIPOS DE DADOS =====
 
@@ -132,6 +132,7 @@ export default function DashboardClient({ readOnly = false }: { readOnly?: boole
     
     // Dados do usuário logado
     const { user } = useAuth();
+    const alertsRef = useRef<HTMLDivElement>(null);
 
     // ===== FUNÇÕES PARA MANIPULAR O MODAL =====
     
@@ -142,6 +143,19 @@ export default function DashboardClient({ readOnly = false }: { readOnly?: boole
         setCurrentMedicamento(null);
         setCurrentRotina(null);
     }, []);
+
+    const isSameDay = useCallback((a: Date, b: Date) => (
+        a.getFullYear() === b.getFullYear() && a.getMonth() === b.getMonth() && a.getDate() === b.getDate()
+    ), []);
+
+    const toDate = useCallback((iso?: string) => (iso ? new Date(iso) : undefined), []);
+
+    const now = new Date();
+    const yesterday = useMemo(() => {
+        const d = new Date(now);
+        d.setDate(d.getDate() - 1);
+        return d;
+    }, [now]);
 
     // Abre o modal para adicionar ou editar um item
     const openModal = useCallback((type: 'medicamento' | 'rotina', medicamento: Medicamento | null = null) => {
@@ -562,6 +576,55 @@ export default function DashboardClient({ readOnly = false }: { readOnly?: boole
         }
     }, [getAuthToken, handleApiError, rotinas.lista]);
 
+    // Dados focados no dia
+    const medsHoje = useMemo(() => {
+        return medicamentos.lista.filter(m => {
+            const d = toDate(m.data_agendada);
+            return d && isSameDay(d, now);
+        });
+    }, [medicamentos.lista, isSameDay, now, toDate]);
+
+    const rotinasHoje = useMemo(() => {
+        return rotinas.lista.filter(r => {
+            const d = toDate(r.data_agendada as any);
+            return d && isSameDay(d, now);
+        });
+    }, [rotinas.lista, isSameDay, now, toDate]);
+
+    const medsHojeConcluidos = useMemo(() => medsHoje.filter(m => m.concluido).length, [medsHoje]);
+    const rotinasHojeConcluidas = useMemo(() => rotinasHoje.filter(r => r.concluido).length, [rotinasHoje]);
+
+    const dosesOmitidas = useMemo(() => {
+        return medicamentos.lista.filter(m => {
+            const d = toDate(m.data_agendada);
+            return d && !m.concluido && d < now && (isSameDay(d, now) || isSameDay(d, yesterday));
+        });
+    }, [medicamentos.lista, now, isSameDay, yesterday, toDate]);
+
+    const estoqueBaixo = useMemo(() => medicamentos.lista.filter(m => typeof m.quantidade === 'number' && m.quantidade <= 3), [medicamentos.lista]);
+
+    const alertasPendentes = useMemo(() => dosesOmitidas.length + estoqueBaixo.length, [dosesOmitidas.length, estoqueBaixo.length]);
+
+    const agendaDoDia = useMemo(() => {
+        type Item = { id: string; tipo: 'medicamento' | 'rotina'; titulo: string; horario?: Date; concluido: boolean };
+        const a: Item[] = [];
+        medsHoje.forEach(m => a.push({ id: m.id, tipo: 'medicamento', titulo: m.nome, horario: toDate(m.data_agendada), concluido: m.concluido }));
+        rotinasHoje.forEach(r => a.push({ id: r.id, tipo: 'rotina', titulo: r.titulo || r.descricao || 'Rotina', horario: toDate(r.data_agendada as any), concluido: r.concluido }));
+        const statusRank = (it: Item) => it.concluido ? 2 : (it.horario && it.horario < now ? 0 : 1);
+        return a.sort((x, y) => {
+            const sx = statusRank(x); const sy = statusRank(y);
+            if (sx !== sy) return sx - sy;
+            const tx = x.horario?.getTime() || 0; const ty = y.horario?.getTime() || 0;
+            return tx - ty;
+        });
+    }, [medsHoje, rotinasHoje, now, toDate]);
+
+    const getStatus = useCallback((concluido: boolean, horario?: Date) => {
+        if (concluido) return 'concluido';
+        if (horario && horario < now) return 'atrasado';
+        return 'pendente';
+    }, [now]);
+
     // ===== RENDERIZAÇÃO =====
 
     // Renderização do modal
@@ -591,147 +654,103 @@ export default function DashboardClient({ readOnly = false }: { readOnly?: boole
         );
     }, [isModalOpen, modalType, isEditing, currentMedicamento, currentRotina, handleSaveMedicamento, handleSaveRotina, closeModal]);
 
-    // Renderização da lista de medicamentos
-    const listaMedicamentos = useMemo(() => {
-        if (medicamentos.lista.length === 0) {
-            return (
-                <p className={styles.empty_list}>Nenhum medicamento adicionado.</p>
-            );
-        }
-        return (
-            <ul className={styles.list}>
-                {medicamentos.lista.map(med => (
-                    <li key={med.id} className={styles.list_item}>
-                        <div className={styles.item_info}>
-                            <strong>{med.nome}</strong>
-                            <span>{med.dosagem} - {formatarFrequencia(med.frequencia)}</span>
-                        </div>
-                        {!readOnly && (
-                            <div className={styles.item_actions}>
-                                <button
-                                    onClick={() => handleToggleStatus(med.id)}
-                                    className={`${styles.statusButton} ${med.concluido ? styles.completed : ''}`}
-                                    aria-label={med.concluido ? 'Desfazer' : 'Concluir'}
-                                    title={med.concluido ? 'Desfazer' : 'Concluir'}
-                                >
-                                    {med.concluido ? <FiX /> : <FiCheck />}
-                                </button>
-                                <button onClick={() => openModal('medicamento', med)} className={styles.icon_button}><FiEdit2 /></button>
-                                <button onClick={() => confirmarExclusao('medicamentos', med.id)} className={`${styles.icon_button} ${styles.danger}`}><FiTrash2 /></button>
-                            </div>
-                        )}
-                    </li>
-                ))}
-            </ul>
-        );
-    }, [medicamentos.lista, openModal, formatarFrequencia, handleToggleStatus, confirmarExclusao, readOnly]);
-
-    // Renderização da lista de rotinas
-    const listaRotinas = useMemo(() => {
-        if (rotinas.lista.length === 0) {
-            return (
-                <p className={styles.empty_list}>Nenhuma rotina adicionada.</p>
-            );
-        }
-        return (
-            <ul className={styles.list}>
-                {rotinas.lista.map((rot) => (
-                    <li key={rot.id} className={styles.list_item}>
-                        <div className={styles.item_info}>
-                            <strong>{rot.titulo || rot.descricao || 'Rotina'}</strong>
-                            {rot.descricao && rot.titulo ? (
-                                <span>{rot.descricao}</span>
-                            ) : null}
-                        </div>
-                        {!readOnly && (
-                            <div className={styles.item_actions}>
-                                <button
-                                    onClick={() => handleToggleRotinaStatus(rot.id)}
-                                    className={`${styles.statusButton} ${rot.concluido ? styles.completed : ''}`}
-                                    aria-label={rot.concluido ? 'Desfazer' : 'Concluir'}
-                                    title={rot.concluido ? 'Desfazer' : 'Concluir'}
-                                >
-                                    {rot.concluido ? <FiX /> : <FiCheck />}
-                                </button>
-                                <button onClick={() => handleEditRotina(rot)} className={styles.icon_button}>
-                                    <FiEdit2 />
-                                </button>
-                                <button onClick={() => confirmarExclusao('rotinas', rot.id)} className={`${styles.icon_button} ${styles.danger}`}>
-                                    <FiTrash2 />
-                                </button>
-                            </div>
-                        )}
-                    </li>
-                ))}
-            </ul>
-        );
-    }, [rotinas.lista, handleEditRotina, handleToggleRotinaStatus, readOnly]);
+    // Removido: listas completas de medicamentos e rotinas do dashboard
 
     return (
         <div className={styles.dashboard_client}>
-            {!readOnly && (
-                <div className={styles.actions}>
-                    <button className={`${styles.button} ${styles.primary}`} onClick={() => openModal('medicamento')}>
-                        <FiPlus size={16} /> Adicionar Medicamento
-                    </button>
-                    <button className={styles.button} onClick={() => openModal('rotina')}>
-                        <FiPlus size={16} /> Adicionar Rotina
-                    </button>
-                </div>
-            )}
 
             <div className={styles.cards_container}>
-            <div className={styles.card}>
-                <h3>Medicamentos</h3>
-                <p><strong>Total:</strong> {medicamentos.total}</p>
-                <p><strong>Concluídos:</strong> {medicamentos.concluidos}</p>
-                <div className={styles.progress_bar}>
-                    <div
-                        className={styles.progress_fill}
-                        style={{ width: `${medicamentos.total ? (medicamentos.concluidos / medicamentos.total) * 100 : 0}%` }}
-                    />
-                </div>
-                {!readOnly && (
-                    <button className={styles.add_btn} onClick={() => openModal('medicamento')}>
+                <div className={styles.card}>
+                    <h3>Medicamentos Hoje</h3>
+                    <p><strong></strong> {medsHojeConcluidos} de {medsHoje.length} concluídos</p>
+                    <div className={styles.progress_bar}>
+                        <div
+                            className={styles.progress_fill}
+                            style={{ width: `${medsHoje.length ? (medsHojeConcluidos / medsHoje.length) * 100 : 0}%` }}
+                        />
+                    </div>
+                    <button className={styles.add_btn} onClick={() => openModal('medicamento')} disabled={readOnly}>
                         <FiPlus size={16} /> Adicionar Medicamento
                     </button>
-                )}
-            </div>
-            
-            <div className={styles.card}>
-                <h3>Rotinas</h3>
-                <p><strong>Total:</strong> {rotinas.total}</p>
-                <p><strong>Concluídas:</strong> {rotinas.concluidas}</p>
-                <div className={styles.progress_bar}>
-                    <div
-                        className={styles.progress_fill}
-                        style={{ width: `${rotinas.total ? (rotinas.concluidas / rotinas.total) * 100 : 0}%` }}
-                    />
                 </div>
-                {!readOnly && (
-                    <button className={styles.add_btn} onClick={() => openModal('rotina')}>
+                
+                <div className={styles.card}>
+                    <h3>Rotinas Hoje</h3>
+                    <p><strong></strong> {rotinasHojeConcluidas} de {rotinasHoje.length} concluídas</p>
+                    <div className={styles.progress_bar}>
+                        <div
+                            className={styles.progress_fill}
+                            style={{ width: `${rotinasHoje.length ? (rotinasHojeConcluidas / rotinasHoje.length) * 100 : 0}%` }}
+                        />
+                    </div>
+                    <button className={styles.add_btn} onClick={() => openModal('rotina')} disabled={readOnly}>
                         <FiPlus size={16} /> Adicionar Rotina
                     </button>
+                </div>
+
+                <div className={styles.card} onClick={() => alertsRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' })} style={{ cursor: 'pointer' }}>
+                    <h3>Alertas Pendentes</h3>
+                    <p><strong></strong> {alertasPendentes}</p>
+                    <div className={styles.alerts_summary}>
+                        <span className={styles.alert_badge}><FiAlertTriangle /> {dosesOmitidas.length} doses omitidas</span>
+                        <span className={styles.alert_badge_low}><FiAlertTriangle /> {estoqueBaixo.length} estoques baixos</span>
+                    </div>
+                </div>
+            </div>
+
+            <div className={styles.alerts_section} ref={alertsRef}>
+                <h3 className={styles.section_title}><FiAlertTriangle /> Alertas Importantes</h3>
+                {alertasPendentes === 0 ? (
+                    <p className={styles.empty_list}>Nenhum alerta importante no momento.</p>
+                ) : (
+                    <ul className={styles.list}>
+                        {dosesOmitidas.map(m => (
+                            <li key={'dose-' + m.id} className={styles.list_item + ' ' + styles.alert_item}>
+                                <div className={styles.item_info}>
+                                    <strong> Dose omitida: {m.nome}</strong>
+                                    <span>Agendada para {toDate(m.data_agendada)?.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
+                                </div>
+                            </li>
+                        ))}
+                        {estoqueBaixo.map(m => (
+                            <li key={'stock-' + m.id} className={styles.list_item + ' ' + styles.alert_item_low}>
+                                <div className={styles.item_info}>
+                                    <strong> Estoque baixo: {m.nome}</strong>
+                                    <span>Quantidade atual: {m.quantidade}</span>
+                                </div>
+                            </li>
+                        ))}
+                    </ul>
                 )}
             </div>
-        </div>
 
-        <div className={styles.list_section}>
-            <div className={styles.list_container}>
-                <div className={styles.list_header}>
-                    <h3>Medicamentos</h3>
-                </div>
-                {listaMedicamentos}
+            <div className={styles.agenda_section}>
+                <h3 className={styles.section_title}><FiClock /> Agenda do Dia</h3>
+                {agendaDoDia.length === 0 ? (
+                    <p className={styles.empty_list}>Nenhuma tarefa agendada para hoje.</p>
+                ) : (
+                    <ul className={styles.list}>
+                        {agendaDoDia.map(item => {
+                            const status = getStatus(item.concluido, item.horario);
+                            return (
+                                <li key={item.id} className={styles.list_item}>
+                                    <div className={styles.item_info}>
+                                        <strong>{item.titulo}</strong>
+                                        <span>{item.horario ? item.horario.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : ''}</span>
+                                    </div>
+                                    <div className={styles.item_actions}>
+                                        <span className={
+                                            status === 'atrasado' ? styles.status_badge_late : status === 'concluido' ? styles.status_badge_done : styles.status_badge
+                                        }>
+                                            {status === 'atrasado' ? 'Atrasado' : status === 'concluido' ? 'Concluído' : 'Pendente'}
+                                        </span>
+                                    </div>
+                                </li>
+                            );
+                        })}
+                    </ul>
+                )}
             </div>
-
-            <div className={styles.list_container}>
-                <div className={styles.list_header}>
-                    <h3>Rotinas</h3>
-                </div>
-                {listaRotinas}
-            </div>
-        </div>
-
         {!readOnly && renderModal}
         
         {!readOnly && (

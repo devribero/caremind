@@ -1,6 +1,6 @@
 'use client';
 
-import { createContext, useContext, useEffect, useMemo, useState, ReactNode } from 'react';
+import { createContext, useContext, useEffect, useMemo, useState, ReactNode, useCallback } from 'react';
 import { createClient } from '@/lib/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 
@@ -28,15 +28,14 @@ export function ProfileProvider({ children }: { children: ReactNode }) {
   const [photoUrl, setPhotoUrl] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 
-  const computePublicUrl = (path: string | null | undefined) => {
+  const computePublicUrl = useCallback((path: string | null | undefined) => {
     if (!path) return null;
-    // Se já é uma URL pública (começa com http), retorna diretamente
     if (path.startsWith('http')) return path;
     const { data } = supabase.storage.from('avatars').getPublicUrl(path);
     return data?.publicUrl ?? null;
-  };
+  }, [supabase]);
 
-  const fetchOrCreateProfile = async () => {
+  const fetchOrCreateProfile = useCallback(async () => {
     if (!user) {
       setProfile(null);
       setPhotoUrl(null);
@@ -96,13 +95,11 @@ export function ProfileProvider({ children }: { children: ReactNode }) {
     } finally {
       setLoading(false);
     }
-  };
+  }, [user, supabase, computePublicUrl]);
 
   useEffect(() => {
-    // sempre que trocar o usuário, refaz
     fetchOrCreateProfile();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [user?.id]);
+  }, [fetchOrCreateProfile]);
 
   // Listener para mudanças no localStorage
   useEffect(() => {
@@ -114,14 +111,14 @@ export function ProfileProvider({ children }: { children: ReactNode }) {
 
     window.addEventListener('storage', handleStorageChange);
     return () => window.removeEventListener('storage', handleStorageChange);
-  }, [user?.id]);
+  }, [user?.id, fetchOrCreateProfile]);
 
-  const value: ProfileContextValue = {
+  const value: ProfileContextValue = useMemo(() => ({
     profile,
     photoUrl,
     loading,
     refresh: fetchOrCreateProfile,
-  };
+  }), [profile, photoUrl, loading, fetchOrCreateProfile]);
 
   return (
     <ProfileContext.Provider value={value}>

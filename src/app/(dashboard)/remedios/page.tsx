@@ -49,6 +49,7 @@ export default function Remedios() {
     createItem,
     updateItem,
     editItem,
+    deleteItem,
   } = useCrudOperations<Medicamento>({
     endpoint: '/api/medicamentos',
     onError: {

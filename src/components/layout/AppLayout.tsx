@@ -1,11 +1,13 @@
 "use client";
 import { usePersistentState } from "@/hooks/usePersistentState";
+import { useCallback } from "react";
 import SidebarDashboard from "./SidebarDashboard";
 import { Header } from "../headers/HeaderDashboard";
 import styles from "./AppLayout.module.css";
 
 export default function AppLayout({ children }: { children: React.ReactNode }) {
   const [collapsed, setCollapsed] = usePersistentState<boolean>("ui.sidebar.collapsed", false);
+  const handleMenuToggle = useCallback(() => setCollapsed((v) => !v), [setCollapsed]);
   return (
     <div className={styles.shell}>
       <SidebarDashboard collapsed={collapsed} />
@@ -13,7 +15,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
         className={styles.mainArea}
         style={{ marginLeft: collapsed ? 80 : 280, width: `calc(100% - ${collapsed ? 80 : 280}px)` }}
       >
-        <Header isMenuOpen={!collapsed} onMenuToggle={() => setCollapsed((v) => !v)} />
+        <Header isMenuOpen={!collapsed} onMenuToggle={handleMenuToggle} />
         <div className={styles.contentArea}>{children}</div>
       </div>
     </div>

@@ -21,7 +21,7 @@ export default function Dashboard() {
   }
 
   if (user) {
-    return <DashboardClient readOnly />;
+    return <DashboardClient />;
   }
 
   return null;

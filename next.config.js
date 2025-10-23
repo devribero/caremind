@@ -1,4 +1,5 @@
 /** @type {import('next').NextConfig} */
+const path = require('path');
 
 // Lógica para extrair o hostname da URL do Supabase para uso nas imagens
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
@@ -31,6 +32,7 @@ const nextConfig = {
             // { protocol: 'https', hostname: 'outra-api-de-imagens.com' },
         ],
     },
+    outputFileTracingRoot: path.resolve(__dirname),
 
     // 1. CORREÇÃO: Usar 'serverExternalPackages' (chave renomeada)
     // Isso resolve o warning "Unrecognized key(s) in object: 'serverComponentsExternalPackages' at "experimental"".

@@ -9,6 +9,7 @@ import { usePersistentState } from '@/hooks/usePersistentState';
 import { useRouter } from 'next/navigation';
 import Image from 'next/image';
 import { useAuthRequest } from '@/hooks/useAuthRequest';
+import AddIdosoModal from '@/components/modals/AddIdosoModal';
 
 // --- DEFINIÇÃO DE TIPOS ---
 interface PasswordData {
@@ -175,6 +176,7 @@ export default function Perfil() {
     const [showPasswordModal, setShowPasswordModal] = useState(false);
     const [isMenuOpen, setIsMenuOpen] = usePersistentState<boolean>('ui.perfil.menuOpen', false);
     const [showPhotoViewer, setShowPhotoViewer] = useState(false);
+    const [showAddIdosoModal, setShowAddIdosoModal] = useState(false);
 
     const fileInputRef = useRef<HTMLInputElement>(null); // ADICIONADO
     const BUCKET_NAME = process.env.NEXT_PUBLIC_SUPABASE_BUCKET || 'avatars'; // ADICIONADO
@@ -418,6 +420,15 @@ export default function Perfil() {
                                         >
                                             Alterar Senha
                                         </button>
+                                        {user?.user_metadata?.account_type === 'familiar' && (
+                                            <button 
+                                                className={pageStyles.actionButton}
+                                                onClick={() => setShowAddIdosoModal(true)}
+                                                disabled={passwordLoading || uploadingPhoto}
+                                            >
+                                                Adicionar Idoso
+                                            </button>
+                                        )}
                                         <button className={pageStyles.logoutButton} onClick={handleLogout}>Logout</button>
                                     </div>
                                 </div>
@@ -488,6 +499,14 @@ export default function Perfil() {
                                 onClose={() => setShowPasswordModal(false)} 
                                 onSave={handleSavePassword}
                                 loading={passwordLoading}
+                            />
+
+                            <AddIdosoModal
+                                isOpen={showAddIdosoModal}
+                                onClose={() => setShowAddIdosoModal(false)}
+                                onSuccess={() => {
+                                    // Placeholder para atualizar lista de idosos quando essa UI existir
+                                }}
                             />
 
                             {showPhotoViewer && (

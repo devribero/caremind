@@ -20,6 +20,7 @@ export function Header({ isMenuOpen, onMenuToggle }: HeaderProps) {
 
     const [isProfileOpen, setIsProfileOpen] = useState(false);
     const profileMenuRef = useRef<HTMLDivElement>(null);
+    const lastErrorUrlRef = useRef<string | null>(null);
 
     // Atualiza a foto quando o usuário muda ou quando volta para a página
     useEffect(() => {
@@ -56,7 +57,7 @@ export function Header({ isMenuOpen, onMenuToggle }: HeaderProps) {
             window.removeEventListener('storage', handleStorageChange);
             window.removeEventListener('profilePhotoUpdated', handleProfilePhotoUpdate);
         };
-    }, [refresh, user?.id, photoUrl]);
+    }, [refresh, user?.id]);
 
     const handleLogout = async () => {
         await signOut();
@@ -103,7 +104,12 @@ export function Header({ isMenuOpen, onMenuToggle }: HeaderProps) {
                             key={photoUrl}
                             priority
                             loading="eager"
-                            onError={() => refresh()}
+                            onError={() => {
+                                if (lastErrorUrlRef.current !== photoUrl) {
+                                    lastErrorUrlRef.current = photoUrl;
+                                    refresh();
+                                }
+                            }}
                         />
                     ) : (
                         <IoPersonCircleOutline className={styles.person} size={35} />
