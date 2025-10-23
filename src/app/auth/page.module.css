@@ -251,6 +251,22 @@
     opacity: 0.9;
 }
 
+/* Transição entre passos */
+.stepWrapper {
+    position: relative;
+}
+
+.stepContent {
+    opacity: 0;
+    transform: translateY(8px);
+    animation: authStepFadeUp 240ms ease forwards;
+}
+
+@keyframes authStepFadeUp {
+    from { opacity: 0; transform: translateY(8px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
 /* Estilo para o botão do shadcn/ui */
 .form button[type="submit"] {
     background: linear-gradient(135deg, #0400ba 0%, #020054 100%) !important;
@@ -269,7 +285,7 @@
     box-shadow: 0 4px 15px rgba(4, 0, 186, 0.3) !important;
 }
 
-.form button[type="button"] {
+.form button[type="button"]:not(.linkButton) {
     background: linear-gradient(135deg, #0400ba 0%, #020054 100%) !important;
     border: 2px solid rgba(255, 255, 255, 0.2) !important;
     color: white !important;
@@ -292,7 +308,7 @@
     border-color: rgba(255, 255, 255, 0.4) !important;
 }
 
-.form button[type="button"]:hover:not(:disabled) {
+.form button[type="button"]:not(.linkButton):hover:not(:disabled) {
     transform: translateY(-2px) !important;
     box-shadow: 0 6px 20px rgba(4, 0, 186, 0.4) !important;
     border-color: rgba(255, 255, 255, 0.4) !important;
@@ -304,7 +320,7 @@
     transform: none !important;
 }
 
-.form button[type="button"]:disabled {
+.form button[type="button"]:not(.linkButton):disabled {
     opacity: 0.6 !important;
     cursor: not-allowed !important;
     transform: none !important;

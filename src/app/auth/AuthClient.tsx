@@ -105,6 +105,15 @@ export default function AuthClient() {
     }
   };
 
+  const handleFormKeyDown = (e: React.KeyboardEvent<HTMLFormElement>) => {
+    if (e.key === 'Enter' && !isLogin) {
+      if (step !== 3) {
+        e.preventDefault();
+        handleContinue();
+      }
+    }
+  };
+
   const handleContinue = () => {
     setError('');
     if (step === 1) {
@@ -164,9 +173,10 @@ export default function AuthClient() {
               </div>
             )}
 
-            <form onSubmit={handleSubmit} className={styles.form}>
+            <form onSubmit={handleSubmit} onKeyDown={handleFormKeyDown} className={styles.form}>
               {!isLogin && (
-                <>
+                <div className={styles.stepWrapper}>
+                  <div key={step} className={styles.stepContent}>
                   {step === 1 && (
                     <div className={styles.registerColumns}>
                       <div className={styles.registerColumn}>
@@ -254,7 +264,8 @@ export default function AuthClient() {
                       </div>
                     </div>
                   )}
-                </>
+                  </div>
+                </div>
               )}
 
               {isLogin && (
