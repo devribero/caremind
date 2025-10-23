@@ -4,7 +4,7 @@ import Image from "next/image";
 import { useAuth } from "@/contexts/AuthContext";
 import { useProfile } from "@/contexts/ProfileContext";
 import { usePathname } from "next/navigation";
-import { IoHomeOutline, IoBarChartOutline, IoClipboardOutline, IoMedkitOutline, IoPersonOutline, IoSettingsOutline, IoLogOutOutline } from "react-icons/io5";
+import { IoHomeOutline, IoBarChartOutline, IoClipboardOutline, IoMedkitOutline, IoPersonOutline, IoSettingsOutline, IoLogOutOutline, IoPeopleOutline } from "react-icons/io5";
 import styles from "./SidebarDashboard.module.css";
 
 export default function SidebarDashboard({ collapsed }: { collapsed: boolean }) {
@@ -42,6 +42,9 @@ export default function SidebarDashboard({ collapsed }: { collapsed: boolean }) 
         <NavItem href="/relatorios" label="Relatórios" icon={IoBarChartOutline} />
         <NavItem href="/rotinas" label="Rotinas" icon={IoClipboardOutline} />
         <NavItem href="/remedios" label="Medicamentos" icon={IoMedkitOutline} />
+        {user?.user_metadata?.account_type === 'familiar' && (
+          <NavItem href="/familia" label="Família" icon={IoPeopleOutline} />
+        )}
         <NavItem href="/perfil" label="Perfil" icon={IoPersonOutline} />
         <NavItem href="/configuracoes" label="Configurações" icon={IoSettingsOutline} />
       </nav>
