@@ -13,7 +13,8 @@ export default function AuthClient() {
   const searchParams = useSearchParams();
   const mode = searchParams?.get('mode');
   const [isLogin, setIsLogin] = useState(true);
-  const [step, setStep] = useState<1 | 2>(1);
+  const [step, setStep] = useState<1 | 2 | 3>(1);
+
   const [fullName, setFullName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -59,16 +60,22 @@ export default function AuthClient() {
     e.preventDefault();
     setError('');
 
-    // Em registro, somente submeter no passo 2
-    if (!isLogin && step === 1) {
+    // Em registro, somente submeter no passo 3
+    if (!isLogin && step !== 3) {
       return;
     }
     if (!isLogin) {
-      if (password !== confirmPassword) {
-        return setError('As senhas não coincidem');
-      }
       if (!fullName.trim()) {
         return setError('Informe seu nome completo');
+      }
+      if (!email.trim()) {
+        return setError('Informe seu email');
+      }
+      if (!password) {
+        return setError('Informe sua senha');
+      }
+      if (password !== confirmPassword) {
+        return setError('As senhas não coincidem');
       }
     }
 
@@ -100,23 +107,29 @@ export default function AuthClient() {
 
   const handleContinue = () => {
     setError('');
-    if (!fullName.trim()) {
-      setError('Informe seu nome completo');
+    if (step === 1) {
+      if (!fullName.trim()) {
+        setError('Informe seu nome completo');
+        return;
+      }
+      if (!email.trim()) {
+        setError('Informe seu email');
+        return;
+      }
+      setStep(2);
       return;
     }
-    if (!email.trim()) {
-      setError('Informe seu email');
-      return;
+    if (step === 2) {
+      if (!password) {
+        setError('Informe sua senha');
+        return;
+      }
+      if (password !== confirmPassword) {
+        setError('As senhas não coincidem');
+        return;
+      }
+      setStep(3);
     }
-    if (!password) {
-      setError('Informe sua senha');
-      return;
-    }
-    if (password !== confirmPassword) {
-      setError('As senhas não coincidem');
-      return;
-    }
-    setStep(2);
   };
 
   return (
@@ -145,6 +158,11 @@ export default function AuthClient() {
             <h1 className={styles.title}>
               {isLogin ? 'Entrar' : 'Registrar'}
             </h1>
+            {!isLogin && (
+              <div style={{ color: '#fff', opacity: 0.9, fontSize: 14, marginTop: -8, marginBottom: 8 }}>
+                {`Passo ${step} de 3`}
+              </div>
+            )}
 
             <form onSubmit={handleSubmit} className={styles.form}>
               {!isLogin && (
@@ -177,7 +195,13 @@ export default function AuthClient() {
                             required
                           />
                         </div>
+                      </div>
+                    </div>
+                  )}
 
+                  {step === 2 && (
+                    <div className={styles.registerColumns}>
+                      <div className={styles.registerColumn}>
                         <div className={styles.inputGroup}>
                           <label htmlFor="password">Crie sua senha</label>
                           <input
@@ -190,7 +214,6 @@ export default function AuthClient() {
                             required
                           />
                         </div>
-
                         <div className={styles.inputGroup}>
                           <label htmlFor="confirmPassword">Confirme sua senha</label>
                           <input
@@ -207,7 +230,7 @@ export default function AuthClient() {
                     </div>
                   )}
 
-                  {step === 2 && (
+                  {step === 3 && (
                     <div className={styles.registerColumns}>
                       <div className={styles.registerColumn}>
                         <div className={styles.inputGroup}>
@@ -284,10 +307,24 @@ export default function AuthClient() {
                 <Button type="button" size="lg" onClick={handleContinue} disabled={loading}>
                   {loading ? 'Carregando...' : 'Continuar'}
                 </Button>
+              ) : step === 2 ? (
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, width: '100%' }}>
+                  <Button type="button" size="lg" onClick={() => setStep(1)} style={{ width: '100%' }}>
+                    Voltar
+                  </Button>
+                  <Button type="button" size="lg" onClick={handleContinue} disabled={loading} style={{ width: '100%' }}>
+                    {loading ? 'Carregando...' : 'Continuar'}
+                  </Button>
+                </div>
               ) : (
-                <Button type="submit" size="lg" disabled={loading}>
-                  {loading ? 'Carregando...' : 'Registrar'}
-                </Button>
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, width: '100%' }}>
+                  <Button type="button" size="lg" onClick={() => setStep(2)} style={{ width: '100%' }}>
+                    Voltar
+                  </Button>
+                  <Button type="submit" size="lg" disabled={loading} style={{ width: '100%' }}>
+                    {loading ? 'Carregando...' : 'Registrar'}
+                  </Button>
+                </div>
               )}
             </form>
 

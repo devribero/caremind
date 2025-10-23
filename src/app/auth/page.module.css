@@ -269,13 +269,42 @@
     box-shadow: 0 4px 15px rgba(4, 0, 186, 0.3) !important;
 }
 
+.form button[type="button"] {
+    background: linear-gradient(135deg, #0400ba 0%, #020054 100%) !important;
+    border: 2px solid rgba(255, 255, 255, 0.2) !important;
+    color: white !important;
+    padding: 16px 24px !important;
+    border-radius: 12px !important;
+    font-size: 16px !important;
+    font-weight: 600 !important;
+    cursor: pointer !important;
+    font-family: inherit !important;
+    transition: all 0.3s ease !important;
+    margin-top: 1rem !important;
+    width: 100% !important;
+    height: auto !important;
+    box-shadow: 0 4px 15px rgba(4, 0, 186, 0.3) !important;
+}
+
 .form button[type="submit"]:hover:not(:disabled) {
     transform: translateY(-2px) !important;
     box-shadow: 0 6px 20px rgba(4, 0, 186, 0.4) !important;
     border-color: rgba(255, 255, 255, 0.4) !important;
 }
 
+.form button[type="button"]:hover:not(:disabled) {
+    transform: translateY(-2px) !important;
+    box-shadow: 0 6px 20px rgba(4, 0, 186, 0.4) !important;
+    border-color: rgba(255, 255, 255, 0.4) !important;
+}
+
 .form button[type="submit"]:disabled {
+    opacity: 0.6 !important;
+    cursor: not-allowed !important;
+    transform: none !important;
+}
+
+.form button[type="button"]:disabled {
     opacity: 0.6 !important;
     cursor: not-allowed !important;
     transform: none !important;
