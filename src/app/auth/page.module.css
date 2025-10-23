@@ -267,6 +267,16 @@
     to { opacity: 1; transform: translateY(0); }
 }
 
+/* Saída do passo atual */
+.stepContentExit {
+    animation: authStepFadeOut 160ms ease forwards;
+}
+
+@keyframes authStepFadeOut {
+    from { opacity: 1; transform: translateY(0); }
+    to { opacity: 0; transform: translateY(-6px); }
+}
+
 /* Estilo para o botão do shadcn/ui */
 .form button[type="submit"] {
     background: linear-gradient(135deg, #0400ba 0%, #020054 100%) !important;

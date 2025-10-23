@@ -14,6 +14,7 @@ export default function AuthClient() {
   const mode = searchParams?.get('mode');
   const [isLogin, setIsLogin] = useState(true);
   const [step, setStep] = useState<1 | 2 | 3>(1);
+  const [leaving, setLeaving] = useState(false);
 
   const [fullName, setFullName] = useState('');
   const [email, setEmail] = useState('');
@@ -105,6 +106,16 @@ export default function AuthClient() {
     }
   };
 
+  const transitionTo = (next: 1 | 2 | 3) => {
+    if (next === step) return;
+    setLeaving(true);
+    // tempo deve casar com a duração da animação de saída (160ms)
+    setTimeout(() => {
+      setStep(next);
+      setLeaving(false);
+    }, 170);
+  };
+
   const handleFormKeyDown = (e: React.KeyboardEvent<HTMLFormElement>) => {
     if (e.key === 'Enter' && !isLogin) {
       if (step !== 3) {
@@ -125,7 +136,7 @@ export default function AuthClient() {
         setError('Informe seu email');
         return;
       }
-      setStep(2);
+      transitionTo(2);
       return;
     }
     if (step === 2) {
@@ -137,7 +148,7 @@ export default function AuthClient() {
         setError('As senhas não coincidem');
         return;
       }
-      setStep(3);
+      transitionTo(3);
     }
   };
 
@@ -176,7 +187,7 @@ export default function AuthClient() {
             <form onSubmit={handleSubmit} onKeyDown={handleFormKeyDown} className={styles.form}>
               {!isLogin && (
                 <div className={styles.stepWrapper}>
-                  <div key={step} className={styles.stepContent}>
+                  <div key={step} className={leaving ? styles.stepContentExit : styles.stepContent}>
                   {step === 1 && (
                     <div className={styles.registerColumns}>
                       <div className={styles.registerColumn}>
@@ -320,7 +331,7 @@ export default function AuthClient() {
                 </Button>
               ) : step === 2 ? (
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, width: '100%' }}>
-                  <Button type="button" size="lg" onClick={() => setStep(1)} style={{ width: '100%' }}>
+                  <Button type="button" size="lg" onClick={() => transitionTo(1)} style={{ width: '100%' }}>
                     Voltar
                   </Button>
                   <Button type="button" size="lg" onClick={handleContinue} disabled={loading} style={{ width: '100%' }}>
@@ -329,7 +340,7 @@ export default function AuthClient() {
                 </div>
               ) : (
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, width: '100%' }}>
-                  <Button type="button" size="lg" onClick={() => setStep(2)} style={{ width: '100%' }}>
+                  <Button type="button" size="lg" onClick={() => transitionTo(2)} style={{ width: '100%' }}>
                     Voltar
                   </Button>
                   <Button type="submit" size="lg" disabled={loading} style={{ width: '100%' }}>

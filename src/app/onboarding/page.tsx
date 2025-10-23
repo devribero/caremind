@@ -87,59 +87,83 @@ export default function OnboardingPage() {
   }
 
   return (
-    <main style={{ maxWidth: 520, margin: '40px auto', padding: 24 }}>
-      <div style={{ marginBottom: 16, opacity: 0.8 }}>Passo 2 de 2</div>
-      <h1 style={{ marginBottom: 8 }}>Complete seu perfil</h1>
-      <p style={{ marginBottom: 24 }}>Informe seus dados adicionais. Você pode pular e fazer isso depois.</p>
+    <main
+      style={{
+        minHeight: '100vh',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        padding: '24px',
+        background: 'linear-gradient(135deg, #a8b8ff 0%, #9b7eff 100%)',
+      }}
+    >
+      <div
+        style={{
+          width: '100%',
+          maxWidth: 560,
+          background: '#ffffff',
+          borderRadius: 16,
+          boxShadow: '0 10px 24px rgba(0,0,0,0.12)',
+          padding: 24,
+        }}
+      >
+        <div style={{ marginBottom: 8, color: '#6b7280', fontSize: 14 }}>Passo 2 de 2</div>
+        <h1 style={{ marginBottom: 8, fontSize: 24, fontWeight: 700, color: '#111827' }}>Complete seu perfil</h1>
+        <p style={{ marginBottom: 20, color: '#4b5563' }}>
+          Informe seus dados adicionais. Você pode pular e fazer isso depois.
+        </p>
 
-      <form onSubmit={handleSaveContinue} style={{ display: 'grid', gap: 16 }}>
-        <div style={{ display: 'grid', gap: 8 }}>
-          <label htmlFor="phone">Número (telefone)</label>
-          <input
-            id="phone"
-            type="tel"
-            value={phone}
-            onChange={(e) => setPhone(e.target.value)}
-            placeholder="(00) 00000-0000"
-            style={{ padding: '10px 12px', borderRadius: 8, border: '1px solid #ddd' }}
-          />
-        </div>
+        <form onSubmit={handleSaveContinue} style={{ display: 'grid', gap: 16 }}>
+          <div style={{ display: 'grid', gap: 8 }}>
+            <label htmlFor="phone" style={{ color: '#111827', fontWeight: 600 }}>Número (telefone)</label>
+            <input
+              id="phone"
+              type="tel"
+              value={phone}
+              onChange={(e) => setPhone(e.target.value)}
+              placeholder="(00) 00000-0000"
+              style={{ padding: '12px 14px', borderRadius: 10, border: '1px solid #e5e7eb' }}
+            />
+          </div>
 
-        {error && (
-          <div style={{ color: '#b00020', fontSize: 14 }}>{error}</div>
-        )}
+          {error && (
+            <div style={{ color: '#b00020', fontSize: 14 }}>{error}</div>
+          )}
 
-        <div style={{ display: 'flex', gap: 12 }}>
-          <button
-            type="submit"
-            disabled={saving}
-            style={{
-              padding: '10px 16px',
-              borderRadius: 8,
-              background: '#2563eb',
-              color: 'white',
-              border: 0,
-              cursor: 'pointer',
-            }}
-          >
-            {saving ? 'Salvando...' : 'Salvar e Continuar'}
-          </button>
-          <button
-            type="button"
-            onClick={handleSkip}
-            style={{
-              padding: '10px 16px',
-              borderRadius: 8,
-              background: 'transparent',
-              color: '#2563eb',
-              border: '1px solid #2563eb',
-              cursor: 'pointer',
-            }}
-          >
-            Pular por enquanto
-          </button>
-        </div>
-      </form>
+          <div style={{ display: 'flex', gap: 12 }}>
+            <button
+              type="submit"
+              disabled={saving}
+              style={{
+                padding: '12px 16px',
+                borderRadius: 10,
+                background: '#2563eb',
+                color: 'white',
+                border: 0,
+                cursor: 'pointer',
+                flex: 1,
+              }}
+            >
+              {saving ? 'Salvando...' : 'Salvar e Continuar'}
+            </button>
+            <button
+              type="button"
+              onClick={handleSkip}
+              style={{
+                padding: '12px 16px',
+                borderRadius: 10,
+                background: 'transparent',
+                color: '#2563eb',
+                border: '1px solid #2563eb',
+                cursor: 'pointer',
+                flex: 1,
+              }}
+            >
+              Pular por enquanto
+            </button>
+          </div>
+        </form>
+      </div>
     </main>
   );
 }
