@@ -42,9 +42,13 @@ export async function GET(request: Request) {
       .from('perfis')
       .select('id, user_id, nome, foto_usuario, telefone, data_nascimento, tipo, codigo_vinculacao')
       .eq('user_id', user.id)
-      .single();
+      .maybeSingle();
 
     if (error) throw error;
+
+    if (!perfil) {
+      return new NextResponse(null, { status: 204, headers: corsHeaders });
+    }
 
     return NextResponse.json(perfil, { headers: corsHeaders });
 

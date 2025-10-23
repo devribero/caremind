@@ -3,6 +3,7 @@
 import { useState, FormEvent } from "react";
 import { Modal } from "@/components/Modal";
 import { useAuthRequest } from "@/hooks/useAuthRequest";
+import { toast } from "@/components/Toast";
 
 interface AddIdosoModalProps {
   isOpen: boolean;
@@ -45,7 +46,7 @@ export default function AddIdosoModal({ isOpen, onClose, onSuccess }: AddIdosoMo
           senha_idoso: senha,
         }),
       });
-      alert("Idoso adicionado e vinculado com sucesso!");
+      toast.success("Idoso adicionado e vinculado com sucesso!");
       onClose();
       setNome("");
       setEmail("");
@@ -53,6 +54,7 @@ export default function AddIdosoModal({ isOpen, onClose, onSuccess }: AddIdosoMo
       onSuccess?.();
     } catch (err: any) {
       setError(err?.message || "Não foi possível criar e vincular o idoso.");
+      toast.error(err?.message || "Não foi possível criar e vincular o idoso.");
     } finally {
       setIsLoading(false);
     }

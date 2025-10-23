@@ -2,14 +2,14 @@
 
 import pageStyles from '@/app/(dashboard)/perfil/page.module.css';
 import modalStyles from '@/app/(dashboard)/perfil/modal.module.css';
-import { useAuth } from '@/contexts/AuthContext';
 import { createClient } from '@/lib/supabase/client';
 import { useState, useEffect, ChangeEvent, useRef } from 'react';
 import { usePersistentState } from '@/hooks/usePersistentState';
 import { useRouter } from 'next/navigation';
 import Image from 'next/image';
+import { useAuth } from '@/contexts/AuthContext';
 import { useAuthRequest } from '@/hooks/useAuthRequest';
-import AddIdosoModal from '@/components/modals/AddIdosoModal';
+// Elders management moved to /familia
 
 // --- DEFINIÇÃO DE TIPOS ---
 interface PasswordData {
@@ -176,7 +176,6 @@ export default function Perfil() {
     const [showPasswordModal, setShowPasswordModal] = useState(false);
     const [isMenuOpen, setIsMenuOpen] = usePersistentState<boolean>('ui.perfil.menuOpen', false);
     const [showPhotoViewer, setShowPhotoViewer] = useState(false);
-    const [showAddIdosoModal, setShowAddIdosoModal] = useState(false);
 
     const fileInputRef = useRef<HTMLInputElement>(null); // ADICIONADO
     const BUCKET_NAME = process.env.NEXT_PUBLIC_SUPABASE_BUCKET || 'avatars'; // ADICIONADO
@@ -362,6 +361,7 @@ export default function Perfil() {
         <main className={pageStyles.main}>
             <div className={pageStyles.mainContent}>
                 <div className={pageStyles.content}>
+                    
                     <div className={pageStyles.pageHeader}>
                         <h1 className={pageStyles.content_title}>Perfil</h1>
                     </div>
@@ -422,11 +422,11 @@ export default function Perfil() {
                                         </button>
                                         {user?.user_metadata?.account_type === 'familiar' && (
                                             <button 
-                                                className={pageStyles.actionButton}
-                                                onClick={() => setShowAddIdosoModal(true)}
+                                                className={pageStyles.actionButton} 
+                                                onClick={() => router.push('/familia')}
                                                 disabled={passwordLoading || uploadingPhoto}
                                             >
-                                                Adicionar Idoso
+                                                Família
                                             </button>
                                         )}
                                         <button className={pageStyles.logoutButton} onClick={handleLogout}>Logout</button>
@@ -501,13 +501,7 @@ export default function Perfil() {
                                 loading={passwordLoading}
                             />
 
-                            <AddIdosoModal
-                                isOpen={showAddIdosoModal}
-                                onClose={() => setShowAddIdosoModal(false)}
-                                onSuccess={() => {
-                                    // Placeholder para atualizar lista de idosos quando essa UI existir
-                                }}
-                            />
+                            
 
                             {showPhotoViewer && (
                                 <div className={modalStyles.modalOverlay} onClick={() => setShowPhotoViewer(false)}>
