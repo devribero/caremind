@@ -101,7 +101,7 @@ export default function AuthClient() {
         <div className={styles.wave}></div>
       </div>
 
-      <div style={{ display: 'flex', justifyContent: 'center', marginTop: '24px', marginBottom: '-24px' }}>
+      <div style={{ display: 'flex', justifyContent: 'center', marginTop: '16px', marginBottom: '8px' }}>
         <Image 
           src="/logo.png" 
           alt="CareMind Logo" 

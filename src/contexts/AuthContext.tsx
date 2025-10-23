@@ -155,7 +155,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       
       console.log("Resposta de autenticação:", authResponse);
       
-      // Se o registro de autenticação for bem-sucedido, cria o Perfis no banco de dados
+      // Tratamento: se usuário já existir, tentar realizar sign-in com a mesma credencial
+      if (authResponse.error && typeof authResponse.error.message === 'string' && authResponse.error.message.toLowerCase().includes('already')) {
+        const signInResp = await supabase.auth.signInWithPassword({ email, password });
+        if (signInResp.data.user && !signInResp.error) {
+          return signInResp;
+        }
+        return authResponse;
+      }
+
+      // Se o registro de autenticação for bem-sucedido, cria/atualiza o Perfis no banco de dados
       if (authResponse.data.user && !authResponse.error) {
         const userId = authResponse.data.user.id;
         
@@ -168,39 +177,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         
         console.log("Tentando inserir Perfis com nome:", fullName);
         
-        // Primeiro, vamos verificar se já existe um Perfis para este usuário
-        const { data: existingProfile } = await supabase
+        // Upsert evita condição de corrida entre checar e inserir/atualizar
+        const { error: upsertError } = await supabase
           .from('perfis')
-          .select('*')
-          .eq('user_id', userId)
-          .single();
-          
-        if (existingProfile) {
-          // Se já existe, atualiza o Perfis existente
-          const { error: updateError } = await supabase
-            .from('perfis')
-            .update({ 
-              nome: fullName,
-              tipo: accountType,
-            })
-            .eq('user_id', userId);
-            
-          if (updateError) {
-            console.error('Erro ao atualizar Perfis:', updateError);
-          } else {
-            console.log('Perfis atualizado com sucesso!');
-          }
+          .upsert(profileData, { onConflict: 'user_id' });
+        if (upsertError) {
+          console.error('Erro ao upsert Perfis (não bloqueante):', upsertError);
         } else {
-          // Se não existe, insere um novo Perfis
-          const { error: insertError } = await supabase
-            .from('perfis')
-            .insert([profileData]);
-            
-          if (insertError) {
-            console.error('Erro ao criar Perfis:', insertError);
-          } else {
-            console.log('Perfis criado com sucesso!');
-          }
+          console.log('Perfis upsert realizado com sucesso!');
         }
       } else if (authResponse.error) {
         console.error('Erro na autenticação:', authResponse.error);

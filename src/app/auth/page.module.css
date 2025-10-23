@@ -3,10 +3,10 @@
 .main {
     font-family: "League Spartan", sans-serif;
     min-height: 100vh;
-    height: 100vh;
+    height: auto;
     background: linear-gradient(135deg, #a8b8ff 0%, #9b7eff 100%); /* Gradiente mais claro */
     position: relative;
-    overflow: hidden;
+    overflow: auto;
     display: flex;
     flex-direction: column;
 }
@@ -34,7 +34,7 @@
     justify-content: center; /* Centralizado verticalmente */
     align-items: center;
     width: 100%;
-    min-height: 100vh;
+    min-height: auto;
 }
 
 .container {
