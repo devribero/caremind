@@ -242,6 +242,15 @@
     border: 1px solid rgba(254, 178, 178, 0.5);
 }
 
+/* Explicação do tipo de conta no passo 2 */
+.accountTypeInfo {
+    margin-top: 0.5rem;
+    color: #ffffff;
+    font-size: 14px;
+    line-height: 1.4;
+    opacity: 0.9;
+}
+
 /* Estilo para o botão do shadcn/ui */
 .form button[type="submit"] {
     background: linear-gradient(135deg, #0400ba 0%, #020054 100%) !important;

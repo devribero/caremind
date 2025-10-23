@@ -13,6 +13,7 @@ export default function AuthClient() {
   const searchParams = useSearchParams();
   const mode = searchParams?.get('mode');
   const [isLogin, setIsLogin] = useState(true);
+  const [step, setStep] = useState<1 | 2>(1);
   const [fullName, setFullName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -33,6 +34,7 @@ export default function AuthClient() {
   useEffect(() => {
     if (mode === 'register') {
       setIsLogin(false);
+      setStep(1);
     }
   }, [mode]);
 
@@ -57,6 +59,10 @@ export default function AuthClient() {
     e.preventDefault();
     setError('');
 
+    // Em registro, somente submeter no passo 2
+    if (!isLogin && step === 1) {
+      return;
+    }
     if (!isLogin) {
       if (password !== confirmPassword) {
         return setError('As senhas não coincidem');
@@ -92,6 +98,27 @@ export default function AuthClient() {
     }
   };
 
+  const handleContinue = () => {
+    setError('');
+    if (!fullName.trim()) {
+      setError('Informe seu nome completo');
+      return;
+    }
+    if (!email.trim()) {
+      setError('Informe seu email');
+      return;
+    }
+    if (!password) {
+      setError('Informe sua senha');
+      return;
+    }
+    if (password !== confirmPassword) {
+      setError('As senhas não coincidem');
+      return;
+    }
+    setStep(2);
+  };
+
   return (
     <main className={styles.main}>
       {/* Efeito de ondas animadas */}
@@ -121,79 +148,90 @@ export default function AuthClient() {
 
             <form onSubmit={handleSubmit} className={styles.form}>
               {!isLogin && (
-                <div className={styles.registerColumns}>
-                  {/* Coluna Esquerda */}
-                  <div className={styles.registerColumn}>
-                    <div className={styles.inputGroup}>
-                      <label htmlFor="fullName">Nome Completo</label>
-                      <input
-                        id="fullName"
-                        type="text"
-                        value={fullName}
-                        onChange={(e) => setFullName(e.target.value)}
-                        className={styles.input}
-                        placeholder="Seu nome"
-                        required
-                      />
-                    </div>
+                <>
+                  {step === 1 && (
+                    <div className={styles.registerColumns}>
+                      <div className={styles.registerColumn}>
+                        <div className={styles.inputGroup}>
+                          <label htmlFor="fullName">Nome Completo</label>
+                          <input
+                            id="fullName"
+                            type="text"
+                            value={fullName}
+                            onChange={(e) => setFullName(e.target.value)}
+                            className={styles.input}
+                            placeholder="Seu nome"
+                            required
+                          />
+                        </div>
 
-                    <div className={styles.inputGroup}>
-                      <label htmlFor="email">Email</label>
-                      <input
-                        id="email"
-                        type="email"
-                        value={email}
-                        onChange={(e) => setEmail(e.target.value)}
-                        className={styles.input}
-                        placeholder="seu@email.com"
-                        required
-                      />
-                    </div>
+                        <div className={styles.inputGroup}>
+                          <label htmlFor="email">Email</label>
+                          <input
+                            id="email"
+                            type="email"
+                            value={email}
+                            onChange={(e) => setEmail(e.target.value)}
+                            className={styles.input}
+                            placeholder="seu@email.com"
+                            required
+                          />
+                        </div>
 
-                    <div className={styles.inputGroup}>
-                      <label htmlFor="password">{isLogin ? 'Senha' : 'Crie sua senha'}</label>
-                      <input
-                        id="password"
-                        type="password"
-                        value={password}
-                        onChange={(e) => setPassword(e.target.value)}
-                        className={styles.input}
-                        placeholder='Password'
-                        required
-                      />
-                    </div>
-                  </div>
+                        <div className={styles.inputGroup}>
+                          <label htmlFor="password">Crie sua senha</label>
+                          <input
+                            id="password"
+                            type="password"
+                            value={password}
+                            onChange={(e) => setPassword(e.target.value)}
+                            className={styles.input}
+                            placeholder='Password'
+                            required
+                          />
+                        </div>
 
-                  {/* Coluna Direita */}
-                  <div className={styles.registerColumn}>
-                    <div className={styles.inputGroup}>
-                      <label htmlFor="confirmPassword">Confirme sua senha</label>
-                      <input
-                        id="confirmPassword"
-                        type="password"
-                        value={confirmPassword}
-                        onChange={(e) => setConfirmPassword(e.target.value)}
-                        className={styles.input}
-                        placeholder='Password'
-                        required
-                      />
+                        <div className={styles.inputGroup}>
+                          <label htmlFor="confirmPassword">Confirme sua senha</label>
+                          <input
+                            id="confirmPassword"
+                            type="password"
+                            value={confirmPassword}
+                            onChange={(e) => setConfirmPassword(e.target.value)}
+                            className={styles.input}
+                            placeholder='Password'
+                            required
+                          />
+                        </div>
+                      </div>
                     </div>
+                  )}
 
-                    <div className={styles.inputGroup}>
-                      <label htmlFor="accountType">Tipo de conta</label>
-                      <select
-                        id="accountType"
-                        value={accountType}
-                        onChange={(e) => setAccountType(e.target.value as 'individual' | 'familiar')}
-                        className={styles.input}
-                        required
-                      >
-                        <option value="individual">Individual</option>
-                        <option value="familiar">Familiar</option>
-                      </select>
+                  {step === 2 && (
+                    <div className={styles.registerColumns}>
+                      <div className={styles.registerColumn}>
+                        <div className={styles.inputGroup}>
+                          <label htmlFor="accountType">Tipo de conta</label>
+                          <select
+                            id="accountType"
+                            value={accountType}
+                            onChange={(e) => setAccountType(e.target.value as 'individual' | 'familiar')}
+                            className={styles.input}
+                            required
+                          >
+                            <option value="individual">Individual</option>
+                            <option value="familiar">Familiar</option>
+                          </select>
+                          <div className={styles.accountTypeInfo}>
+                            {accountType === 'individual'
+                              ? 'Conta para uso pessoal, ideal para cuidadores ou usuários que desejam gerenciar seu próprio acompanhamento.'
+                              : 'Conta para familiares acompanharem e colaborarem no cuidado de um ente querido, com recursos de compartilhamento.'}
+                          </div>
+                        </div>
+                      </div>
                     </div>
-                  </div>
-                </div>
+                  )}
+                </>
               )}
 
               {isLogin && (
@@ -238,9 +276,19 @@ export default function AuthClient() {
 
               {error && <div className={styles.error}>{error}</div>}
 
-              <Button type="submit" size="lg" disabled={loading}>
-                {loading ? 'Carregando...' : isLogin ? 'Entrar' : 'Registrar'}
-              </Button>
+              {isLogin ? (
+                <Button type="submit" size="lg" disabled={loading}>
+                  {loading ? 'Carregando...' : 'Entrar'}
+                </Button>
+              ) : step === 1 ? (
+                <Button type="button" size="lg" onClick={handleContinue} disabled={loading}>
+                  {loading ? 'Carregando...' : 'Continuar'}
+                </Button>
+              ) : (
+                <Button type="submit" size="lg" disabled={loading}>
+                  {loading ? 'Carregando...' : 'Registrar'}
+                </Button>
+              )}
             </form>
 
             <div className={styles.switchMode}>
@@ -255,6 +303,7 @@ export default function AuthClient() {
                     setFullName('');
                     setConfirmPassword('');
                     setAccountType('individual');
+                    setStep(1);
                   }}
                   className={styles.switchButton}
                 >
