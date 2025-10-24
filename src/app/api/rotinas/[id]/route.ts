@@ -5,7 +5,8 @@ import { createClient } from '@/lib/supabase/server';
 import { NextRequest } from 'next/server';
 
 const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
+  'Access-Control-Allow-Origin': 'https://caremind.online',
+  'Vary': 'Origin',
   'Access-Control-Allow-Methods': 'GET, POST, PUT, PATCH, DELETE, OPTIONS',
   'Access-Control-Allow-Headers': 'Content-Type, Authorization',
 };

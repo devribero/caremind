@@ -583,7 +583,12 @@ export default function DashboardClient({ readOnly = false, idosoId }: { readOnl
     }, []);
 
     // Alterna status de conclusão do medicamento (otimista)
-    const handleToggleStatus = useCallback(async (id: string) => {
+    const handleToggleStatus = useCallback(async (id: string, historicoEventoId?: string) => {
+        if (!historicoEventoId) {
+            console.warn('ID do histórico de evento não fornecido para o medicamento:', id);
+            return;
+        }
+        
         // estado anterior para possível rollback
         let previousState: MedicamentosData | null = null;
         setMedicamentos(prev => {
@@ -602,15 +607,19 @@ export default function DashboardClient({ readOnly = false, idosoId }: { readOnl
             const med = medicamentos.lista.find(m => m.id === id);
             const novoStatus = med ? !med.concluido : true;
 
-            const resposta = await fetch(`/api/medicamentos/${id}`, {
+            // Usar o endpoint de histórico de eventos em vez do de medicamentos
+            const resposta = await fetch(`/api/historico_eventos/${historicoEventoId}`, {
                 method: 'PATCH',
                 headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
-                body: JSON.stringify({ concluido: novoStatus })
+                body: JSON.stringify({ status: novoStatus ? 'confirmado' : 'pendente' })
             });
 
             if (!resposta.ok) {
-                throw new Error('Falha ao atualizar status do medicamento');
+                throw new Error('Falha ao atualizar status do histórico do medicamento');
             }
+
+            // Atualizar a agenda após a mudança
+            carregarDados();
         } catch (erro) {
             // rollback
             if (previousState) {
@@ -621,7 +630,12 @@ export default function DashboardClient({ readOnly = false, idosoId }: { readOnl
     }, [getAuthToken, handleApiError, medicamentos.lista]);
 
     // Alterna status de conclusão da rotina (otimista)
-    const handleToggleRotinaStatus = useCallback(async (id: string) => {
+    const handleToggleRotinaStatus = useCallback(async (id: string, historicoEventoId?: string) => {
+        if (!historicoEventoId) {
+            console.warn('ID do histórico de evento não fornecido para a rotina:', id);
+            return;
+        }
+        
         // estado anterior para possível rollback
         let previousState: RotinasData | null = null;
         setRotinas(prev => {
@@ -640,15 +654,19 @@ export default function DashboardClient({ readOnly = false, idosoId }: { readOnl
             const rot = rotinas.lista.find(r => r.id === id);
             const novoStatus = rot ? !rot.concluido : true;
 
-            const resposta = await fetch(`/api/rotinas/${id}`, {
+            // Usar o endpoint de histórico de eventos em vez do de rotinas
+            const resposta = await fetch(`/api/historico_eventos/${historicoEventoId}`, {
                 method: 'PATCH',
                 headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
-                body: JSON.stringify({ concluido: novoStatus })
+                body: JSON.stringify({ status: novoStatus ? 'confirmado' : 'pendente' })
             });
 
             if (!resposta.ok) {
-                throw new Error('Falha ao atualizar status da rotina');
+                throw new Error('Falha ao atualizar status do histórico da rotina');
             }
+
+            // Atualizar a agenda após a mudança
+            carregarDados();
         } catch (erro) {
             // rollback
             if (previousState) {
