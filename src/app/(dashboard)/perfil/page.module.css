@@ -1,8 +1,11 @@
+/* ============================================
+   PAGE.MODULE.CSS - Página de Perfil
+   ============================================ */
+
 .main {
   display: flex;
   flex-direction: column;
   min-height: 100vh;
-  font-family: "League Spartan", sans-serif;
 }
 
 .content {
@@ -10,10 +13,11 @@
   max-width: 1200px;
   width: 100%;
   margin: 0 auto;
-  padding: 0 20px;
+  padding: 0 24px;
 }
 
 .content_title {
+  font-family: "Poppins", sans-serif;
   font-size: 40px;
   font-weight: 700;
   color: #0400BA;
@@ -35,10 +39,9 @@
 }
 
 .content_info {
-  background-color: white;
   border-radius: 20px;
   margin-top: 2rem;
-  padding: 1.5rem;
+  padding: 0;
 }
 
 .mainContent {
@@ -55,21 +58,12 @@
   margin-bottom: 1.5rem;
 }
 
-/* Responsive design to match other pages */
-@media (max-width: 768px) {
-  .content { padding: 0 15px; }
-}
-
-@media (max-width: 480px) {
-  .content_title { font-size: 1.75rem; }
-}
-
 .pageContainer {
   min-height: 100vh;
   display: flex;
   flex-direction: column;
   align-items: center;
-  padding: 30px;
+  padding: 32px 24px;
 }
 
 .profileSection {
@@ -77,28 +71,34 @@
   max-width: 1000px;
 }
 
+/* ============================================
+     HEADER DO PERFIL
+     ============================================ */
+
 .profileHeader {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  border-radius: 16px;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
-  padding: 20px 30px;
-  margin-bottom: 25px;
+  background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%);
+  border-radius: 20px;
+  border: 1px solid #e5e7eb;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.04);
+  padding: 32px;
+  margin-bottom: 28px;
   flex-wrap: wrap;
-  gap: 20px;
+  gap: 24px;
 }
 
 .profileInfo {
   display: flex;
   align-items: center;
-  gap: 20px;
+  gap: 24px;
 }
 
 .profilePhotoContainer {
   position: relative;
-  width: 80px;
-  height: 80px;
+  width: 100px;
+  height: 100px;
 }
 
 .profilePhoto {
@@ -106,23 +106,40 @@
   height: 100%;
   border-radius: 50%;
   object-fit: cover;
-  border: 3px solid;
+  border: 4px solid #fff;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  transition: all 0.3s ease;
+}
+
+.profilePhoto:hover {
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
+  transform: scale(1.02);
 }
 
 .uploadPhotoButton {
   position: absolute;
-  bottom: 0;
-  right: 0;
-  border: #0400BA;
-  background-color: #0400BA;
+  bottom: 2px;
+  right: 2px;
+  background: linear-gradient(135deg, #0400BA 0%, #0300a0 100%);
+  border: 3px solid #fff;
   border-radius: 50%;
-  width: 30px;
-  height: 30px;
+  width: 36px;
+  height: 36px;
   display: flex;
   justify-content: center;
   align-items: center;
   cursor: pointer;
-  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+  box-shadow: 0 3px 10px rgba(4, 0, 186, 0.3);
+  transition: all 0.2s ease;
+}
+
+.uploadPhotoButton:hover {
+  transform: scale(1.1);
+  box-shadow: 0 4px 14px rgba(4, 0, 186, 0.4);
+}
+
+.uploadPhotoButton:active {
+  transform: scale(0.95);
 }
 
 .uploadPhotoButton svg {
@@ -134,72 +151,97 @@
 .profileText {
   display: flex;
   flex-direction: column;
+  gap: 4px;
 }
 
 .profileName {
-  font-size: 24px;
-  font-weight: bold;
-  color: rgb(36, 36, 36);
+  font-size: 28px;
+  font-weight: 700;
+  color: #1a1a1a;
   margin: 0;
+  letter-spacing: -0.3px;
 }
 
 .profileEmail {
-  font-size: 14px;
-  color: black;
+  font-size: 15px;
+  color: #6b7280;
+  font-weight: 500;
 }
+
+/* ============================================
+     AÇÕES DO PERFIL
+     ============================================ */
 
 .profileActions {
   display: flex;
-  gap: 15px;
+  gap: 12px;
   flex-wrap: wrap;
-  justify-content: center;
 }
 
-.actionButton, .logoutButton {
-  padding: 10px 20px;
-  border-radius: 8px;
+.actionButton,
+.logoutButton {
+  padding: 12px 24px;
+  border-radius: 10px;
   font-weight: 600;
+  font-size: 15px;
   cursor: pointer;
-  transition: background-color 0.3s, color 0.3s;
+  transition: all 0.2s ease;
   border: none;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
 }
 
 .actionButton {
-  background-color: var(--primary-color);
+  background: linear-gradient(135deg, #0400BA 0%, #0300a0 100%);
   color: #fff;
 }
 
 .actionButton:hover {
-  background-color: #4a54c9;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(4, 0, 186, 0.25);
+}
+
+.actionButton:active {
+  transform: translateY(0);
 }
 
 .logoutButton {
-  background-color: #f44336;
+  background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%);
   color: #fff;
 }
 
 .logoutButton:hover {
-  background-color: #d32f2f;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(220, 38, 38, 0.25);
 }
 
+.logoutButton:active {
+  transform: translateY(0);
+}
+
+/* ============================================
+     CARD DE INFORMAÇÕES
+     ============================================ */
+
 .infoCard {
-  background-color: var(--card-background);
-  border-radius: 16px;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
-  padding: 30px;
+  background-color: #fff;
+  border-radius: 20px;
+  border: 1px solid #e5e7eb;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.04);
+  padding: 32px;
 }
 
 .cardTitle {
-  font-size: 20px;
-  font-weight: bold;
-  color: black;
-  margin-bottom: 25px;
+  font-size: 22px;
+  font-weight: 700;
+  color: #1a1a1a;
+  margin-bottom: 28px;
+  letter-spacing: -0.3px;
 }
 
 .infoGrid {
   display: grid;
   grid-template-columns: 1fr;
-  gap: 20px;
+  gap: 24px;
 }
 
 @media (min-width: 768px) {
@@ -215,382 +257,313 @@
 
 .fieldLabel {
   font-size: 14px;
-  color: black;
+  color: #374151;
   margin-bottom: 8px;
-  font-weight: 500;
+  font-weight: 600;
 }
 
 .fieldInput {
-  background-color: var(--secondary-color);
-  border: 1px solid var(--border-color);
-  border-radius: 8px;
-  padding: 12px 15px;
-  font-size: 16px;
-  color: black;
-  transition: border-color 0.3s, background-color 0.3s;
+  background-color: #f9fafb;
+  border: 2px solid #e5e7eb;
+  border-radius: 10px;
+  padding: 12px 16px;
+  font-size: 15px;
+  color: #1f2937;
+  transition: all 0.2s ease;
+  font-family: inherit;
+}
+
+.fieldInput:hover {
+  border-color: #d1d5db;
 }
 
 .fieldInput:focus {
   outline: none;
-  border-color: var(--primary-color);
-  box-shadow: 0 0 0 3px rgba(91, 101, 243, 0.2);
+  background-color: #fff;
+  border-color: #0400BA;
+  box-shadow: 0 0 0 4px rgba(4, 0, 186, 0.1);
 }
 
 .fieldInput:disabled {
-  background-color: #e9ecef;
+  background-color: #f3f4f6;
   cursor: not-allowed;
+  opacity: 0.7;
+  border-color: #e5e7eb;
 }
+
+/* ============================================
+     BOTÃO EDITAR
+     ============================================ */
 
 .editButtonContainer {
   display: flex;
   justify-content: flex-end;
-  margin-top: 30px;
+  margin-top: 32px;
+  padding-top: 24px;
+  border-top: 1px solid #f3f4f6;
 }
 
 .editProfileButton {
-  background-color: var(--primary-color);
+  background: linear-gradient(135deg, #0400BA 0%, #0300a0 100%);
   color: #fff;
   border: none;
-  padding: 12px 30px;
-  border-radius: 8px;
-  font-size: 16px;
+  padding: 13px 32px;
+  border-radius: 10px;
+  font-size: 15px;
   font-weight: 600;
   cursor: pointer;
-  transition: background-color 0.3s, transform 0.2s;
+  transition: all 0.2s ease;
+  box-shadow: 0 2px 8px rgba(4, 0, 186, 0.2);
 }
 
 .editProfileButton:hover {
-  background-color: #4a54c9;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 14px rgba(4, 0, 186, 0.3);
 }
 
-/* Modal Styling */
-.modalOverlay {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background-color: rgb(255, 255, 255);
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  z-index: 1000;
+.editProfileButton:active {
+  transform: translateY(0);
 }
 
-.modalContent {
-  background-color: var(--card-background);
-  padding: 30px;
-  border-radius: 12px;
-  width: 90%;
-  max-width: 500px;
-  position: relative;
-  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+.editProfileButton:disabled {
+  background: #9ca3af;
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
 }
 
-.modalTitle {
-  font-size: 24px;
-  font-weight: bold;
-  color: black;
-  margin: 0 0 20px;
-}
+/* ============================================
+     MENSAGEM DE ERRO
+     ============================================ */
 
-.modalClose {
-  position: absolute;
-  top: 15px;
-  right: 25px;
-  font-size: 28px;
-  font-weight: bold;
-  cursor: pointer;
-  color: black;
-}
-
-.formGroup {
+.errorMessage {
+  background-color: #fef2f2;
+  color: #dc2626;
+  padding: 14px 16px;
+  border-radius: 10px;
   margin-bottom: 20px;
-}
-
-.modalLabel {
+  border: 1px solid #fee2e2;
   font-size: 14px;
-  color: black;
-  margin-bottom: 8px;
-  font-weight: 500;
-  display: block;
+  line-height: 1.5;
 }
 
-.modalInput {
-  width: 100%;
-  padding: 12px 15px;
-  border: 1px solid var(--border-color);
-  border-radius: 8px;
-  background-color: var(--secondary-color);
-  color: black;
-  font-size: 16px;
-}
+/* ============================================
+     RESPONSIVIDADE - TABLETS
+     ============================================ */
 
-.modalInput:focus {
-  outline: none;
-  border-color: var(--primary-color);
-  box-shadow: 0 0 0 3px rgba(91, 101, 243, 0.2);
-}
-
-.modalActions {
-  display: flex;
-  justify-content: flex-end;
-  gap: 15px;
-  margin-top: 20px;
-}
-
-.cancelButton {
-  background-color: transparent;
-  color: black;
-  border: 1px solid var(--border-color);
-  padding: 12px 25px;
-  border-radius: 8px;
-  font-size: 16px;
-  cursor: pointer;
-  transition: background-color 0.3s;
-}
-
-.cancelButton:hover {
-  background-color: #f0f0f0;
-}
-
-.saveButton {
-  background-color: var(--primary-color);
-  color: #fff;
-  border: none;
-  padding: 12px 25px;
-  border-radius: 8px;
-  font-size: 16px;
-  font-weight: 600;
-  cursor: pointer;
-  transition: background-color 0.3s;
-}
-
-.saveButton:hover {
-  background-color: #4a54c9;
-}
-
-/* Responsividade para tablets */
 @media (max-width: 1024px) {
   .pageContainer {
-    padding: 25px;
+    padding: 28px 20px;
   }
-  
+
   .profileHeader {
-    padding: 18px 25px;
+    padding: 28px;
     flex-direction: column;
     align-items: center;
     text-align: center;
-    gap: 15px;
+    gap: 20px;
   }
-  
+
   .profileInfo {
     flex-direction: column;
     align-items: center;
-    gap: 15px;
+    gap: 16px;
   }
-  
+
   .profileActions {
     width: 100%;
     justify-content: center;
   }
 }
 
-/* Responsividade para dispositivos móveis */
+/* ============================================
+     RESPONSIVIDADE - MOBILE
+     ============================================ */
+
 @media (max-width: 768px) {
-  .pageContainer {
-    padding: 20px 15px;
+  .content {
+    padding: 0 16px;
   }
-  
+
+  .content_title {
+    font-size: 32px;
+    margin-top: 32px;
+    margin-bottom: 24px;
+  }
+
+  .pageContainer {
+    padding: 20px 16px;
+  }
+
   .profileHeader {
-    padding: 15px 20px;
+    padding: 24px;
     margin-bottom: 20px;
   }
-  
+
   .profilePhotoContainer {
-    width: 70px;
-    height: 70px;
+    width: 90px;
+    height: 90px;
   }
-  
+
+  .profilePhoto {
+    border-width: 3px;
+  }
+
   .uploadPhotoButton {
-    width: 25px;
-    height: 25px;
+    width: 32px;
+    height: 32px;
   }
-  
+
   .uploadPhotoButton svg {
-    width: 15px;
-    height: 15px;
+    width: 16px;
+    height: 16px;
   }
-  
+
   .profileName {
-    font-size: 20px;
+    font-size: 24px;
   }
-  
+
   .profileEmail {
-    font-size: 13px;
-  }
-  
-  .actionButton, .logoutButton {
-    padding: 8px 16px;
     font-size: 14px;
   }
-  
+
+  .actionButton,
+  .logoutButton {
+    padding: 11px 20px;
+    font-size: 14px;
+  }
+
   .infoCard {
-    padding: 25px 20px;
+    padding: 24px;
   }
-  
+
   .cardTitle {
-    font-size: 18px;
-    margin-bottom: 20px;
-  }
-  
-  .modalContent {
-    width: 95%;
-    padding: 25px 20px;
-  }
-  
-  .modalTitle {
     font-size: 20px;
+    margin-bottom: 24px;
+  }
+
+  .infoGrid {
+    gap: 20px;
+  }
+
+  .fieldInput {
+    font-size: 16px;
+    /* Evita zoom no iOS */
   }
 }
 
-/* Responsividade para telas pequenas */
+/* ============================================
+     RESPONSIVIDADE - TELAS PEQUENAS
+     ============================================ */
+
 @media (max-width: 480px) {
+  .content_title {
+    font-size: 28px;
+  }
+
   .pageContainer {
-    padding: 15px 10px;
+    padding: 16px 12px;
   }
-  
+
   .profileHeader {
-    padding: 12px 15px;
-    margin-bottom: 15px;
+    padding: 20px;
+    margin-bottom: 16px;
+    border-radius: 16px;
   }
-  
+
   .profilePhotoContainer {
-    width: 60px;
-    height: 60px;
+    width: 80px;
+    height: 80px;
   }
-  
+
   .uploadPhotoButton {
-    width: 22px;
-    height: 22px;
+    width: 30px;
+    height: 30px;
+    border-width: 2px;
   }
-  
+
   .uploadPhotoButton svg {
-    width: 12px;
-    height: 12px;
+    width: 14px;
+    height: 14px;
   }
-  
+
   .profileName {
-    font-size: 18px;
+    font-size: 22px;
   }
-  
+
   .profileEmail {
-    font-size: 12px;
+    font-size: 13px;
   }
-  
+
   .profileActions {
     flex-direction: column;
     width: 100%;
     gap: 10px;
   }
-  
-  .actionButton, .logoutButton {
+
+  .actionButton,
+  .logoutButton {
     width: 100%;
-    padding: 10px 16px;
-    font-size: 14px;
+    padding: 12px 20px;
   }
-  
+
   .infoCard {
-    padding: 20px 15px;
+    padding: 20px;
+    border-radius: 16px;
   }
-  
+
   .cardTitle {
-    font-size: 16px;
-    margin-bottom: 18px;
+    font-size: 18px;
+    margin-bottom: 20px;
   }
-  
+
   .infoGrid {
-    gap: 15px;
+    gap: 18px;
   }
-  
+
   .fieldInput {
-    padding: 10px 12px;
-    font-size: 14px;
+    padding: 11px 14px;
+    font-size: 16px;
   }
-  
+
+  .editButtonContainer {
+    margin-top: 28px;
+    padding-top: 20px;
+  }
+
   .editProfileButton {
     width: 100%;
-    padding: 12px 20px;
-    font-size: 14px;
-  }
-  
-  .modalContent {
-    width: 98%;
-    padding: 20px 15px;
-    margin: 10px;
-  }
-  
-  .modalTitle {
-    font-size: 18px;
-  }
-  
-  .modalInput {
-    padding: 10px 12px;
-    font-size: 14px;
-  }
-  
-  .modalActions {
-    flex-direction: column;
-    gap: 10px;
-  }
-  
-  .cancelButton, .saveButton {
-    width: 100%;
-    padding: 12px 20px;
-    font-size: 14px;
+    padding: 13px 24px;
   }
 }
 
-/* Responsividade para telas muito pequenas */
+/* ============================================
+     RESPONSIVIDADE - TELAS MUITO PEQUENAS
+     ============================================ */
+
 @media (max-width: 360px) {
   .pageContainer {
-    padding: 12px 8px;
+    padding: 12px 10px;
   }
-  
+
   .profileHeader {
-    padding: 10px 12px;
+    padding: 16px;
   }
-  
+
   .profilePhotoContainer {
-    width: 55px;
-    height: 55px;
+    width: 70px;
+    height: 70px;
   }
-  
+
   .profileName {
-    font-size: 16px;
+    font-size: 20px;
   }
-  
+
   .infoCard {
-    padding: 15px 12px;
+    padding: 16px;
   }
-  
+
   .cardTitle {
-    font-size: 15px;
+    font-size: 17px;
   }
-  
-  .modalContent {
-    padding: 15px 12px;
-    margin: 5px;
-  }
-}
-
-
-.errorMessage {
-    background-color: #fee;
-    color: #c33;
-    padding: 10px;
-    border-radius: 4px;
-    margin-bottom: 15px;
-    border: 1px solid #fcc;
-    font-size: 14px;
 }

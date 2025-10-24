@@ -163,7 +163,17 @@ export function Header({ isMenuOpen, onMenuToggle }: HeaderProps) {
                             }}
                         />
                     ) : (
-                        <IoPersonCircleOutline className={styles.person} size={35} />
+                        <div className={styles.avatarFallback}>
+                            <Image 
+                            src="/foto_padrao.png"
+                            alt="Foto de perfil" 
+                            width={36} 
+                            height={36} 
+                            className={styles.avatarImg}
+                            priority
+                            loading="eager" 
+                        />
+                        </div>
                     )}
                 </div>
 

@@ -276,6 +276,7 @@
     gap: 16px;
   }
 
+
   .filterBar {
     flex-direction: column;
     align-items: stretch;
@@ -312,6 +313,7 @@
   .chartTitle {
     font-size: 18px;
   }
+
 
   .historyTable {
     font-size: 12px;

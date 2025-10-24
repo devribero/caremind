@@ -107,7 +107,8 @@ export async function DELETE(request: Request, { params }: { params: { id: strin
   }
 
   try {
-    const compromissoId = params.id;
+    const { id } = params;
+    const compromissoId = id;
     const { data: existente, error: getErr } = await supabase
       .from('compromissos')
       .select('id, perfil_id')

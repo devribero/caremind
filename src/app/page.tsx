@@ -82,17 +82,18 @@ export default function Home() {
           <div className={styles.featuresGrid}>
             <div className={styles.featureCard}>
               <Image
-                src="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/icons/camera.svg"
+                src="/icons/camera.svg"
                 alt="Camera"
                 className={styles.featureIcon}
-                width={32}height={32}
+                width={32}
+                height={32}
               />
               <h3>Reconhecimento automático de medicamentos</h3>
               <p>Cadastre com uma foto: o sistema identifica o remédio e cria os lembretes sozinho.</p>
             </div>
             <div className={styles.featureCard}>
               <Image
-                src="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/icons/mic.svg"
+                src="/icons/mic.svg"
                 alt="Microfone"
                 className={styles.featureIcon}
                 width={32}
@@ -103,7 +104,7 @@ export default function Home() {
             </div>
             <div className={styles.featureCard}>
               <Image
-                src="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/icons/bell.svg"
+                src="/icons/bell.svg"
                 alt="Alerta"
                 className={styles.featureIcon}
                 width={32}
@@ -114,7 +115,7 @@ export default function Home() {
             </div>
             <div className={styles.featureCard}>
               <Image
-                src="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/icons/people.svg"
+                src="/icons/people.svg"
                 alt="Pessoas"
                 className={styles.featureIcon}
                 width={32}
@@ -125,7 +126,7 @@ export default function Home() {
             </div>
             <div className={styles.featureCard}>
               <Image
-                src="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/icons/alarm.svg"
+                src="/icons/alarm.svg"
                 alt="Alarme"
                 className={styles.featureIcon}
                 width={32}
@@ -136,7 +137,7 @@ export default function Home() {
             </div>
             <div className={styles.featureCard}>
               <Image
-                src="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/icons/shield.svg"
+                src="/icons/shield.svg"
                 alt="Escudo"
                 className={styles.featureIcon}
                 width={32}

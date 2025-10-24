@@ -1,0 +1,292 @@
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap');
+
+.main {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  background-color: transparent;
+  font-family: "Poppins", sans-serif; /* alterado para Poppins */
+}
+
+.content {
+  flex: 1;
+  max-width: 1200px;
+  width: 100%;
+  margin: 0 auto;
+  padding: 0 20px;
+}
+
+.content_title {
+  font-size: 40px;
+  font-weight: 700;
+  color: #0400BA;
+  text-align: left;
+  margin-top: 40px;
+  margin-bottom: 40px;
+  position: relative;
+}
+
+.content_title::after {
+  content: "";
+  position: absolute;
+  bottom: -8px;
+  left: 0;
+  width: 100px;
+  height: 4px;
+  background-color: #0400BA;
+  border-radius: 2px;
+}
+
+.content_info {
+  background-color: white;
+  border-radius: 20px;
+  margin-top: 2rem;
+  padding: 1.5rem;
+}
+
+/* NOVO: Classe que "empurra" o header */
+.headerPushed {
+  /* IMPORTANTE: O valor aqui DEVE SER IGUAL à largura do seu sidebar! */
+  margin-left: 280px;
+  width: calc(100% - 280px); /* Ajusta a largura para preencher o espaço restante */
+}
+
+/* ======================================================= */
+/* Estilos do conteúdo principal (que você já tem) */
+
+.mainContent {
+  transition: margin-left 0.3s ease-in-out;
+  padding: 24px;
+  width: 100%;
+}
+
+.contentPushed {
+  margin-left: 280px; 
+}
+
+/* Responsive design */
+@media (max-width: 768px) {
+  .header {
+    padding: 15px;
+    border-radius: 0 0 20px 20px;
+  }
+  
+  .headerContent {
+    flex-direction: column;
+    gap: 15px;
+    text-align: center;
+  }
+  
+  .title {
+    font-size: 2rem;
+  }
+  
+  .welcomeText {
+    font-size: 1rem;
+  }
+  
+  .content {
+    padding: 0 15px;
+  }
+}
+
+@media (max-width: 480px) {
+  .header {
+    padding: 12px;
+    border-radius: 0 0 15px 15px;
+  }
+  
+  .title {
+    font-size: 1.75rem;
+  }
+  
+  .logoutButton {
+    padding: 10px 20px;
+    font-size: 14px;
+  }
+}
+
+.gridContainer {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 1.5rem;
+  width: 100%;
+}
+
+.gridContainer > div {
+  width: 100%;
+  overflow: visible;
+}
+
+.gridContainer > div > div:first-child {
+  flex-wrap: wrap !important;
+  gap: 8px !important;
+}
+
+.gridContainer > div h3 {
+  word-break: break-word;
+  overflow-wrap: anywhere;
+}
+
+.gridContainer > div > div:nth-child(2) {
+  word-break: break-word;
+  overflow-wrap: anywhere;
+}
+
+.gridContainer > div > div:first-child > div:last-child {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.gridContainer > div > div:first-child > div:last-child > button {
+  white-space: nowrap;
+}
+
+@media (max-width: 1024px) {
+  .gridContainer {
+    grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  }
+}
+
+@media (max-width: 768px) {
+  .gridContainer {
+    grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  }
+
+  .gridContainer > div > div:first-child > div:last-child {
+    width: 100%;
+    justify-content: flex-start !important;
+  }
+}
+
+@media (max-width: 480px) {
+  .gridContainer {
+    grid-template-columns: 1fr;
+  }
+
+  .gridContainer > div > div:first-child > div:last-child > button {
+    flex: 1 1 100%;
+    width: 100%;
+  }
+}
+
+.loadingText,
+.errorText,
+.emptyState {
+  width: 100%;
+  text-align: center;
+  padding: 2rem;
+  background-color: #f9fafb; /* Um cinza bem claro */
+  border-radius: 8px;
+  margin-top: 1rem;
+}
+
+.errorText {
+  color: #dc2626; /* Um tom de vermelho */
+  background-color: #fef2f2; /* Um vermelho bem claro */
+  border: 1px solid #fecaca;
+}
+
+.emptyState p {
+  color: #6b7280; /* Cinza */
+  font-size: 1.1rem;
+}
+
+/* Adicione estas classes ao seu arquivo page.module.css */
+
+.pageHeader {
+  margin-bottom: 1.5rem;
+}
+
+/* Remova os estilos .addCardButton, .addCardContent e coloque estes no lugar */
+
+.actionsContainer {
+  margin-bottom: 1.5rem; /* Espaço entre o botão e a lista de cards */
+  display: flex;
+  gap: 1rem;
+}
+
+.addButton {
+  background-color: #0400BA; /* Azul do CareMind */
+  color: white;
+  font-size: 0.95rem;
+  border: none;
+  border-radius: 9px; /* Totalmente arredondado */
+  padding: 0.6rem 1.25rem;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem; /* Espaço entre o ícone e o texto */
+  cursor: pointer;
+  transition: background-color 0.2s ease, transform 0.1s ease;
+  box-shadow: 0 4px 14px 0 rgb(0 118 255 / 39%);
+}
+
+.addButton:hover {
+  background-color: #1d4ed8; /* Azul um pouco mais escuro */
+}
+
+.addButton:active {
+    transform: scale(0.98); /* Efeito de clique */
+}
+
+.addIcon {
+  font-size: 1.4rem;
+  font-weight: 300; /* Deixa o '+' mais fino */
+  line-height: 1;
+}
+
+/* Estilo para o estado vazio, se quiser ajustar */
+.emptyState p {
+    text-align: center;
+    color: #6b7280;
+    margin: 0;
+}
+
+/* Estilos para o modal de foto */
+.photoModalContent {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  padding: 1rem 0;
+}
+
+.photoDescription {
+  text-align: center;
+  color: #6b7280;
+  margin-bottom: 1rem;
+  font-size: 1rem;
+}
+
+.photoOption {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 1rem;
+  border: 2px dashed #d1d5db;
+  border-radius: 12px;
+  background-color: #f9fafb;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.photoOption:hover {
+  border-color: #0400BA;
+  background-color: #eef2ff;
+}
+
+.photoOptionLabel {
+  font-weight: 600;
+  color: #0400BA;
+  margin-bottom: 0.5rem;
+  cursor: pointer;
+}
+
+.photoInput {
+  display: none;
+}
+
+.photoIcon {
+  font-size: 2rem;
+  margin-bottom: 0.5rem;
+}

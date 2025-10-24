@@ -150,7 +150,7 @@
 }
 
 .card:hover {
-  transform: translateY(-8px) scale(1.02);
+  transform: translateY(-2px) scale(1.02);
   box-shadow: 
     0 20px 60px rgba(0, 0, 0, 0.12),
     0 8px 20px rgba(0, 0, 0, 0.08);
@@ -386,9 +386,9 @@
 }
 
 .list_item:hover {
-  transform: translateY(-4px);
-  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.08);
-  border-color: rgba(4, 0, 186, 0.2);
+  transform: translateY(-4px) scale(1.02);
+  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.12);
+  border-color: rgba(4, 0, 186, 0.3);
 }
 
 .list_item.completed {
@@ -678,22 +678,27 @@
 
 /* Estilo para o botão de status (concluir/desfazer) */
 .statusButton {
-  background: #f0fdf4;
-  color: #16a34a;
-  border: 1px solid #bbf7d0;
   border-radius: 8px;
+  margin-top: 15px;
   width: 36px;
   height: 36px;
   display: flex;
   align-items: center;
   justify-content: center;
   cursor: pointer;
-  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   padding: 0;
   flex-shrink: 0;
   box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
   position: relative;
   overflow: hidden;
+  opacity: 0;
+  transform: translateY(10px);
+}
+
+.list_item:hover .statusButton {
+  opacity: 1;
+  transform: translateY(0);
 }
 
 .statusButton::after {
@@ -715,9 +720,6 @@
 }
 
 .statusButton:hover {
-  background: #dcfce7;
-  color: #15803d;
-  border-color: #86efac;
   transform: translateY(-1px);
   box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
 }

@@ -43,7 +43,7 @@ export default function SidebarDashboard({ collapsed }: { collapsed: boolean }) 
         <NavItem href="/relatorios" label="Relatórios" icon={IoBarChartOutline} />
         <NavItem href="/rotinas" label="Rotinas" icon={IoClipboardOutline} />
         <NavItem href="/compromissos" label="Compromissos" icon={IoCalendarOutline} />
-        <NavItem href="/remedios" label="Medicamentos" icon={IoMedkitOutline} />
+        <NavItem href="/medicamentos" label="Medicamentos" icon={IoMedkitOutline} />
         {user?.user_metadata?.account_type === 'familiar' && (
           <NavItem href="/familia" label="Família" icon={IoPeopleOutline} />
         )}
@@ -61,10 +61,20 @@ export default function SidebarDashboard({ collapsed }: { collapsed: boolean }) 
                 height={36} 
                 className={styles.avatarImg}
                 priority
-                loading="eager"
+                loading="eager" 
               />
             ) : (
-              <div className={styles.avatarFallback}>👤</div>
+              <div className={styles.avatarFallback}>
+                <Image 
+                src="/foto_padrao.png"
+                alt="Foto de perfil" 
+                width={36} 
+                height={36} 
+                className={styles.avatarImg}
+                priority
+                loading="eager" 
+              />
+              </div>
             )}
           </div>
           {!collapsed && (

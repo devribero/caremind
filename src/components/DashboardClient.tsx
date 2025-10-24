@@ -749,7 +749,7 @@ export default function DashboardClient({ readOnly = false, idosoId }: { readOnl
         <div className={styles.dashboard_client}>
 
             <div className={styles.cards_container}>
-                <div className={styles.card}>
+                <div className={styles.card}> 
                     <h3>Medicamentos Hoje</h3>
                     <p><strong></strong> {medsHojeConcluidos} de {medsHoje.length} concluídos</p>
                     <div className={styles.progress_bar}>

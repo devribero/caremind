@@ -1,179 +1,296 @@
-/* Fundo escuro atrás do modal */
+/* ============================================
+   MODAL.MODULE.CSS - Estilos para Modais
+   ============================================ */
+
+/* Fundo escuro semi-transparente (overlay) */
 .modalOverlay {
   position: fixed;
   top: 0;
   left: 0;
   width: 100%;
   height: 100%;
-  background-color: rgba(0, 0, 0, 0.5);
+  background-color: rgba(0, 0, 0, 0.65);
   display: flex;
   justify-content: center;
   align-items: center;
   z-index: 1000;
+  backdrop-filter: blur(4px);
+  animation: fadeIn 0.2s ease;
 }
 
 /* Container do modal */
 .modalContent {
   background-color: #fff;
-  padding: 30px;
-  border-radius: 12px;
+  padding: 32px;
+  border-radius: 16px;
   width: 90%;
   max-width: 480px;
   position: relative;
-  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.25);
-  animation: fadeIn 0.3s ease;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.25);
+  animation: slideUp 0.3s ease;
+  max-height: 90vh;
+  overflow-y: auto;
 }
 
-/* Título */
+/* Título do modal */
 .modalTitle {
-  font-size: 22px;
-  font-weight: 600;
-  margin-bottom: 20px;
-  color: #222;
+  font-size: 24px;
+  font-weight: 700;
+  margin-bottom: 24px;
+  color: #1a1a1a;
+  padding-right: 30px;
 }
 
 /* Botão fechar (X) */
 .modalClose {
   position: absolute;
-  top: 15px;
-  right: 20px;
-  font-size: 28px;
-  font-weight: bold;
+  top: 20px;
+  right: 24px;
+  font-size: 24px;
+  font-weight: 400;
   cursor: pointer;
-  color: #444;
-  transition: color 0.2s;
+  color: #999;
+  transition: all 0.2s;
+  line-height: 1;
+  user-select: none;
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 8px;
 }
 
 .modalClose:hover {
-  color: #000;
+  color: #333;
+  background-color: #f5f5f5;
 }
 
 /* Mensagem de erro */
 .errorMessage {
-  background-color: #fee;
-  color: #c33;
-  padding: 10px 12px;
-  border-radius: 6px;
-  margin-bottom: 15px;
-  border: 1px solid #fcc;
+  background-color: #fef2f2;
+  color: #dc2626;
+  padding: 14px 16px;
+  border-radius: 10px;
+  margin-bottom: 20px;
+  border: 1px solid #fee2e2;
   font-size: 14px;
+  line-height: 1.5;
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
 }
 
-/* Inputs e labels */
+/* Grupos de formulário */
 .formGroup {
-  margin-bottom: 18px;
+  margin-bottom: 20px;
 }
 
+/* Labels dos inputs */
 .modalLabel {
   font-size: 14px;
-  font-weight: 500;
-  margin-bottom: 6px;
+  font-weight: 600;
+  margin-bottom: 8px;
   display: block;
-  color: #333;
+  color: #374151;
 }
 
+/* Inputs do modal */
 .modalInput {
   width: 100%;
-  padding: 12px 14px;
-  border: 1px solid #ccc;
-  border-radius: 8px;
+  padding: 12px 16px;
+  border: 2px solid #e5e7eb;
+  border-radius: 10px;
   font-size: 15px;
-  color: #222;
-  background-color: #fafafa;
+  color: #1f2937;
+  background-color: #fff;
   transition: all 0.2s ease;
+  box-sizing: border-box;
+  font-family: inherit;
+}
+
+.modalInput:hover {
+  border-color: #d1d5db;
 }
 
 .modalInput:focus {
-  border-color: #4a54c9;
+  border-color: #0400BA;
   background-color: #fff;
   outline: none;
-  box-shadow: 0 0 0 3px rgba(91, 101, 243, 0.2);
+  box-shadow: 0 0 0 4px rgba(4, 0, 186, 0.1);
 }
 
 .modalInput:disabled {
-  background-color: #eee;
+  background-color: #f9fafb;
   cursor: not-allowed;
+  opacity: 0.6;
+  border-color: #e5e7eb;
 }
 
-/* Botões */
+/* Container de ações (botões) */
 .modalActions {
   display: flex;
   justify-content: flex-end;
   gap: 12px;
-  margin-top: 20px;
+  margin-top: 28px;
+  padding-top: 24px;
+  border-top: 1px solid #f3f4f6;
 }
 
+/* Botão cancelar */
 .cancelButton {
-  background-color: transparent;
-  border: 1px solid #ccc;
-  color: #333;
-  padding: 10px 20px;
-  border-radius: 8px;
+  background-color: #fff;
+  border: 2px solid #e5e7eb;
+  color: #6b7280;
+  padding: 11px 24px;
+  border-radius: 10px;
   font-size: 15px;
   cursor: pointer;
-  transition: background-color 0.2s;
+  transition: all 0.2s;
+  font-weight: 600;
 }
 
 .cancelButton:hover {
-  background-color: #f3f3f3;
+  background-color: #f9fafb;
+  border-color: #d1d5db;
+  color: #374151;
 }
 
-.saveButton {
-  background-color: #4a54c9;
-  border: none;
-  color: #fff;
-  padding: 10px 22px;
-  border-radius: 8px;
-  font-size: 15px;
-  font-weight: 600;
-  cursor: pointer;
-  transition: background-color 0.2s;
-}
-
-.saveButton:hover {
-  background-color: #3a44b0;
-}
-
-.saveButton:disabled {
-  background-color: #999;
+.cancelButton:disabled {
+  opacity: 0.5;
   cursor: not-allowed;
 }
 
-/* Responsividade */
+/* Botão salvar */
+.saveButton {
+  background-color: #0400BA;
+  border: none;
+  color: #fff;
+  padding: 12px 28px;
+  border-radius: 10px;
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+  box-shadow: 0 2px 8px rgba(4, 0, 186, 0.2);
+}
+
+.saveButton:hover {
+  background-color: #0300a0;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(4, 0, 186, 0.3);
+}
+
+.saveButton:active {
+  transform: translateY(0);
+  box-shadow: 0 2px 6px rgba(4, 0, 186, 0.25);
+}
+
+.saveButton:disabled {
+  background-color: #9ca3af;
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
+}
+
+/* ============================================
+   RESPONSIVIDADE
+   ============================================ */
+
 @media (max-width: 480px) {
   .modalContent {
     width: 95%;
-    padding: 20px;
+    padding: 24px 20px;
+    max-height: 85vh;
+    border-radius: 12px;
   }
 
   .modalTitle {
-    font-size: 18px;
+    font-size: 20px;
+    margin-bottom: 20px;
+  }
+
+  .modalClose {
+    top: 16px;
+    right: 16px;
+    font-size: 22px;
+    width: 28px;
+    height: 28px;
   }
 
   .modalInput {
-    font-size: 14px;
-    padding: 10px 12px;
+    font-size: 16px; /* Evita zoom no iOS */
+    padding: 11px 14px;
   }
 
   .modalActions {
-    flex-direction: column;
+    flex-direction: column-reverse;
     gap: 10px;
+    margin-top: 24px;
+    padding-top: 20px;
   }
 
   .cancelButton,
   .saveButton {
     width: 100%;
+    padding: 13px;
   }
 }
 
-/* Animação de entrada */
+/* ============================================
+   ANIMAÇÕES
+   ============================================ */
+
 @keyframes fadeIn {
   from {
     opacity: 0;
-    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
   }
   to {
     opacity: 1;
     transform: translateY(0);
+  }
+}
+
+/* Spinner para loading */
+.spinner {
+  animation: rotate 1s linear infinite;
+  width: 20px;
+  height: 20px;
+}
+
+.spinner .path {
+  stroke: currentColor;
+  stroke-linecap: round;
+  animation: dash 1.5s ease-in-out infinite;
+}
+
+@keyframes rotate {
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes dash {
+  0% {
+    stroke-dasharray: 1, 150;
+    stroke-dashoffset: 0;
+  }
+  50% {
+    stroke-dasharray: 90, 150;
+    stroke-dashoffset: -35;
+  }
+  100% {
+    stroke-dasharray: 90, 150;
+    stroke-dashoffset: -124;
   }
 }

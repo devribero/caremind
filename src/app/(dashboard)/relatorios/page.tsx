@@ -1,7 +1,3 @@
-
-
-
-
 "use client";
 
 import { useState, useEffect, useMemo } from 'react';
@@ -171,6 +167,7 @@ export default function Relatorios() {
       perdidos
     };
   };
+
 
   const stats7Dias = useMemo(() => calcularEstatisticas(7), [eventos]);
   const stats30Dias = useMemo(() => calcularEstatisticas(30), [eventos]);

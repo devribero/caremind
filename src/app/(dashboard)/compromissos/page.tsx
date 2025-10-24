@@ -7,7 +7,7 @@ import { useCrudOperations } from '@/hooks/useCrudOperations';
 import { Modal } from '@/components/Modal';
 import { AddEditCompromissoForm, type Compromisso } from '@/components/modals/AddEditCompromissoModal';
 import { toast } from '@/components/Toast';
-import styles from '../rotinas/page.module.css';
+import styles from './page.module.css';
 
 export default function CompromissosPage() {
   const { user } = useAuth();
@@ -105,7 +105,7 @@ export default function CompromissosPage() {
       return (
         <div className={styles.emptyState}>
           <p>Nenhum compromisso encontrado.</p>
-          <p>Clique em "Adicionar Compromisso" acima para começar.</p>
+          <p>Clique em "Adicionar Compromisso", acima para começar.</p>
         </div>
       );
     }
