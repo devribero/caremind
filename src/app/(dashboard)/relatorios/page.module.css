@@ -162,6 +162,66 @@
   margin-bottom: 30px;
 }
 
+/* Filters */
+.filterBar {
+  display: flex;
+  align-items: flex-end;
+  gap: 16px;
+  background: #ffffff;
+  padding: 16px;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  margin-bottom: 24px;
+}
+
+.filterGroup {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.filterGroup label {
+  font-size: 14px;
+  color: #333;
+  font-weight: 600;
+}
+
+.filterGroup input[type="date"],
+.filterGroup select {
+  height: 38px;
+  padding: 0 10px;
+  border: 1px solid #e0e0e0;
+  border-radius: 8px;
+  background: #fff;
+  color: #333;
+}
+
+.filterActions {
+  display: flex;
+  gap: 10px;
+  margin-left: auto;
+}
+
+.filterActions button {
+  height: 38px;
+  padding: 0 14px;
+  border-radius: 8px;
+  border: 1px solid transparent;
+  cursor: pointer;
+  font-weight: 600;
+}
+
+.filterActions button:first-child {
+  background: #0400BA;
+  color: #fff;
+}
+
+.filterActions button:last-child {
+  background: #fff;
+  color: #0400BA;
+  border-color: #0400BA;
+}
+
 /* History Table */
 .historyTable {
   width: 100%;
@@ -214,6 +274,17 @@
   .reportGrid {
     grid-template-columns: 1fr;
     gap: 16px;
+  }
+
+  .filterBar {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 12px;
+  }
+
+  .filterActions {
+    margin-left: 0;
+    justify-content: flex-start;
   }
 
   .reportCard,

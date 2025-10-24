@@ -17,7 +17,7 @@ interface HeaderProps {
 
 export function Header({ isMenuOpen, onMenuToggle }: HeaderProps) {
     const { user, signOut } = useAuth();
-    const { photoUrl, refresh } = useProfile();
+    const { photoUrl, refresh, profile } = useProfile();
     const { listaIdososVinculados, idosoSelecionadoId, setIdosoSelecionado } = useIdoso();
     const router = useRouter();
     const pathname = usePathname();
@@ -27,6 +27,9 @@ export function Header({ isMenuOpen, onMenuToggle }: HeaderProps) {
     const [elderOpen, setElderOpen] = useState(false);
     const elderRef = useRef<HTMLDivElement>(null);
     const lastErrorUrlRef = useRef<string | null>(null);
+
+    const accountTypeRaw = (profile?.tipo || user?.user_metadata?.account_type) as string | undefined;
+    const isFamiliar = (accountTypeRaw || '').toString().toLowerCase() === 'familiar';
 
     // Atualiza a foto quando o usuário muda ou quando volta para a página
     useEffect(() => {
@@ -99,7 +102,7 @@ export function Header({ isMenuOpen, onMenuToggle }: HeaderProps) {
                     <span></span>
                     <span></span>
                 </button>
-                {(user?.user_metadata?.account_type === 'familiar' && listaIdososVinculados.length > 0) && (
+                {(isFamiliar && listaIdososVinculados.length > 0) && (
                   <div className={styles.elderWrap} ref={elderRef}>
                     <span className={styles.elderLabel}>Idoso:</span>
                     <div className={styles.elderSelectWrapper}>

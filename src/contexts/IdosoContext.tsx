@@ -36,7 +36,7 @@ export function IdosoProvider({ children }: { children: ReactNode }) {
       return;
     }
     // Apenas contas familiares listam idosos vinculados
-    const isFamiliar = (profile?.tipo || user.user_metadata?.account_type) === 'familiar';
+    const isFamiliar = ((profile?.tipo || user.user_metadata?.account_type)?.toString().toLowerCase() === 'familiar');
     if (!isFamiliar) {
       setLista([]);
       setSelecionado(null);
