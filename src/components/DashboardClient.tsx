@@ -736,9 +736,11 @@ export default function DashboardClient({ readOnly = false, idosoId }: { readOnl
                             style={{ width: `${medsHoje.length ? (medsHojeConcluidos / medsHoje.length) * 100 : 0}%` }}
                         />
                     </div>
-                    <button className={styles.add_btn} onClick={() => openModal('medicamento')} disabled={readOnly}>
-                        <FiPlus size={16} /> Adicionar Medicamento
-                    </button>
+                    {!readOnly && (
+                        <button className={styles.add_btn} onClick={() => openModal('medicamento')}>
+                            <FiPlus size={16} /> Adicionar Medicamento
+                        </button>
+                    )}
                 </div>
                 
                 <div className={styles.card}>
@@ -750,9 +752,11 @@ export default function DashboardClient({ readOnly = false, idosoId }: { readOnl
                             style={{ width: `${rotinasHoje.length ? (rotinasHojeConcluidas / rotinasHoje.length) * 100 : 0}%` }}
                         />
                     </div>
-                    <button className={styles.add_btn} onClick={() => openModal('rotina')} disabled={readOnly}>
-                        <FiPlus size={16} /> Adicionar Rotina
-                    </button>
+                    {!readOnly && (
+                        <button className={styles.add_btn} onClick={() => openModal('rotina')}>
+                            <FiPlus size={16} /> Adicionar Rotina
+                        </button>
+                    )}
                 </div>
 
                 <div className={styles.card} onClick={() => alertsRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' })} style={{ cursor: 'pointer' }}>

@@ -110,15 +110,16 @@ export async function POST(request: NextRequest) {
 
     const idosoUser = newUser.user;
 
-    // Cria o perfil do idoso em 'perfis' para garantir exibição do nome na listagem
+    // Cria/atualiza o perfil do idoso em 'perfis' para garantir exibição do nome na listagem
+    // Usa upsert para evitar erro de chave duplicada caso já exista registro (ex.: triggers/seed)
     const { error: perfilInsertError } = await supabaseAdmin
       .from('perfis')
-      .insert({
+      .upsert({
         id: idosoUser.id,
         user_id: idosoUser.id,
         nome: nome,
         tipo: 'idoso',
-      });
+      }, { onConflict: 'id' });
 
     if (perfilInsertError) {
       try {

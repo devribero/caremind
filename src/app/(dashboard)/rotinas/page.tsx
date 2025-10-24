@@ -12,6 +12,7 @@ import RotinaCard from '@/components/RotinasCard';
 import { useCrudOperations } from '@/hooks/useCrudOperations';
 import { createClient } from '@/lib/supabase/client';
 import { useIdoso } from '@/contexts/IdosoContext';
+import { useAuthRequest } from '@/hooks/useAuthRequest';
 
 // Estilos
 import styles from './page.module.css';
@@ -39,6 +40,10 @@ export default function Rotinas() {
     open: () => setPhotoModal(prev => ({ ...prev, isOpen: true })),
     close: () => setPhotoModal(prev => ({ ...prev, isOpen: false })),
   });
+
+  const { makeRequest } = useAuthRequest();
+  const [eventosDoDia, setEventosDoDia] = useState<Array<{ id: string; tipo_evento: string; evento_id: string; status: string }>>([]);
+  const [marking, setMarking] = useState<Record<string, boolean>>({});
 
   // Usar o hook CRUD personalizado
   const {
@@ -74,6 +79,31 @@ export default function Rotinas() {
     }
   }, [isFamiliar, targetUserId, fetchItems, setItems]);
 
+  // Ouve botões do Header
+  React.useEffect(() => {
+    const onAddRotina = () => addModal.open();
+    window.addEventListener('caremind:add-rotina', onAddRotina as EventListener);
+    return () => {
+      window.removeEventListener('caremind:add-rotina', onAddRotina as EventListener);
+    };
+  }, [addModal]);
+
+  React.useEffect(() => {
+    const loadAgenda = async () => {
+      if (!user) return;
+      if (isFamiliar && !targetUserId) return;
+      const today = new Date().toISOString().slice(0, 10);
+      const params = targetUserId ? `?idoso_id=${encodeURIComponent(targetUserId)}&data=${encodeURIComponent(today)}` : `?data=${encodeURIComponent(today)}`;
+      try {
+        const data = await makeRequest<Array<any>>(`/api/agenda${params}`, { method: 'GET' });
+        setEventosDoDia((data || []).map(e => ({ id: e.id, tipo_evento: e.tipo_evento, evento_id: e.evento_id, status: e.status })));
+      } catch (e) {
+        // ignora falha de agenda
+      }
+    };
+    loadAgenda();
+  }, [user, isFamiliar, targetUserId, makeRequest]);
+
   // Handlers para formulários
   const handleSaveRotina = async (
     titulo: string,
@@ -105,6 +135,28 @@ export default function Rotinas() {
       descricao: descricao ?? undefined,
       frequencia,
     });
+  };
+
+  const hasPendingForRotina = (rotinaId: string) =>
+    eventosDoDia.some(e => e.tipo_evento === 'rotina' && e.evento_id === rotinaId && e.status === 'pendente');
+
+  const handleMarkRotinaDone = async (rotinaId: string) => {
+    const ev = eventosDoDia.find(e => e.tipo_evento === 'rotina' && e.evento_id === rotinaId && e.status === 'pendente');
+    if (!ev) return;
+    setMarking(prev => ({ ...prev, [rotinaId]: true }));
+    const prevEventos = eventosDoDia;
+    setEventosDoDia(prev => prev.map(e => e.id === ev.id ? { ...e, status: 'confirmado' } : e));
+    try {
+      await makeRequest(`/api/historico_eventos/${ev.id}`, {
+        method: 'PATCH',
+        body: JSON.stringify({ status: 'confirmado' }),
+      });
+    } catch (err) {
+      setEventosDoDia(prevEventos);
+      alert(err instanceof Error ? err.message : 'Falha ao atualizar evento');
+    } finally {
+      setMarking(prev => ({ ...prev, [rotinaId]: false }));
+    }
   };
 
   const handlePhotoUpload = async (file: File) => {
@@ -180,6 +232,9 @@ export default function Rotinas() {
               rotina={rotina}
               onEdit={editItem}
               onDelete={deleteItem}
+              hasPendingToday={hasPendingForRotina(rotina.id)}
+              isMarking={!!marking[rotina.id]}
+              onMarkAsDone={() => handleMarkRotinaDone(rotina.id)}
             />
           ))}
         </div>
@@ -209,7 +264,6 @@ export default function Rotinas() {
               </button>
             </div>
           )}
-
           {renderContent()}
         </section>
       </div>

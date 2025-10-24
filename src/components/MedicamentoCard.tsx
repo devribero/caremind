@@ -65,15 +65,29 @@ interface MedicamentoCardProps {
   medicamento: Medicamento;
   onEdit?: (medicamento: Medicamento) => void;
   onDelete?: (id: string) => void;
+  onMarkAsDone?: () => void;
+  hasPendingToday?: boolean;
+  isMarking?: boolean;
 }
 
-const MedicamentoCard: React.FC<MedicamentoCardProps> = ({ medicamento, onEdit, onDelete }) => {
+const MedicamentoCard: React.FC<MedicamentoCardProps> = ({ medicamento, onEdit, onDelete, onMarkAsDone, hasPendingToday, isMarking }) => {
   const frequenciaTexto = formatarFrequencia(medicamento.frequencia);
   return (
     <div className={styles.card}>
       <div className={styles.card_header}>
         <h3 className={styles.card_title}>{medicamento.nome}</h3>
         <div className={styles.card_actions}>
+          {hasPendingToday && onMarkAsDone && (
+            <button
+              type="button"
+              className={`${styles.actionButton} ${styles.editButton}`}
+              onClick={onMarkAsDone}
+              disabled={isMarking}
+              aria-label="Marcar como concluído hoje"
+            >
+              {isMarking ? 'Concluindo...' : 'Concluir hoje'}
+            </button>
+          )}
           {onEdit && (
             <button
               type="button"

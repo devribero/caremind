@@ -63,9 +63,12 @@ interface RotinaCardProps {
   rotina: Rotina;
   onEdit?: (rotina: Rotina) => void;
   onDelete?: (id: string) => void;
+  onMarkAsDone?: () => void;
+  hasPendingToday?: boolean;
+  isMarking?: boolean;
 }
 
-const RotinaCard: React.FC<RotinaCardProps> = ({ rotina, onEdit, onDelete }) => {
+const RotinaCard: React.FC<RotinaCardProps> = ({ rotina, onEdit, onDelete, onMarkAsDone, hasPendingToday, isMarking }) => {
   const frequenciaTexto = formatarFrequencia(rotina.frequencia);
   return (
     <div className={styles.card}>
@@ -73,6 +76,17 @@ const RotinaCard: React.FC<RotinaCardProps> = ({ rotina, onEdit, onDelete }) => 
       <div className={styles.card_header}>
         <h3 className={styles.card_title}>{rotina.titulo}</h3>
         <div className={styles.card_actions}>
+          {hasPendingToday && onMarkAsDone && (
+            <button
+              type="button"
+              className={`${styles.actionButton} ${styles.editButton}`}
+              onClick={onMarkAsDone}
+              disabled={isMarking}
+              aria-label="Marcar como concluído hoje"
+            >
+              {isMarking ? 'Concluindo...' : 'Concluir hoje'}
+            </button>
+          )}
           {onEdit && (
             <button
               type="button"

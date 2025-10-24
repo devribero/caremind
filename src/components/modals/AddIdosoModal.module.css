@@ -1,0 +1,86 @@
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.error {
+  color: #b91c1c;
+  background: #fee2e2;
+  padding: 8px 10px;
+  border-radius: 10px;
+  font-size: 14px;
+  border: 1px solid #fecaca;
+}
+
+.label {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.labelText {
+  font-weight: 700;
+  font-size: 14px;
+  color: #0f172a;
+}
+
+.input {
+  padding: 12px 14px;
+  border-radius: 10px;
+  border: 1px solid #e2e8f0;
+  background: #ffffff;
+  color: #0f172a;
+  outline: none;
+  transition: all 0.2s ease;
+}
+
+.input::placeholder {
+  color: #94a3b8;
+}
+
+.input:focus {
+  border-color: #0400b9;
+  box-shadow: 0 0 0 3px rgba(4, 0, 185, 0.15);
+}
+
+.actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 6px;
+}
+
+.btn {
+  padding: 10px 14px;
+  border-radius: 10px;
+  font-weight: 700;
+  font-size: 14px;
+  border: 1px solid transparent;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.btn:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+}
+
+.cancel {
+  background: #f8fafc;
+  color: #0f172a;
+  border-color: #e2e8f0;
+}
+
+.cancel:hover:not(:disabled) {
+  background: #f1f5f9;
+}
+
+.primary {
+  background: #0400b9;
+  color: #ffffff;
+}
+
+.primary:hover:not(:disabled) {
+  background: #2d2dff;
+}

@@ -4,6 +4,7 @@ import { useState, FormEvent } from "react";
 import { Modal } from "@/components/Modal";
 import { useAuthRequest } from "@/hooks/useAuthRequest";
 import { toast } from "@/components/Toast";
+import styles from "./AddIdosoModal.module.css";
 
 interface AddIdosoModalProps {
   isOpen: boolean;
@@ -62,36 +63,38 @@ export default function AddIdosoModal({ isOpen, onClose, onSuccess }: AddIdosoMo
 
   return (
     <Modal isOpen={isOpen} onClose={onClose} title="Adicionar e Conectar Perfil de Idoso">
-      <form onSubmit={handleSubmit} style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+      <form onSubmit={handleSubmit} className={styles.form} autoComplete="off">
         {error && (
-          <div style={{ color: "#b91c1c", background: "#fee2e2", padding: "8px 10px", borderRadius: 6, fontSize: 14 }}>
-            {error}
-          </div>
+          <div className={styles.error}>{error}</div>
         )}
-        <label style={{ display: "flex", flexDirection: "column", gap: 6 }}>
-          <span style={{ fontWeight: 600, fontSize: 14 }}>Nome Completo do Idoso</span>
+        <label className={styles.label}>
+          <span className={styles.labelText}>Nome Completo do Idoso</span>
           <input
             type="text"
             value={nome}
             onChange={(e) => setNome(e.target.value)}
             placeholder="Ex.: Maria da Silva"
             required
-            style={{ padding: "10px 12px", borderRadius: 8, border: "1px solid #e5e7eb" }}
+            className={styles.input}
           />
         </label>
-        <label style={{ display: "flex", flexDirection: "column", gap: 6 }}>
-          <span style={{ fontWeight: 600, fontSize: 14 }}>E-mail do Idoso</span>
+        <label className={styles.label}>
+          <span className={styles.labelText}>E-mail do Idoso</span>
           <input
             type="email"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             placeholder="idoso@exemplo.com"
             required
-            style={{ padding: "10px 12px", borderRadius: 8, border: "1px solid #e5e7eb" }}
+            autoComplete="off"
+            autoCapitalize="off"
+            spellCheck={false}
+            name="idoso_email"
+            className={styles.input}
           />
         </label>
-        <label style={{ display: "flex", flexDirection: "column", gap: 6 }}>
-          <span style={{ fontWeight: 600, fontSize: 14 }}>Senha Inicial</span>
+        <label className={styles.label}>
+          <span className={styles.labelText}>Senha Inicial</span>
           <input
             type="password"
             value={senha}
@@ -99,22 +102,24 @@ export default function AddIdosoModal({ isOpen, onClose, onSuccess }: AddIdosoMo
             minLength={6}
             placeholder="Mínimo 6 caracteres"
             required
-            style={{ padding: "10px 12px", borderRadius: 8, border: "1px solid #e5e7eb" }}
+            autoComplete="new-password"
+            name="idoso_new_password"
+            className={styles.input}
           />
         </label>
-        <div style={{ display: "flex", justifyContent: "flex-end", gap: 10, marginTop: 6 }}>
+        <div className={styles.actions}>
           <button
             type="button"
             onClick={onClose}
             disabled={isLoading}
-            style={{ padding: "10px 14px", borderRadius: 8, background: "#e5e7eb", color: "#111827", fontWeight: 600 }}
+            className={`${styles.btn} ${styles.cancel}`}
           >
             Cancelar
           </button>
           <button
             type="submit"
             disabled={isLoading}
-            style={{ padding: "10px 14px", borderRadius: 8, background: "#111827", color: "white", fontWeight: 600 }}
+            className={`${styles.btn} ${styles.primary}`}
           >
             {isLoading ? "Adicionando..." : "Adicionar e Conectar"}
           </button>

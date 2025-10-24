@@ -3,6 +3,7 @@
 import { useEffect, useState, forwardRef, useImperativeHandle } from 'react';
 import Image from 'next/image';
 import { useAuthRequest } from '@/hooks/useAuthRequest';
+import { toast } from '@/components/Toast';
 
 interface IdosoItem {
   id_idoso: string;
@@ -44,13 +45,18 @@ function GerenciarIdososVinculadosImpl(_props: {}, ref: React.Ref<GerenciarIdoso
   }, []);
 
   const handleDesvincular = async (id_idoso: string) => {
-    const ok = confirm('Tem certeza que deseja desvincular este idoso?');
-    if (!ok) return;
+    const input = prompt('Para confirmar a desvinculação, digite: desvincular');
+    if (input === null) return; // cancelado
+    if ((input || '').trim().toLowerCase() !== 'desvincular') {
+      toast.error('Confirmação incorreta. Digite exatamente: desvincular');
+      return;
+    }
     try {
       await makeRequest(`/api/vinculos/${id_idoso}`, { method: 'DELETE' });
       setIdosos(prev => prev.filter(i => i.id_idoso !== id_idoso));
+      toast.success('Idoso desvinculado com sucesso.');
     } catch (err) {
-      // opcional: mostrar toast de erro
+      toast.error('Não foi possível desvincular. Tente novamente.');
     }
   };
 
@@ -62,15 +68,15 @@ function GerenciarIdososVinculadosImpl(_props: {}, ref: React.Ref<GerenciarIdoso
       ) : idosos.length === 0 ? (
         <div>Nenhum idoso vinculado ainda.</div>
       ) : (
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(240px, 1fr))', gap: 12 }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(260px, 1fr))', gap: 12 }}>
           {idosos.map((i) => (
-            <div key={i.id_idoso} style={{ border: '1px solid #e5e7eb', borderRadius: 8, padding: 12, display: 'flex', gap: 12, alignItems: 'center' }}>
-              <Image src={i.foto_usuario || '/foto_padrao.png'} alt={i.nome || 'Idoso'} width={44} height={44} style={{ borderRadius: '9999px', objectFit: 'cover' }} />
-              <div style={{ flex: 1 }}>
-                <div style={{ fontWeight: 700, color: '#111827' }}>{i.nome || 'Sem nome'}</div>
-                <div style={{ fontSize: 12, color: '#6b7280' }}>{i.id_idoso}</div>
+            <div key={i.id_idoso} style={{ border: '1px solid #e5e7eb', borderRadius: 12, padding: 12, display: 'flex', gap: 12, alignItems: 'center', minWidth: 0 }}>
+              <Image src={i.foto_usuario || '/foto_padrao.png'} alt={i.nome || 'Idoso'} width={44} height={44} style={{ borderRadius: '9999px', objectFit: 'cover', flexShrink: 0 }} />
+              <div style={{ flex: 1, minWidth: 0 }}>
+                <div style={{ fontWeight: 700, color: '#111827', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{i.nome || 'Sem nome'}</div>
+                <div style={{ fontSize: 12, color: '#6b7280', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{i.id_idoso}</div>
               </div>
-              <button onClick={() => handleDesvincular(i.id_idoso)} style={{ background: '#ef4444', color: 'white', padding: '8px 10px', borderRadius: 8, fontWeight: 600 }}>
+              <button onClick={() => handleDesvincular(i.id_idoso)} style={{ background: '#ef4444', color: 'white', padding: '8px 12px', borderRadius: 10, fontWeight: 700, flexShrink: 0 }}>
                 Desvincular
               </button>
             </div>

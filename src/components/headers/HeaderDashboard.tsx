@@ -1,6 +1,7 @@
 'use client';
 import { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
+import { usePathname } from 'next/navigation';
 import { useAuth } from '@/contexts/AuthContext';
 import { useProfile } from '@/contexts/ProfileContext';
 import { useIdoso } from '@/contexts/IdosoContext';
@@ -19,9 +20,12 @@ export function Header({ isMenuOpen, onMenuToggle }: HeaderProps) {
     const { photoUrl, refresh } = useProfile();
     const { listaIdososVinculados, idosoSelecionadoId, setIdosoSelecionado } = useIdoso();
     const router = useRouter();
+    const pathname = usePathname();
 
     const [isProfileOpen, setIsProfileOpen] = useState(false);
     const profileMenuRef = useRef<HTMLDivElement>(null);
+    const [elderOpen, setElderOpen] = useState(false);
+    const elderRef = useRef<HTMLDivElement>(null);
     const lastErrorUrlRef = useRef<string | null>(null);
 
     // Atualiza a foto quando o usuário muda ou quando volta para a página
@@ -71,6 +75,9 @@ export function Header({ isMenuOpen, onMenuToggle }: HeaderProps) {
             if (profileMenuRef.current && !profileMenuRef.current.contains(event.target as Node)) {
                 setIsProfileOpen(false);
             }
+            if (elderRef.current && !elderRef.current.contains(event.target as Node)) {
+                setElderOpen(false);
+            }
         };
         document.addEventListener('mousedown', handleClickOutside);
         return () => {
@@ -93,25 +100,45 @@ export function Header({ isMenuOpen, onMenuToggle }: HeaderProps) {
                     <span></span>
                 </button>
                 {(user?.user_metadata?.account_type === 'familiar' && listaIdososVinculados.length > 0) && (
-                  <div style={{ marginLeft: 12 }}>
-                    <select
-                      value={idosoSelecionadoId ?? ''}
-                      onChange={(e) => setIdosoSelecionado(e.target.value || null)}
-                      style={{
-                        padding: '6px 10px',
-                        borderRadius: 8,
-                        border: '1px solid #ddd',
-                        background: 'white',
-                        minWidth: 200,
-                      }}
-                    >
-                      {listaIdososVinculados.map((i) => (
-                        <option key={i.id} value={i.id}>{i.nome}</option>
-                      ))}
-                    </select>
+                  <div className={styles.elderWrap} ref={elderRef}>
+                    <span className={styles.elderLabel}>Idoso:</span>
+                    <div className={styles.elderSelectWrapper}>
+                      <button
+                        type="button"
+                        className={styles.elderButton}
+                        onClick={() => setElderOpen((v) => !v)}
+                        aria-haspopup="listbox"
+                        aria-expanded={elderOpen}
+                        aria-label="Selecionar idoso"
+                      >
+                        {listaIdososVinculados.find(i => i.id === idosoSelecionadoId)?.nome || 'Selecionar'}
+                      </button>
+                      <span className={styles.elderCaret} />
+                      {elderOpen && (
+                        <div className={styles.elderMenu} role="listbox" aria-label="Lista de idosos">
+                          {listaIdososVinculados.length === 0 ? (
+                            <div className={styles.elderEmpty}>Nenhum idoso</div>
+                          ) : (
+                            listaIdososVinculados.map((i) => (
+                              <div
+                                key={i.id}
+                                role="option"
+                                aria-selected={i.id === idosoSelecionadoId}
+                                className={styles.elderOption}
+                                onClick={() => { setIdosoSelecionado(i.id); setElderOpen(false); }}
+                              >
+                                {i.nome}
+                              </div>
+                            ))
+                          )}
+                        </div>
+                      )}
+                    </div>
                   </div>
                 )}
             </div>
+
+            {/* Ações contextuais removidas do Header. As ações principais ficam acima do conteúdo da página. */}
 
             <div className={styles.profileContainer} ref={profileMenuRef}>
                 <div className={styles.actions} onClick={() => setIsProfileOpen(!isProfileOpen)}>
