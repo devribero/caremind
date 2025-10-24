@@ -183,6 +183,10 @@ export default function Remedios() {
       toast.error('Usuário não autenticado');
       return;
     }
+    if (isFamiliar && !targetUserId) {
+      toast.error('Selecione um idoso no menu superior antes de adicionar por foto.');
+      return;
+    }
 
     setPhotoError(null);
     setPhotoStatus('Enviando foto...');
@@ -218,7 +222,8 @@ export default function Remedios() {
       const { data: inserted, error: insertError } = await supabase
         .from('ocr_gerenciamento')
         .insert({
-          user_id: user.id,
+          // Quando familiar, garantir que use o id do idoso selecionado
+          user_id: targetUserId || user.id,
           image_url: imageUrl,
           status: 'PENDENTE',
         })
@@ -240,8 +245,9 @@ export default function Remedios() {
       if (inserted?.id) {
         const ocrId = inserted.id as string;
         const start = Date.now();
-        const timeoutMs = 2 * 60 * 1000; // 2 minutos
-        const interval = 3000; // 3s
+        const timeoutMs = 10 * 60 * 1000; // 10 minutos
+        const interval = 5000; // 5s
+        let notifiedStatusError = false;
         const poll = async () => {
           try {
             const { data, error } = await supabase
@@ -250,17 +256,27 @@ export default function Remedios() {
               .eq('id', ocrId)
               .single();
             if (error) {
-              // Falha em consultar status
-              toast.error('Falha ao consultar status do processamento.');
+              // Falha temporária ao consultar status: avisar uma vez e continuar tentando
+              if (!notifiedStatusError) {
+                toast.info('Aguardando processamento da receita...');
+                notifiedStatusError = true;
+              }
+              if (Date.now() - start < timeoutMs) {
+                setTimeout(poll, interval);
+              } else {
+                toast.error('Tempo esgotado aguardando processamento da receita.');
+              }
               return;
             }
             const status = (data as any)?.status;
-            if (status === 'SUCESSO') {
-              toast.success('Receita processada com sucesso. Atualizando medicamentos...');
+            // Sucesso: PROCESSADO ou PROCESSADO_PARCIALMENTE
+            if (status === 'PROCESSADO' || status === 'PROCESSADO_PARCIALMENTE') {
+              toast.success('Receita processada. Atualizando medicamentos...');
               await fetchItems();
               return; // fim do polling
             }
-            if (status === 'FALHA') {
+            // Erros: ERRO_PROCESSAMENTO (ex.: não encontrou medicamentos) ou ERRO_DATABASE
+            if (status === 'ERRO_PROCESSAMENTO' || status === 'ERRO_DATABASE') {
               const errMsg = (data as any)?.error_message || 'Não foi possível encontrar medicamento na receita.';
               toast.error(`Falha no processamento: ${errMsg}`);
               return; // fim do polling
@@ -272,7 +288,13 @@ export default function Remedios() {
             setTimeout(poll, interval);
           } catch (e) {
             const errMsg = e instanceof Error ? e.message : 'Erro inesperado no polling';
-            toast.error(errMsg);
+            // Erro inesperado: continuar tentando até timeout
+            toast.info('Aguardando processamento da receita...');
+            if (Date.now() - start < timeoutMs) {
+              setTimeout(poll, interval);
+            } else {
+              toast.error(`Tempo esgotado: ${errMsg}`);
+            }
           }
         };
         setTimeout(poll, interval);

@@ -13,6 +13,7 @@ import { useCrudOperations } from '@/hooks/useCrudOperations';
 import { createClient } from '@/lib/supabase/client';
 import { useIdoso } from '@/contexts/IdosoContext';
 import { useAuthRequest } from '@/hooks/useAuthRequest';
+import { toast } from '@/components/Toast';
 
 // Estilos
 import styles from './page.module.css';
@@ -111,7 +112,7 @@ export default function Rotinas() {
     frequencia: any
   ) => {
     if (isFamiliar && !targetUserId) {
-      alert('Selecione um idoso no menu superior antes de adicionar rotinas.');
+      toast.error('Selecione um idoso no menu superior antes de adicionar rotinas.');
       return;
     }
     await createItem({
@@ -153,7 +154,7 @@ export default function Rotinas() {
       });
     } catch (err) {
       setEventosDoDia(prevEventos);
-      alert(err instanceof Error ? err.message : 'Falha ao atualizar evento');
+      toast.error(err instanceof Error ? err.message : 'Falha ao atualizar evento');
     } finally {
       setMarking(prev => ({ ...prev, [rotinaId]: false }));
     }
@@ -161,7 +162,7 @@ export default function Rotinas() {
 
   const handlePhotoUpload = async (file: File) => {
     if (!user) {
-      alert('Usuário não autenticado');
+      toast.error('Usuário não autenticado');
       return;
     }
 
@@ -174,7 +175,7 @@ export default function Rotinas() {
     const { data, error } = await supabase.storage.from('receitas-medicas').upload(fileName, file);
 
     if (error) {
-      alert(`Erro ao fazer upload: ${error.message}`);
+      toast.error(`Erro ao fazer upload: ${error.message}`);
       console.error('Upload error:', error);
       return;
     }
@@ -183,7 +184,7 @@ export default function Rotinas() {
 
     const { data: publicUrlData } = supabase.storage.from('receitas-medicas').getPublicUrl(fileName);
     if (!publicUrlData) {
-      alert('Erro ao obter URL pública');
+      toast.error('Erro ao obter URL pública');
       return;
     }
     const imageUrl = publicUrlData.publicUrl;
@@ -192,19 +193,19 @@ export default function Rotinas() {
     console.log('User ID:', user.id);
 
     const { error: insertError } = await supabase.from('ocr_gerenciamento').insert({
-      user_id: user.id,
+      user_id: targetUserId || user.id,
       image_url: imageUrl,
       status: 'PENDENTE',
     });
 
     if (insertError) {
-      alert(`Erro ao salvar no banco: ${insertError.message}`);
+      toast.error(`Erro ao salvar no banco: ${insertError.message}`);
       console.error('Insert error:', insertError);
       return;
     }
 
     console.log('Insert sucesso');
-    alert('Foto enviada com sucesso!');
+    toast.success('Foto enviada! Processando receita...');
     photoModal.close();
   };
 
