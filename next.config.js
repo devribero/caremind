@@ -51,6 +51,80 @@ const nextConfig = {
     typescript: {
         ignoreBuildErrors: true,
     },
+
+    // Security headers
+    async headers() {
+        // Build allowlist for image sources (no wildcards)
+        const imgSrcHosts = [];
+        if (Array.isArray(dynamicRemotePatterns)) {
+            for (const p of dynamicRemotePatterns) {
+                if (p && p.hostname) {
+                    imgSrcHosts.push(`https://${p.hostname}`);
+                }
+            }
+        }
+
+        // Content Security Policy
+        // Avoid * and unsafe-eval/inline. Allow inline style attributes using CSP3 style-src-attr.
+        const cspParts = [
+            "default-src 'self'",
+            "base-uri 'self'",
+            // Next.js uses blob/data for some assets; restrict images explicitly
+            `img-src 'self' data: blob: ${imgSrcHosts.join(' ')}`.trim(),
+            // No inline/eval scripts; Next production doesn't require them
+            "script-src 'self'",
+            "script-src-attr 'none'",
+            // Disallow plugin/object embedding
+            "object-src 'none'",
+            // Allow only self for styles and allow inline attributes without enabling full unsafe-inline
+            "style-src 'self'",
+            "style-src-attr 'unsafe-inline'",
+            // Fonts and media
+            "font-src 'self' data:",
+            "media-src 'self'",
+            // Connect (APIs, websockets). Allow only self and Supabase host (https and wss)
+            (() => {
+                const hosts = [];
+                if (Array.isArray(dynamicRemotePatterns)) {
+                    for (const p of dynamicRemotePatterns) {
+                        if (p && p.hostname) {
+                            hosts.push(`https://${p.hostname}`);
+                            hosts.push(`wss://${p.hostname}`);
+                        }
+                    }
+                }
+                return ["connect-src 'self'", ...hosts].join(' ');
+            })(),
+            // Workers (for Next Image Optimization etc.)
+            "worker-src 'self' blob:",
+            // Frame ancestors to prevent clickjacking
+            "frame-ancestors 'self'",
+            // Disallow mixed content
+            "upgrade-insecure-requests",
+        ];
+
+        const csp = cspParts.filter(Boolean).join('; ');
+
+        return [
+            {
+                source: '/(.*)',
+                headers: [
+                    { key: 'Content-Security-Policy', value: csp },
+                    { key: 'Referrer-Policy', value: 'strict-origin-when-cross-origin' },
+                    { key: 'X-Content-Type-Options', value: 'nosniff' },
+                    { key: 'X-Frame-Options', value: 'SAMEORIGIN' },
+                    { key: 'X-XSS-Protection', value: '0' },
+                    { key: 'Permissions-Policy', value: 'camera=(), microphone=(), geolocation=()' },
+                    { key: 'Cross-Origin-Opener-Policy', value: 'same-origin' },
+                    { key: 'Cross-Origin-Embedder-Policy', value: 'require-corp' },
+                    // Enable HSTS for 6 months; ensure HTTPS before enabling preload
+                    { key: 'Strict-Transport-Security', value: 'max-age=15552000; includeSubDomains' },
+                    // Prevent old IE from MIME-sniffing (already covered by nosniff)
+                    // { key: 'X-Download-Options', value: 'noopen' },
+                ],
+            },
+        ];
+    },
 };
 
 module.exports = nextConfig;
