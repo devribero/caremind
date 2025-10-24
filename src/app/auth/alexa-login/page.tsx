@@ -23,25 +23,33 @@ function AlexaLoginForm() {
       return;
     }
   
-    const { data, error: signInError } = await signIn(email, password);
+    try {
+      const { data, error } = await signIn(email, password);
   
-    if (signInError) {
-      setError('Email ou senha incorretos');
-      return;
+      if (error || !data) {
+        setError('Email ou senha incorretos');
+        return;
+      }
+  
+      const redirectRes = await fetch('/api/alexa-code', {
+        method: 'POST', // obrigatório
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email })
+      });           
+  
+      const { code } = await redirectRes.json();
+  
+      if (!redirect_uri) {
+        setError('redirect_uri não encontrado na query string');
+        return;
+      }
+  
+      window.location.href = `${redirect_uri}?code=${code}`;
+    } catch (err) {
+      console.error(err);
+      setError('Erro inesperado');
     }
-  
-    // Gera code JWT temporário
-    const res = await fetch('/api/alexa-code', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ email })
-    });
-    const { code } = await res.json();
-  
-    // Redireciona Alexa (URL externa)
-    window.location.href = `${redirect_uri}?code=${code}`;
   };
-  
 
   return (
     <form onSubmit={handleSubmit}>
