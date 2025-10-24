@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useCallback, useEffect } from 'react';
+import { useState, useCallback, useEffect, useMemo } from 'react';
 import { useAuthRequest } from './useAuthRequest';
 import { useModalState } from './useModalState';
 import { useOptimisticUpdates } from './useOptimisticUpdates';
@@ -32,6 +32,9 @@ export function useCrudOperations<T extends { id: string | number }>(
   const addModal = useModalState<T>();
   const editModal = useModalState<T>();
   const { executeOptimisticUpdate } = useOptimisticUpdates<T>();
+
+  // Ensure item-level operations hit the resource route without query params
+  const baseEndpoint = useMemo(() => config.endpoint.split('?')[0], [config.endpoint]);
 
   // Fetch items
   const fetchItems = useCallback(async () => {
@@ -81,7 +84,7 @@ export function useCrudOperations<T extends { id: string | number }>(
         itemId,
         optimisticUpdate,
         async () => {
-          return makeRequest<T>(`${config.endpoint}/${itemId}`, {
+          return makeRequest<T>(`${baseEndpoint}/${itemId}`, {
             method: 'PATCH',
             body: JSON.stringify(data),
           });
@@ -115,7 +118,7 @@ export function useCrudOperations<T extends { id: string | number }>(
         itemId,
         () => ({ id: '' } as T),
         async () => {
-          return makeRequest(`${config.endpoint}/${itemId}`, {
+          return makeRequest(`${baseEndpoint}/${itemId}`, {
             method: 'DELETE',
           });
         },

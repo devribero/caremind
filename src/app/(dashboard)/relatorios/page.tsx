@@ -47,6 +47,10 @@ export default function Relatorios() {
   const { idosoSelecionadoId, listaIdososVinculados } = useIdoso();
   const [loading, setLoading] = useState(true);
   const [eventos, setEventos] = useState<EventoHistorico[]>([]);
+  const [dataInicio, setDataInicio] = useState<string>('');
+  const [dataFim, setDataFim] = useState<string>('');
+  const [tipoSelecionado, setTipoSelecionado] = useState<'Todos' | 'Medicamento' | 'Rotina'>('Todos');
+  const [applyTick, setApplyTick] = useState<number>(0);
   const isFamiliar = user?.user_metadata?.account_type === 'familiar';
   const selectedElderName = useMemo(() => (
     listaIdososVinculados.find((i) => i.id === idosoSelecionadoId)?.nome || null
@@ -83,6 +87,20 @@ export default function Relatorios() {
   };
 
   useEffect(() => {
+    const hoje = new Date();
+    const seteDiasAtras = new Date();
+    seteDiasAtras.setDate(hoje.getDate() - 7);
+    const toYMD = (d: Date) => {
+      const y = d.getFullYear();
+      const m = String(d.getMonth() + 1).padStart(2, '0');
+      const day = String(d.getDate()).padStart(2, '0');
+      return `${y}-${m}-${day}`;
+    };
+    setDataInicio((prev) => prev || toYMD(seteDiasAtras));
+    setDataFim((prev) => prev || toYMD(hoje));
+  }, []);
+
+  useEffect(() => {
     const fetchEventos = async () => {
       if (!user) {
         router.push('/auth');
@@ -97,7 +115,12 @@ export default function Relatorios() {
         setLoading(true);
         const { data: sessionData } = await supabase.auth.getSession();
         const token = sessionData.session?.access_token;
-        const qs = idosoSelecionadoId ? `?idoso_id=${encodeURIComponent(idosoSelecionadoId)}` : '';
+        const params = new URLSearchParams();
+        if (idosoSelecionadoId) params.set('idoso_id', idosoSelecionadoId);
+        if (dataInicio) params.set('dataInicio', dataInicio);
+        if (dataFim) params.set('dataFim', dataFim);
+        if (tipoSelecionado && tipoSelecionado !== 'Todos') params.set('tipoEvento', tipoSelecionado);
+        const qs = params.toString() ? `?${params.toString()}` : '';
         const res = await fetch(`/api/relatorios/historico${qs}`, {
           headers: token ? { Authorization: `Bearer ${token}` } : undefined,
           cache: 'no-store',
@@ -123,7 +146,7 @@ export default function Relatorios() {
     };
 
     fetchEventos();
-  }, [user, router, supabase, idosoSelecionadoId, isFamiliar]);
+  }, [user, router, supabase, idosoSelecionadoId, isFamiliar, dataInicio, dataFim, tipoSelecionado, applyTick]);
 
   // Função para calcular estatísticas por período
   const calcularEstatisticas = (dias: number) => {
@@ -246,6 +269,42 @@ export default function Relatorios() {
             <p>Selecione um idoso no menu superior para visualizar os relatórios.</p>
           </div>
         )}
+        <div className={styles.filterBar}>
+          <div className={styles.filterGroup}>
+            <label>Data Início</label>
+            <input type="date" value={dataInicio} onChange={(e) => setDataInicio(e.target.value)} />
+          </div>
+          <div className={styles.filterGroup}>
+            <label>Data Fim</label>
+            <input type="date" value={dataFim} onChange={(e) => setDataFim(e.target.value)} />
+          </div>
+          <div className={styles.filterGroup}>
+            <label>Tipo de Evento</label>
+            <select value={tipoSelecionado} onChange={(e) => setTipoSelecionado(e.target.value as any)}>
+              <option value="Todos">Todos</option>
+              <option value="Medicamento">Medicamentos</option>
+              <option value="Rotina">Rotinas</option>
+            </select>
+          </div>
+          <div className={styles.filterActions}>
+            <button onClick={() => setApplyTick((n) => n + 1)}>Aplicar Filtros</button>
+            <button onClick={() => {
+              const hoje = new Date();
+              const seteDiasAtras = new Date();
+              seteDiasAtras.setDate(hoje.getDate() - 7);
+              const toYMD = (d: Date) => {
+                const y = d.getFullYear();
+                const m = String(d.getMonth() + 1).padStart(2, '0');
+                const day = String(d.getDate()).padStart(2, '0');
+                return `${y}-${m}-${day}`;
+              };
+              setDataInicio(toYMD(seteDiasAtras));
+              setDataFim(toYMD(hoje));
+              setTipoSelecionado('Todos');
+              setApplyTick((n) => n + 1);
+            }}>Limpar Filtros</button>
+          </div>
+        </div>
         
         <div className={styles.reportGrid}>
           <div className={styles.reportCard}>

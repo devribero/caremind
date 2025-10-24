@@ -21,6 +21,9 @@ export async function GET(request: Request) {
   try {
     const url = new URL(request.url);
     const idosoId = url.searchParams.get('idoso_id');
+    const dataInicio = url.searchParams.get('dataInicio');
+    const dataFim = url.searchParams.get('dataFim');
+    const tipoEvento = url.searchParams.get('tipoEvento');
 
     let user = null as null | { id: string };
     if (token) {
@@ -57,11 +60,26 @@ export async function GET(request: Request) {
       effectiveUserId = idosoId;
     }
 
-    const { data: historico, error: historicoError } = await supabase
+    let query = supabase
       .from('historico_eventos')
       .select('*')
       .eq('perfil_id', effectiveUserId)
       .order('horario_programado', { ascending: false });
+
+    if (dataInicio) {
+      // Considerar início do dia em UTC
+      query = query.gte('horario_programado', `${dataInicio}T00:00:00Z`);
+    }
+    if (dataFim) {
+      // Considerar fim do dia em UTC
+      query = query.lte('horario_programado', `${dataFim}T23:59:59Z`);
+    }
+    if (tipoEvento && tipoEvento !== 'Todos') {
+      // Espera-se valores conforme armazenados: 'Medicamento' | 'Rotina'
+      query = query.eq('tipo_evento', tipoEvento);
+    }
+
+    const { data: historico, error: historicoError } = await query;
 
     if (historicoError) throw historicoError;
 
@@ -74,3 +92,4 @@ export async function GET(request: Request) {
     );
   }
 }
+

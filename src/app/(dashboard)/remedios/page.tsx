@@ -288,19 +288,20 @@ export default function Remedios() {
           </h1>
         </div>
 
+        {!loading && !error && !(isFamiliar && !targetUserId) && (
+          <div className={styles.actionsContainer}>
+            <button className={styles.addButton} onClick={() => addModal.open()}>
+              <span className={styles.addIcon}>+</span>
+              Adicionar Medicamento
+            </button>
+            <button className={styles.addButton} onClick={() => photoModal.open()}>
+              <span className={styles.addIcon}>+</span>
+              Adicionar por Foto
+            </button>
+          </div>
+        )}
+
         <section className={styles.content_info}>
-          {!loading && !error && !(isFamiliar && !targetUserId) && (
-            <div className={styles.actionsContainer}>
-              <button className={styles.addButton} onClick={() => addModal.open()}>
-                <span className={styles.addIcon}>+</span>
-                Adicionar Medicamento
-              </button>
-              <button className={styles.addButton} onClick={() => photoModal.open()}>
-                <span className={styles.addIcon}>+</span>
-                Adicionar por Foto
-              </button>
-            </div>
-          )}
           {renderContent()}
         </section>
       </div>

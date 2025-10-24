@@ -255,15 +255,15 @@ export default function Rotinas() {
           <h1 className={styles.content_title}>{selectedElderName ? `Rotinas de ${selectedElderName}` : 'Rotinas'}</h1>
         </div>
 
+        {!loading && !error && !(isFamiliar && !targetUserId) && (
+          <div className={styles.actionsContainer}>
+            <button className={styles.addButton} onClick={() => addModal.open()}>
+              <span className={styles.addIcon}>+</span>
+              Adicionar Rotina
+            </button>
+          </div>
+        )}
         <section className={styles.content_info}>
-          {!loading && !error && !(isFamiliar && !targetUserId) && (
-            <div className={styles.actionsContainer}>
-              <button className={styles.addButton} onClick={() => addModal.open()}>
-                <span className={styles.addIcon}>+</span>
-                Adicionar Rotina
-              </button>
-            </div>
-          )}
           {renderContent()}
         </section>
       </div>

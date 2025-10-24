@@ -98,6 +98,26 @@
   margin-bottom: 40px;
 }
 
+/* Seções principais no dashboard (alertas e agenda) */
+.alerts_section {
+  margin-top: 12px;
+  margin-bottom: 20px; /* espaço abaixo dos alertas antes da agenda */
+}
+
+.agenda_section {
+  margin-top: 24px; /* espaço adicional acima da agenda */
+}
+
+.section_title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0 0 12px 0;
+  font-size: 1rem;
+  font-weight: 800;
+  color: #0f172a;
+}
+
 .card {
   background: linear-gradient(145deg, #ffffff 0%, #f8fafc 100%);
   border-radius: 20px;
