@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useMemo, useState } from 'react';
+import styles from '@/components/forms/AddForm.module.css';
 
 export type Compromisso = {
   id?: string;
@@ -53,87 +54,89 @@ export function AddEditCompromissoForm({
   };
 
   return (
-    <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-      <h3 style={{ margin: '4px 0 8px' }}>{title}</h3>
-
-      <label>
-        <span>Título *</span>
+    <form onSubmit={handleSubmit} className={styles.form}>
+      <div className={styles.formGroup}>
+        <label htmlFor="titulo">Título *</label>
         <input
+          id="titulo"
           name="titulo"
           type="text"
           required
           value={form.titulo}
           onChange={handleChange}
           placeholder="Ex.: Consulta com cardiologista"
-          style={{ width: '100%', padding: 8, borderRadius: 8, border: '1px solid #e5e7eb' }}
         />
-      </label>
+      </div>
 
-      <label>
-        <span>Descrição</span>
-        <textarea
+      <div className={styles.formGroup}>
+        <label htmlFor="descricao">Descrição (opcional)</label>
+        <input
+          id="descricao"
           name="descricao"
+          type="text"
           value={form.descricao ?? ''}
           onChange={handleChange}
           placeholder="Observações, orientações, documentos..."
-          rows={3}
-          style={{ width: '100%', padding: 8, borderRadius: 8, border: '1px solid #e5e7eb' }}
         />
-      </label>
+      </div>
 
-      <label>
-        <span>Data e Hora</span>
+      <div className={styles.formGroup}>
+        <label htmlFor="data_hora">Data e Hora</label>
         <input
+          id="data_hora"
           name="data_hora"
           type="datetime-local"
           value={form.data_hora ? form.data_hora : ''}
           onChange={handleChange}
-          style={{ width: '100%', padding: 8, borderRadius: 8, border: '1px solid #e5e7eb' }}
         />
-      </label>
+      </div>
 
-      <label>
-        <span>Local</span>
+      <div className={styles.formGroup}>
+        <label htmlFor="local">Local</label>
         <input
+          id="local"
           name="local"
           type="text"
           value={form.local ?? ''}
           onChange={handleChange}
           placeholder="Ex.: Hospital X, Clínica Y"
-          style={{ width: '100%', padding: 8, borderRadius: 8, border: '1px solid #e5e7eb' }}
         />
-      </label>
+      </div>
 
-      <label>
-        <span>Tipo</span>
+      <div className={styles.formGroup}>
+        <label htmlFor="tipo">Tipo</label>
         <select
+          id="tipo"
+          className={styles.select}
           name="tipo"
           value={form.tipo || 'consulta'}
           onChange={handleChange}
-          style={{ width: '100%', padding: 8, borderRadius: 8, border: '1px solid #e5e7eb' }}
         >
           <option value="consulta">Consulta</option>
           <option value="exame">Exame</option>
           <option value="procedimento">Procedimento</option>
           <option value="outros">Outros</option>
         </select>
-      </label>
+      </div>
 
-      <label>
-        <span>Lembrete (minutos antes)</span>
+      <div className={styles.formGroup}>
+        <label htmlFor="lembrete_minutos">Lembrete (minutos antes)</label>
         <input
+          id="lembrete_minutos"
           name="lembrete_minutos"
           type="number"
           min={0}
           value={form.lembrete_minutos ?? 60}
           onChange={handleChange}
-          style={{ width: '100%', padding: 8, borderRadius: 8, border: '1px solid #e5e7eb' }}
         />
-      </label>
+        <div className={styles.hint}>Padrão: 60 minutos</div>
+      </div>
 
-      <div style={{ display: 'flex', gap: 8, justifyContent: 'flex-end', marginTop: 8 }}>
-        <button type="button" onClick={onCancel} style={{ padding: '8px 12px', borderRadius: 8, border: '1px solid #e5e7eb', background: 'white' }}>Cancelar</button>
-        <button type="submit" disabled={submitting} style={{ padding: '8px 12px', borderRadius: 8, border: 'none', background: '#0400BA', color: 'white' }}>
+      <div className={styles.buttonGroup}>
+        <button type="button" onClick={onCancel} className={styles.cancelButton}>
+          Cancelar
+        </button>
+        <button type="submit" disabled={submitting} className={styles.saveButton}>
           {submitting ? 'Salvando...' : 'Salvar'}
         </button>
       </div>
