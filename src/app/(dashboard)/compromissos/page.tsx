@@ -21,6 +21,27 @@ export default function CompromissosPage() {
 
   type CompItem = Required<Compromisso> & { id: string };
 
+  const endpoint = targetUserId ? `/api/compromissos?user_id=${encodeURIComponent(targetUserId)}` : '/api/compromissos';
+
+  const onSuccess = React.useMemo(() => ({
+    create: () => toast.success('Compromisso criado com sucesso'),
+    update: () => toast.success('Compromisso atualizado com sucesso'),
+    delete: () => toast.success('Compromisso excluído com sucesso'),
+  }), []);
+
+  const onError = React.useMemo(() => ({
+    read: (m: string) => toast.error(m),
+    create: (m: string) => toast.error(m),
+    update: (m: string) => toast.error(m),
+    delete: (m: string) => toast.error(m),
+  }), []);
+
+  const crudConfig = React.useMemo(() => ({
+    endpoint,
+    onSuccess,
+    onError,
+  }), [endpoint, onSuccess, onError]);
+
   const {
     items,
     loading,
@@ -33,32 +54,15 @@ export default function CompromissosPage() {
     editItem,
     fetchItems,
     setItems,
-  } = useCrudOperations<CompItem>({
-    endpoint: targetUserId ? `/api/compromissos?user_id=${encodeURIComponent(targetUserId)}` : '/api/compromissos',
-    onSuccess: {
-      create: () => toast.success('Compromisso criado com sucesso'),
-      update: () => toast.success('Compromisso atualizado com sucesso'),
-      delete: () => toast.success('Compromisso excluído com sucesso'),
-    },
-    onError: {
-      read: (m) => toast.error(m),
-      create: (m) => toast.error(m),
-      update: (m) => toast.error(m),
-      delete: (m) => toast.error(m),
-    },
-  });
+  } = useCrudOperations<CompItem>(crudConfig);
 
   React.useEffect(() => {
-    if (isFamiliar) {
-      if (targetUserId) {
-        fetchItems();
-      } else {
-        setItems([] as any);
-      }
-    } else {
-      fetchItems();
+    // Evita chamadas desnecessárias em loop: apenas limpa a lista se familiar sem idoso selecionado.
+    if (isFamiliar && !targetUserId) {
+      setItems([] as any);
     }
-  }, [isFamiliar, targetUserId, fetchItems, setItems]);
+    // Quando targetUserId existir, o hook interno chamará fetch ao mudar o endpoint.
+  }, [isFamiliar, targetUserId, setItems]);
 
   const handleCreate = async (data: Compromisso) => {
     if (isFamiliar && !targetUserId) {
