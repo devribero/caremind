@@ -95,7 +95,7 @@ const estadoInicialRotinas: RotinasData = {
 
 // ===== COMPONENTE PRINCIPAL =====
 
-export default function DashboardClient({ readOnly = false }: { readOnly?: boolean }): React.ReactElement {
+export default function DashboardClient({ readOnly = false, idosoId }: { readOnly?: boolean; idosoId?: string }): React.ReactElement {
     // Estados para controle do modal
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [modalType, setModalType] = useState<'medicamento' | 'rotina'>('medicamento');
@@ -196,7 +196,8 @@ export default function DashboardClient({ readOnly = false }: { readOnly?: boole
     // Busca a lista de medicamentos da API
     const buscarMedicamentos = useCallback(async (token: string): Promise<Medicamento[]> => {
         try {
-            const resposta = await fetch('/api/medicamentos', {
+            const url = '/api/medicamentos' + (idosoId ? `?idoso_id=${encodeURIComponent(idosoId)}` : '');
+            const resposta = await fetch(url, {
                 headers: { 'Authorization': `Bearer ${token}` },
                 cache: 'no-store'
             });
@@ -206,12 +207,13 @@ export default function DashboardClient({ readOnly = false }: { readOnly?: boole
             console.error('Falha ao buscar medicamentos:', erro);
             throw erro;
         }
-    }, []);
+    }, [idosoId]);
 
     // Busca a lista de rotinas da API
     const buscarRotinas = useCallback(async (token: string): Promise<Rotina[]> => {
         try {
-            const resposta = await fetch('/api/rotinas', {
+            const url = '/api/rotinas' + (idosoId ? `?idoso_id=${encodeURIComponent(idosoId)}` : '');
+            const resposta = await fetch(url, {
                 headers: { 'Authorization': `Bearer ${token}` },
                 cache: 'no-store'
             });
@@ -221,7 +223,7 @@ export default function DashboardClient({ readOnly = false }: { readOnly?: boole
             console.error('Falha ao buscar rotinas:', erro);
             throw erro;
         }
-    }, []);
+    }, [idosoId]);
 
     // ===== EFEITOS =====
     
@@ -280,7 +282,7 @@ export default function DashboardClient({ readOnly = false }: { readOnly?: boole
         } finally {
             setIsLoading(false);
         }
-    }, [user, getAuthToken, buscarMedicamentos, buscarRotinas, handleApiError, setIsLoading]);
+    }, [user, idosoId, getAuthToken, buscarMedicamentos, buscarRotinas, handleApiError, setIsLoading]);
 
     // Carrega os dados quando o componente é montado ou quando o usuário muda
     useEffect(() => {
@@ -290,7 +292,7 @@ export default function DashboardClient({ readOnly = false }: { readOnly?: boole
             setMedicamentos(estadoInicialMedicamentos);
             setRotinas(estadoInicialRotinas);
         }
-    }, [user, carregarDados]);
+    }, [user, carregarDados, idosoId]);
 
     // ===== FUNÇÕES CRUD (Criação, Leitura, Atualização, Deleção) =====
     

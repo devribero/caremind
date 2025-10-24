@@ -16,7 +16,8 @@ export default function Home() {
 
   useEffect(() => {
     if (!loading && user) {
-      router.push('/dashboard');
+      const tipo = (user.user_metadata?.account_type as string | undefined)?.toLowerCase();
+      router.push(tipo === 'familiar' ? '/familiar-dashboard' : '/dashboard');
     }
   }, [user, loading, router]);
 

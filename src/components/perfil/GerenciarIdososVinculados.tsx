@@ -22,8 +22,13 @@ function GerenciarIdososVinculadosImpl(_props: {}, ref: React.Ref<GerenciarIdoso
   const fetchIdosos = async () => {
     setLoading(true);
     try {
-      const data = await makeRequest<IdosoItem[]>("/api/vinculos/idosos");
-      setIdosos(data || []);
+      const data = await makeRequest<any[]>("/api/vinculos/idosos");
+      const normalized: IdosoItem[] = (Array.isArray(data) ? data : []).map((x: any) => ({
+        id_idoso: x.id_idoso || x.idoso_id || x.id,
+        nome: x.nome ?? x.nome_idoso ?? x.nome_completo ?? null,
+        foto_usuario: x.foto_usuario ?? x.foto ?? null,
+      }));
+      setIdosos(normalized);
     } catch (err) {
       // falha silenciosa por enquanto
     } finally {
@@ -51,7 +56,7 @@ function GerenciarIdososVinculadosImpl(_props: {}, ref: React.Ref<GerenciarIdoso
 
   return (
     <section style={{ marginTop: 24 }}>
-      <h2 style={{ fontSize: 18, fontWeight: 700, marginBottom: 12 }}>Idosos Vinculados</h2>
+      <h2 style={{ fontSize: 18, fontWeight: 700, marginBottom: 12, color: '#111827' }}>Idosos Vinculados</h2>
       {loading ? (
         <div>Carregando...</div>
       ) : idosos.length === 0 ? (
@@ -62,7 +67,7 @@ function GerenciarIdososVinculadosImpl(_props: {}, ref: React.Ref<GerenciarIdoso
             <div key={i.id_idoso} style={{ border: '1px solid #e5e7eb', borderRadius: 8, padding: 12, display: 'flex', gap: 12, alignItems: 'center' }}>
               <Image src={i.foto_usuario || '/foto_padrao.png'} alt={i.nome || 'Idoso'} width={44} height={44} style={{ borderRadius: '9999px', objectFit: 'cover' }} />
               <div style={{ flex: 1 }}>
-                <div style={{ fontWeight: 600 }}>{i.nome || 'Sem nome'}</div>
+                <div style={{ fontWeight: 700, color: '#111827' }}>{i.nome || 'Sem nome'}</div>
                 <div style={{ fontSize: 12, color: '#6b7280' }}>{i.id_idoso}</div>
               </div>
               <button onClick={() => handleDesvincular(i.id_idoso)} style={{ background: '#ef4444', color: 'white', padding: '8px 10px', borderRadius: 8, fontWeight: 600 }}>

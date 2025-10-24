@@ -29,7 +29,8 @@ export default function AuthClient() {
 
   useEffect(() => {
     if (!authLoading && user) {
-      router.push('/dashboard');
+      const tipo = (user.user_metadata?.account_type as string | undefined)?.toLowerCase();
+      router.push(tipo === 'familiar' ? '/familiar-dashboard' : '/dashboard');
     }
   }, [user, authLoading, router]);
 
@@ -83,9 +84,12 @@ export default function AuthClient() {
     setLoading(true);
     try {
       if (isLogin) {
-        const { error } = await signIn(email, password);
+        const { error, data } = await signIn(email, password);
         if (error) setError('Email ou senha incorretos');
-        else router.push('/dashboard');
+        else {
+          const tipo = (data?.user?.user_metadata?.account_type as string | undefined)?.toLowerCase();
+          router.push(tipo === 'familiar' ? '/familiar-dashboard' : '/dashboard');
+        }
       } else {
         const { error } = await signUp(email, password, fullName, accountType);
         if (error) {

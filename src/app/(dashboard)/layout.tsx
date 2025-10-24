@@ -4,6 +4,7 @@ import { useRouter } from "next/navigation";
 import AppLayout from "@/components/layout/AppLayout";
 import { useAuth } from "@/contexts/AuthContext";
 import { FullScreenLoader } from "@/components/FullScreenLoader";
+import { IdosoProvider } from "@/contexts/IdosoContext";
 
 export default function DashboardGroupLayout({ children }: { children: React.ReactNode }) {
   const { user, loading } = useAuth();
@@ -21,5 +22,9 @@ export default function DashboardGroupLayout({ children }: { children: React.Rea
 
   if (!user) return null;
 
-  return <AppLayout>{children}</AppLayout>;
+  return (
+    <IdosoProvider>
+      <AppLayout>{children}</AppLayout>
+    </IdosoProvider>
+  );
 }

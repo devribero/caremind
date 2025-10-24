@@ -420,15 +420,6 @@ export default function Perfil() {
                                         >
                                             Alterar Senha
                                         </button>
-                                        {user?.user_metadata?.account_type === 'familiar' && (
-                                            <button 
-                                                className={pageStyles.actionButton} 
-                                                onClick={() => router.push('/familia')}
-                                                disabled={passwordLoading || uploadingPhoto}
-                                            >
-                                                Família
-                                            </button>
-                                        )}
                                         <button className={pageStyles.logoutButton} onClick={handleLogout}>Logout</button>
                                     </div>
                                 </div>

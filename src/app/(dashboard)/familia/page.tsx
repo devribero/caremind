@@ -49,31 +49,29 @@ export default function FamiliaPage() {
             <h1 className={pageStyles.content_title}>Família</h1>
           </div>
 
+          <div style={{ display: 'flex', gap: 12, marginBottom: 16 }}>
+            <button 
+              className={pageStyles.actionButton}
+              onClick={() => setShowAddIdosoModal(true)}
+            >
+              Adicionar Idoso
+            </button>
+            <button 
+              className={pageStyles.actionButton}
+              onClick={() => idososRef.current?.refresh()}
+            >
+              Atualizar Lista
+            </button>
+            <button 
+              className={pageStyles.actionButton}
+              onClick={() => router.push('/perfil')}
+            >
+              Voltar para Perfil
+            </button>
+          </div>
+
           <section className={pageStyles.content_info}>
             <div className={pageStyles.profileSection}>
-              <div className={pageStyles.profileHeader}>
-                <div className={pageStyles.profileActions}>
-                  <button 
-                    className={pageStyles.actionButton}
-                    onClick={() => setShowAddIdosoModal(true)}
-                  >
-                    Adicionar Idoso
-                  </button>
-                  <button 
-                    className={pageStyles.actionButton}
-                    onClick={() => idososRef.current?.refresh()}
-                  >
-                    Atualizar Lista
-                  </button>
-                  <button 
-                    className={pageStyles.actionButton}
-                    onClick={() => router.push('/perfil')}
-                  >
-                    Voltar para Perfil
-                  </button>
-                </div>
-              </div>
-
               <GerenciarIdososVinculados ref={idososRef} />
 
               <AddIdosoModal

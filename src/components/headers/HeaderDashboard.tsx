@@ -3,6 +3,7 @@ import { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/contexts/AuthContext';
 import { useProfile } from '@/contexts/ProfileContext';
+import { useIdoso } from '@/contexts/IdosoContext';
 import Link from 'next/link';
 import Image from 'next/image';
 import styles from './HeaderDashboard.module.css';
@@ -16,6 +17,7 @@ interface HeaderProps {
 export function Header({ isMenuOpen, onMenuToggle }: HeaderProps) {
     const { user, signOut } = useAuth();
     const { photoUrl, refresh } = useProfile();
+    const { listaIdososVinculados, idosoSelecionadoId, setIdosoSelecionado } = useIdoso();
     const router = useRouter();
 
     const [isProfileOpen, setIsProfileOpen] = useState(false);
@@ -90,6 +92,29 @@ export function Header({ isMenuOpen, onMenuToggle }: HeaderProps) {
                     <span></span>
                     <span></span>
                 </button>
+                {(user?.user_metadata?.account_type === 'familiar') && (
+                  <div style={{ marginLeft: 12 }}>
+                    <select
+                      value={idosoSelecionadoId ?? ''}
+                      onChange={(e) => setIdosoSelecionado(e.target.value || null)}
+                      style={{
+                        padding: '6px 10px',
+                        borderRadius: 8,
+                        border: '1px solid #ddd',
+                        background: 'white',
+                        minWidth: 200,
+                      }}
+                    >
+                      {listaIdososVinculados.length === 0 ? (
+                        <option value="">Nenhum idoso</option>
+                      ) : (
+                        listaIdososVinculados.map((i) => (
+                          <option key={i.id} value={i.id}>{i.nome}</option>
+                        ))
+                      )}
+                    </select>
+                  </div>
+                )}
             </div>
 
             <div className={styles.profileContainer} ref={profileMenuRef}>

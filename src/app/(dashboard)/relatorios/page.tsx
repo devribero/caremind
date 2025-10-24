@@ -9,6 +9,7 @@ import { Bar } from 'react-chartjs-2';
 import { useAuth } from '@/contexts/AuthContext';
 import { useRouter } from 'next/navigation';
 import { createClient } from '@/lib/supabase/client';
+import { useIdoso } from '@/contexts/IdosoContext';
 import { FullScreenLoader } from '@/components/FullScreenLoader';
 import {
   Chart as ChartJS,
@@ -43,6 +44,7 @@ export default function Relatorios() {
   const { user } = useAuth();
   const router = useRouter();
   const supabase = useMemo(() => createClient(), []);
+  const { idosoSelecionadoId } = useIdoso();
   const [loading, setLoading] = useState(true);
   const [eventos, setEventos] = useState<EventoHistorico[]>([]);
 
@@ -82,30 +84,27 @@ export default function Relatorios() {
         router.push('/auth');
         return;
       }
-
       try {
-        // Buscar dados do historico_eventos
-        const { data: historico, error: historicoError } = await supabase
-          .from('historico_eventos')
-          .select('*')
-          .eq('perfil_id', user.id)
-          .order('horario_programado', { ascending: false });
-
-        if (historicoError) {
-          console.error('Erro ao buscar histórico:', historicoError);
-          throw historicoError;
+        setLoading(true);
+        const { data: sessionData } = await supabase.auth.getSession();
+        const token = sessionData.session?.access_token;
+        const qs = idosoSelecionadoId ? `?idoso_id=${encodeURIComponent(idosoSelecionadoId)}` : '';
+        const res = await fetch(`/api/relatorios/historico${qs}`, {
+          headers: token ? { Authorization: `Bearer ${token}` } : undefined,
+          cache: 'no-store',
+        });
+        if (!res.ok) {
+          throw new Error(`HTTP ${res.status}`);
         }
-
-        // Transformar dados do histórico
-        const eventosFormatados: EventoHistorico[] = (historico || []).map(evento => ({
+        const historico = await res.json();
+        const eventosFormatados: EventoHistorico[] = (historico || []).map((evento: any) => ({
           id: evento.id,
           tipo: evento.tipo_evento as 'Medicamento' | 'Rotina',
           nome: evento.evento,
           horario: evento.horario_programado,
           status: evento.status,
-          created_at: evento.horario_programado
+          created_at: evento.horario_programado,
         }));
-
         setEventos(eventosFormatados);
       } catch (err) {
         console.error('Erro ao buscar eventos:', err);
@@ -115,28 +114,7 @@ export default function Relatorios() {
     };
 
     fetchEventos();
-
-    // Subscription para atualizações em tempo real no histórico
-    const subscription = supabase
-      .channel('historico_updates')
-      .on(
-        'postgres_changes',
-        {
-          event: '*',
-          schema: 'public',
-          table: 'historico_eventos',
-          filter: `perfil_id=eq.${user?.id}`
-        },
-        () => {
-          fetchEventos();
-        }
-      )
-      .subscribe();
-
-    return () => {
-      subscription.unsubscribe();
-    };
-  }, [user, router, supabase]);
+  }, [user, router, supabase, idosoSelecionadoId]);
 
   // Função para calcular estatísticas por período
   const calcularEstatisticas = (dias: number) => {
