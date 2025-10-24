@@ -14,6 +14,7 @@ export default function SidebarDashboard({ collapsed }: { collapsed: boolean }) 
 
   const displayName = user?.user_metadata?.full_name || "";
   const displayEmail = user?.email || "";
+  const isFamiliar = (user?.user_metadata?.account_type || '').toLowerCase() === 'familiar';
 
   const NavItem = ({ href, label, icon: Icon }: { href: string; label: string; icon: any }) => {
     const active = pathname === href;
@@ -38,7 +39,7 @@ export default function SidebarDashboard({ collapsed }: { collapsed: boolean }) 
         </div>
       </div>
       <nav className={styles.nav}>
-        <NavItem href="/dashboard" label="Dashboard" icon={IoHomeOutline} />
+        <NavItem href={isFamiliar ? "/familiar-dashboard" : "/dashboard"} label="Dashboard" icon={IoHomeOutline} />
         <NavItem href="/relatorios" label="Relatórios" icon={IoBarChartOutline} />
         <NavItem href="/rotinas" label="Rotinas" icon={IoClipboardOutline} />
         <NavItem href="/remedios" label="Medicamentos" icon={IoMedkitOutline} />
