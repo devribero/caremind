@@ -46,16 +46,45 @@ export async function GET(request: Request) {
       );
     }
 
-    // ✅ ALTERAÇÃO: Ordenação ajustada para 'created_at' para consistência.
+    const url = new URL(request.url);
+    const idosoId = url.searchParams.get('idoso_id') ?? undefined;
+
+    let targetUserId = user.id;
+    if (idosoId && idosoId !== user.id) {
+      const { data: vinc, error: vincErr } = await supabase
+        .from('vinculos_familiares')
+        .select('id_idoso')
+        .eq('id_familiar', user.id)
+        .eq('id_idoso', idosoId);
+
+      if (vincErr) throw vincErr;
+      const autorizado = (vinc ?? []).length > 0;
+      if (!autorizado) {
+        return NextResponse.json(
+          { erro: 'Acesso não autorizado ao idoso selecionado' },
+          { status: 403, headers: corsHeaders }
+        );
+      }
+      targetUserId = idosoId;
+    } else if (idosoId === user.id) {
+      targetUserId = user.id;
+    }
+
     const { data: rotinas, error } = await supabase
       .from('rotinas')
       .select('*')
-      .eq('user_id', user.id)
+      .eq('user_id', targetUserId)
       .order('created_at', { ascending: true });
 
     if (error) throw error;
 
-    return NextResponse.json(rotinas, { headers: corsHeaders });
+    const out = (rotinas ?? []).map((r) => ({
+      ...r,
+      concluido: Boolean(r.concluido),
+      data_agendada: (r as any).data ?? null,
+    }));
+
+    return NextResponse.json(out, { headers: corsHeaders });
 
   } catch (error: unknown) {
     let errorMessage = 'Falha ao buscar rotinas.';

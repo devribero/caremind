@@ -41,15 +41,45 @@ export async function GET(request: Request) {
       );
     }
 
+    const url = new URL(request.url);
+    const idosoId = url.searchParams.get('idoso_id') ?? undefined;
+
+    let targetUserId = user.id;
+    if (idosoId && idosoId !== user.id) {
+      const { data: vinc, error: vincErr } = await supabase
+        .from('vinculos_familiares')
+        .select('id_idoso')
+        .eq('id_familiar', user.id)
+        .eq('id_idoso', idosoId);
+
+      if (vincErr) throw vincErr;
+      const autorizado = (vinc ?? []).length > 0;
+      if (!autorizado) {
+        return NextResponse.json(
+          { erro: 'Acesso não autorizado ao idoso selecionado' },
+          { status: 403, headers: corsHeaders }
+        );
+      }
+      targetUserId = idosoId;
+    } else if (idosoId === user.id) {
+      targetUserId = user.id;
+    }
+
     const { data: medicamentos, error } = await supabase
       .from('medicamentos')
       .select('*')
-      .eq('user_id', user.id)
+      .eq('user_id', targetUserId)
       .order('created_at', { ascending: false });
 
     if (error) throw error;
 
-    return NextResponse.json(medicamentos, { headers: corsHeaders });
+    const out = (medicamentos ?? []).map((m) => ({
+      ...m,
+      concluido: Boolean(m.concluido),
+      data_agendada: m.data_agendada ?? null,
+    }));
+
+    return NextResponse.json(out, { headers: corsHeaders });
 
   } catch (error: unknown) {
     let errorMessage = 'Falha ao buscar medicamentos.';
