@@ -1,11 +1,11 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, Suspense } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useSearchParams } from 'next/navigation';
 import { useRouter } from 'next/navigation';
 
-export default function AlexaLogin() {
+function AlexaLoginForm() {
   const { signIn } = useAuth();
   const searchParams = useSearchParams();
   const redirect_uri = searchParams?.get('redirect_uri');
@@ -44,5 +44,13 @@ export default function AlexaLogin() {
       <button type="submit">Entrar</button>
       {error && <div>{error}</div>}
     </form>
+  );
+}
+
+export default function AlexaLogin() {
+  return (
+    <Suspense fallback={<div>Carregando...</div>}>
+      <AlexaLoginForm />
+    </Suspense>
   );
 }
