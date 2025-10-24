@@ -3,6 +3,7 @@ import { AuthProvider } from "@/contexts/AuthContext";
 import { LoadingProvider } from "@/contexts/LoadingContext";
 import { ProfileProvider } from "@/contexts/ProfileContext";
 import { Waves } from "@/components/Waves";
+import { ToastContainer } from "@/components/Toast";
 import "./globals.css";
 
 export const metadata: Metadata = {
@@ -26,6 +27,7 @@ export default function RootLayout({
             <ProfileProvider>
               <Waves />
               {children}
+              <ToastContainer />
             </ProfileProvider>
           </LoadingProvider>
         </AuthProvider>

@@ -205,6 +205,34 @@ export default function DashboardClient({ readOnly = false, idosoId }: { readOnl
         alert(`Erro: ${mensagem}`);
     }, []);
 
+    // Determina se um medicamento está previsto para o dia de hoje quando data_agendada está ausente
+    const isMedicamentoHoje = useCallback((m: Medicamento): boolean => {
+        const d = toDate(m.data_agendada);
+        if (d && isSameDay(d, now)) return true;
+        const f = m.frequencia;
+        if (!f) return false;
+        if (f.tipo === 'diario') return true;
+        if (f.tipo === 'semanal') {
+            const today = now.getDay(); // 0=Dom, 6=Sáb
+            return Array.isArray(f.dias_da_semana) && f.dias_da_semana.includes(today + 1); // API usa 1=Dom
+        }
+        return false;
+    }, [now, isSameDay, toDate]);
+
+    // Determina se uma rotina está prevista para o dia de hoje quando data_agendada está ausente
+    const isRotinaHoje = useCallback((r: Rotina): boolean => {
+        const d = toDate(r.data_agendada as any);
+        if (d && isSameDay(d, now)) return true;
+        const f: any = r.frequencia as any;
+        if (!f || typeof f !== 'object') return false;
+        if (f.tipo === 'diario') return true;
+        if (f.tipo === 'semanal') {
+            const today = now.getDay();
+            return Array.isArray(f.dias_da_semana) && f.dias_da_semana.includes(today + 1);
+        }
+        return false;
+    }, [now, isSameDay, toDate]);
+
     // ===== FUNÇÕES PARA BUSCAR DADOS =====
     
     // Busca a lista de medicamentos da API
@@ -632,18 +660,12 @@ export default function DashboardClient({ readOnly = false, idosoId }: { readOnl
 
     // Dados focados no dia
     const medsHoje = useMemo(() => {
-        return medicamentos.lista.filter(m => {
-            const d = toDate(m.data_agendada);
-            return d && isSameDay(d, now);
-        });
-    }, [medicamentos.lista, isSameDay, now, toDate]);
+        return medicamentos.lista.filter(m => isMedicamentoHoje(m));
+    }, [medicamentos.lista, isMedicamentoHoje]);
 
     const rotinasHoje = useMemo(() => {
-        return rotinas.lista.filter(r => {
-            const d = toDate(r.data_agendada as any);
-            return d && isSameDay(d, now);
-        });
-    }, [rotinas.lista, isSameDay, now, toDate]);
+        return rotinas.lista.filter(r => isRotinaHoje(r));
+    }, [rotinas.lista, isRotinaHoje]);
 
     const medsHojeConcluidos = useMemo(() => medsHoje.filter(m => m.concluido).length, [medsHoje]);
     const rotinasHojeConcluidas = useMemo(() => rotinasHoje.filter(r => r.concluido).length, [rotinasHoje]);
@@ -793,6 +815,66 @@ export default function DashboardClient({ readOnly = false, idosoId }: { readOnl
                         ))}
                     </ul>
                 )}
+            </div>
+
+            <div className={styles.list_section}>
+                <div className={styles.list_container}>
+                    <div className={styles.list_header}>
+                        <h3>Medicamentos de hoje</h3>
+                    </div>
+                    {medsHoje.length === 0 ? (
+                        <p className={styles.empty_list}>Nenhum medicamento para hoje.</p>
+                    ) : (
+                        <ul className={styles.list}>
+                            {medsHoje.map(m => (
+                                <li key={m.id} className={`${styles.list_item} ${m.concluido ? styles.completed : ''}`}>
+                                    <div className={styles.item_info}>
+                                        <strong>{m.nome}</strong>
+                                        {m.dosagem ? <span>{m.dosagem}</span> : null}
+                                        <span className={styles.frequencia}>{formatarFrequencia(m.frequencia)}</span>
+                                    </div>
+                                    <div className={styles.item_actions}>
+                                        <button
+                                            className={`${styles.statusButton} ${m.concluido ? styles.completed : ''}`}
+                                            onClick={() => handleToggleStatus(m.id)}
+                                        >
+                                            {m.concluido ? 'Desfazer' : 'Concluir'}
+                                        </button>
+                                    </div>
+                                </li>
+                            ))}
+                        </ul>
+                    )}
+                </div>
+
+                <div className={styles.list_container}>
+                    <div className={styles.list_header}>
+                        <h3>Rotinas de hoje</h3>
+                    </div>
+                    {rotinasHoje.length === 0 ? (
+                        <p className={styles.empty_list}>Nenhuma rotina para hoje.</p>
+                    ) : (
+                        <ul className={styles.list}>
+                            {rotinasHoje.map(r => (
+                                <li key={r.id} className={`${styles.list_item} ${r.concluido ? styles.completed : ''}`}>
+                                    <div className={styles.item_info}>
+                                        <strong>{r.titulo || 'Rotina'}</strong>
+                                        {r.descricao ? <span>{r.descricao}</span> : null}
+                                        {r.frequencia ? <span className={styles.frequencia}>{formatarFrequencia(r.frequencia as any)}</span> : null}
+                                    </div>
+                                    <div className={styles.item_actions}>
+                                        <button
+                                            className={`${styles.statusButton} ${r.concluido ? styles.completed : ''}`}
+                                            onClick={() => handleToggleRotinaStatus(r.id)}
+                                        >
+                                            {r.concluido ? 'Desfazer' : 'Concluir'}
+                                        </button>
+                                    </div>
+                                </li>
+                            ))}
+                        </ul>
+                    )}
+                </div>
             </div>
 
             <div className={styles.agenda_section}>

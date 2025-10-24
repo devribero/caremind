@@ -4,6 +4,7 @@ import React, { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { createClient } from '@/lib/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
+import cardStyles from '@/components/MedicamentoCard.module.css';
 
 export default function OnboardingPage() {
   const router = useRouter();
@@ -98,13 +99,10 @@ export default function OnboardingPage() {
       }}
     >
       <div
+        className={cardStyles.card}
         style={{
           width: '100%',
           maxWidth: 560,
-          background: '#ffffff',
-          borderRadius: 16,
-          boxShadow: '0 10px 24px rgba(0,0,0,0.12)',
-          padding: 24,
         }}
       >
         <div style={{ marginBottom: 8, color: '#6b7280', fontSize: 14 }}>Passo 2 de 2</div>

@@ -44,16 +44,6 @@
   padding: 1.5rem;
 }
 
-
-
-.headerContainer {
-  position: sticky; /* ou fixed, dependendo do seu design */
-  top: 0;
-  z-index: 950; /* Z-index alto, mas abaixo do sidebar */
-  width: 100%;
-  transition: margin-left 0.3s ease-in-out, width 0.3s ease-in-out;
-}
-
 /* NOVO: Classe que "empurra" o header */
 .headerPushed {
   /* IMPORTANTE: O valor aqui DEVE SER IGUAL à largura do seu sidebar! */
@@ -121,6 +111,64 @@
   grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
   gap: 1.5rem;
   width: 100%;
+}
+
+.gridContainer > div {
+  width: 100%;
+  overflow: visible;
+}
+
+.gridContainer > div > div:first-child {
+  flex-wrap: wrap !important;
+  gap: 8px !important;
+}
+
+.gridContainer > div h3 {
+  word-break: break-word;
+  overflow-wrap: anywhere;
+}
+
+.gridContainer > div > div:nth-child(2) {
+  word-break: break-word;
+  overflow-wrap: anywhere;
+}
+
+.gridContainer > div > div:first-child > div:last-child {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.gridContainer > div > div:first-child > div:last-child > button {
+  white-space: nowrap;
+}
+
+@media (max-width: 1024px) {
+  .gridContainer {
+    grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  }
+}
+
+@media (max-width: 768px) {
+  .gridContainer {
+    grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  }
+
+  .gridContainer > div > div:first-child > div:last-child {
+    width: 100%;
+    justify-content: flex-start !important;
+  }
+}
+
+@media (max-width: 480px) {
+  .gridContainer {
+    grid-template-columns: 1fr;
+  }
+
+  .gridContainer > div > div:first-child > div:last-child > button {
+    flex: 1 1 100%;
+    width: 100%;
+  }
 }
 
 .loadingText,

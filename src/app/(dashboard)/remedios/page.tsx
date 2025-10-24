@@ -13,6 +13,7 @@ import MedicamentoCard from '@/components/MedicamentoCard';
 import { useCrudOperations } from '@/hooks/useCrudOperations';
 import { createClient } from '@/lib/supabase/client';
 import { useAuthRequest } from '@/hooks/useAuthRequest';
+import { toast } from '@/components/Toast';
 
 // Estilos
 import styles from './page.module.css';
@@ -28,6 +29,7 @@ type Medicamento = {
 
 // Assinatura de dados de atualização sem 'id' e 'created_at'
 type UpdateMedicamentoData = Omit<Medicamento, 'id' | 'created_at'>;
+
 export default function Remedios() {
   // Hooks e estados
   const { user } = useAuth();
@@ -178,12 +180,13 @@ export default function Remedios() {
 
   const handlePhotoUpload = async (file: File) => {
     if (!user) {
-      alert('Usuário não autenticado');
+      toast.error('Usuário não autenticado');
       return;
     }
 
     setPhotoError(null);
     setPhotoStatus('Enviando foto...');
+    toast.info('Enviando foto...');
     setPhotoUploading(true);
 
     const supabase = createClient();
@@ -196,7 +199,7 @@ export default function Remedios() {
 
       if (uploadError) {
         setPhotoError(`Erro ao fazer upload: ${uploadError.message}`);
-        alert(`Erro ao fazer upload: ${uploadError.message}`);
+        toast.error(`Erro ao fazer upload: ${uploadError.message}`);
         return;
       }
 
@@ -206,39 +209,83 @@ export default function Remedios() {
         .getPublicUrl(fileName);
       if (!publicUrlData) {
         setPhotoError('Erro ao obter URL pública');
-        alert('Erro ao obter URL pública');
+        toast.error('Erro ao obter URL pública');
         return;
       }
       const imageUrl = publicUrlData.publicUrl;
 
       setPhotoStatus('Registrando processamento...');
-      const { error: insertError } = await supabase
+      const { data: inserted, error: insertError } = await supabase
         .from('ocr_gerenciamento')
         .insert({
           user_id: user.id,
           image_url: imageUrl,
           status: 'PENDENTE',
-        });
+        })
+        .select('id')
+        .single();
 
       if (insertError) {
         setPhotoError(`Erro ao salvar no banco: ${insertError.message}`);
-        alert(`Erro ao salvar no banco: ${insertError.message}`);
+        toast.error(`Erro ao salvar no banco: ${insertError.message}`);
         return;
       }
 
       setPhotoStatus('Foto enviada! Processando receita...');
-      alert('Foto enviada com sucesso!');
+      toast.success('Foto enviada! Processando receita...');
       photoModal.close();
       setPhotoStatus(null);
+
+      // Polling de status do OCR
+      if (inserted?.id) {
+        const ocrId = inserted.id as string;
+        const start = Date.now();
+        const timeoutMs = 2 * 60 * 1000; // 2 minutos
+        const interval = 3000; // 3s
+        const poll = async () => {
+          try {
+            const { data, error } = await supabase
+              .from('ocr_gerenciamento')
+              .select('status, error_message')
+              .eq('id', ocrId)
+              .single();
+            if (error) {
+              // Falha em consultar status
+              toast.error('Falha ao consultar status do processamento.');
+              return;
+            }
+            const status = (data as any)?.status;
+            if (status === 'SUCESSO') {
+              toast.success('Receita processada com sucesso. Atualizando medicamentos...');
+              await fetchItems();
+              return; // fim do polling
+            }
+            if (status === 'FALHA') {
+              const errMsg = (data as any)?.error_message || 'Não foi possível encontrar medicamento na receita.';
+              toast.error(`Falha no processamento: ${errMsg}`);
+              return; // fim do polling
+            }
+            if (Date.now() - start >= timeoutMs) {
+              toast.error('Tempo esgotado aguardando processamento da receita.');
+              return;
+            }
+            setTimeout(poll, interval);
+          } catch (e) {
+            const errMsg = e instanceof Error ? e.message : 'Erro inesperado no polling';
+            toast.error(errMsg);
+          }
+        };
+        setTimeout(poll, interval);
+      }
     } catch (e) {
       const errMsg = e instanceof Error ? e.message : 'Erro inesperado';
       setPhotoError(errMsg);
-      alert(`Erro: ${errMsg}`);
+      toast.error(`Erro: ${errMsg}`);
     } finally {
       setPhotoUploading(false);
     }
   };
- 
+
   // Render content
   const renderContent = () => {
     if (isFamiliar && !targetUserId) {

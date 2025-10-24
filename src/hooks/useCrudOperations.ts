@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useCallback, useEffect, useMemo } from 'react';
+import { toast } from '@/components/Toast';
 import { useAuthRequest } from './useAuthRequest';
 import { useModalState } from './useModalState';
 import { useOptimisticUpdates } from './useOptimisticUpdates';
@@ -109,7 +110,8 @@ export function useCrudOperations<T extends { id: string | number }>(
 
   // Delete item
   const deleteItem = useCallback(async (itemId: string) => {
-    if (!confirm('Tem certeza que deseja excluir este item?')) return;
+    const ok = await toast.confirm('Tem certeza que deseja excluir este item?');
+    if (!ok) return;
 
     try {
       await executeOptimisticUpdate(

@@ -4,6 +4,7 @@ import { useCallback } from "react";
 import SidebarDashboard from "./SidebarDashboard";
 import { Header } from "../headers/HeaderDashboard";
 import styles from "./AppLayout.module.css";
+import { ToastContainer } from "@/components/Toast";
 
 export default function AppLayout({ children }: { children: React.ReactNode }) {
   const [collapsed, setCollapsed] = usePersistentState<boolean>("ui.sidebar.collapsed", false);
@@ -18,6 +19,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
         <Header isMenuOpen={!collapsed} onMenuToggle={handleMenuToggle} />
         <div className={styles.contentArea}>{children}</div>
       </div>
+      <ToastContainer />
     </div>
   );
 }
