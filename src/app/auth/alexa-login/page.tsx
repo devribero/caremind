@@ -17,25 +17,31 @@ function AlexaLoginForm() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
-
+  
+    if (!email || !password) {
+      setError('Informe email e senha');
+      return;
+    }
+  
     const { data, error: signInError } = await signIn(email, password);
-
+  
     if (signInError) {
       setError('Email ou senha incorretos');
       return;
     }
-
-    // Gera um code JWT temporário
+  
+    // Gera code JWT temporário
     const res = await fetch('/api/alexa-code', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ email })
     });
     const { code } = await res.json();
-
-    // Redireciona Alexa com code
-    router.push(`${redirect_uri}?code=${code}`);
+  
+    // Redireciona Alexa (URL externa)
+    window.location.href = `${redirect_uri}?code=${code}`;
   };
+  
 
   return (
     <form onSubmit={handleSubmit}>
