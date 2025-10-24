@@ -117,6 +117,7 @@ export async function POST(request: Request) {
         tipo,
         codigo_vinculacao,
         foto_usuario,
+        id: user.id,
         user_id: user.id,
       }])
       .select()

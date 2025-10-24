@@ -1,10 +1,11 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useMemo, useState } from 'react';
 import { useRouter } from 'next/navigation';
 
 // Componentes e hooks
 import { useAuth } from '@/contexts/AuthContext';
+import { useIdoso } from '@/contexts/IdosoContext';
 import { FullScreenLoader } from '@/components/FullScreenLoader';
 import { AddMedicamentoForm } from '@/components/forms/AddMedicamentoForm';
 import { Modal } from '@/components/Modal';
@@ -30,11 +31,18 @@ export default function Remedios() {
   // Hooks e estados
   const { user } = useAuth();
   const router = useRouter();
+  const { idosoSelecionadoId, listaIdososVinculados } = useIdoso();
+  const isFamiliar = user?.user_metadata?.account_type === 'familiar';
+  const targetUserId = isFamiliar ? idosoSelecionadoId : user?.id;
+  const selectedElderName = useMemo(() => (
+    listaIdososVinculados.find((i) => i.id === idosoSelecionadoId)?.nome || null
+  ), [listaIdososVinculados, idosoSelecionadoId]);
   const [photoModal, setPhotoModal] = useState({
     isOpen: false,
     open: () => setPhotoModal(prev => ({ ...prev, isOpen: true })),
     close: () => setPhotoModal(prev => ({ ...prev, isOpen: false })),
   });
+
   const [photoUploading, setPhotoUploading] = useState(false);
   const [photoStatus, setPhotoStatus] = useState<string | null>(null);
   const [photoError, setPhotoError] = useState<string | null>(null);
@@ -50,8 +58,10 @@ export default function Remedios() {
     updateItem,
     editItem,
     deleteItem,
+    fetchItems,
+    setItems,
   } = useCrudOperations<Medicamento>({
-    endpoint: '/api/medicamentos',
+    endpoint: targetUserId ? `/api/medicamentos?idoso_id=${encodeURIComponent(targetUserId)}` : '/api/medicamentos',
     onError: {
       create: (error) => alert(`Erro ao criar medicamento: ${error}`),
       update: (error) => alert(`Erro ao atualizar medicamento: ${error}`),
@@ -59,19 +69,36 @@ export default function Remedios() {
     },
   });
 
+  React.useEffect(() => {
+    if (isFamiliar) {
+      if (targetUserId) {
+        fetchItems();
+      } else {
+        setItems([] as any);
+      }
+    } else {
+      fetchItems();
+    }
+  }, [isFamiliar, targetUserId, fetchItems, setItems]);
+
   const handleSaveMedicamento = async (
     nome: string,
     dosagem: string | null,
     frequencia: any,
     quantidade: number
   ) => {
+    if (isFamiliar && !targetUserId) {
+      alert('Selecione um idoso no menu superior antes de adicionar medicamentos.');
+      return;
+    }
     await createItem({
       nome,
       dosagem,
       frequencia,
       quantidade,
       created_at: new Date().toISOString(),
-    } as Omit<Medicamento, 'id'>);
+      ...(targetUserId ? { user_id: targetUserId } : {}),
+    } as unknown as Omit<Medicamento, 'id'>);
   };
 
   const handleUpdateMedicamento = async (
@@ -159,6 +186,13 @@ export default function Remedios() {
  
   // Render content
   const renderContent = () => {
+    if (isFamiliar && !targetUserId) {
+      return (
+        <div className={styles.emptyState}>
+          <p>Selecione um idoso no menu superior para visualizar os medicamentos.</p>
+        </div>
+      );
+    }
     if (loading) {
       return <FullScreenLoader />;
     }
@@ -191,11 +225,13 @@ export default function Remedios() {
     <main className={styles.main}>
       <div className={styles.content}>
         <div className={styles.pageHeader}>
-          <h1 className={styles.content_title}>Medicamentos</h1>
+          <h1 className={styles.content_title}>
+            {selectedElderName ? `Medicamentos de ${selectedElderName}` : 'Medicamentos'}
+          </h1>
         </div>
 
         <section className={styles.content_info}>
-          {!loading && !error && (
+          {!loading && !error && !(isFamiliar && !targetUserId) && (
             <div className={styles.actionsContainer}>
               <button className={styles.addButton} onClick={() => addModal.open()}>
                 <span className={styles.addIcon}>+</span>

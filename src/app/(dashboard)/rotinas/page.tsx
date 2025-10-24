@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useMemo, useState } from 'react';
 import { useRouter } from 'next/navigation';
 
 // Componentes e hooks
@@ -11,6 +11,7 @@ import { Modal } from '@/components/Modal';
 import RotinaCard from '@/components/RotinasCard';
 import { useCrudOperations } from '@/hooks/useCrudOperations';
 import { createClient } from '@/lib/supabase/client';
+import { useIdoso } from '@/contexts/IdosoContext';
 
 // Estilos
 import styles from './page.module.css';
@@ -27,6 +28,12 @@ export default function Rotinas() {
   // Hooks e estados
   const { user } = useAuth();
   const router = useRouter();
+  const { idosoSelecionadoId, listaIdososVinculados } = useIdoso();
+  const isFamiliar = user?.user_metadata?.account_type === 'familiar';
+  const targetUserId = isFamiliar ? idosoSelecionadoId : user?.id;
+  const selectedElderName = useMemo(() => (
+    listaIdososVinculados.find((i) => i.id === idosoSelecionadoId)?.nome || null
+  ), [listaIdososVinculados, idosoSelecionadoId]);
   const [photoModal, setPhotoModal] = useState({
     isOpen: false,
     open: () => setPhotoModal(prev => ({ ...prev, isOpen: true })),
@@ -44,8 +51,10 @@ export default function Rotinas() {
     updateItem,
     deleteItem,
     editItem,
+    fetchItems,
+    setItems,
   } = useCrudOperations<Rotina>({
-    endpoint: '/api/rotinas',
+    endpoint: targetUserId ? `/api/rotinas?idoso_id=${encodeURIComponent(targetUserId)}` : '/api/rotinas',
     onError: {
       create: (error) => alert(`Erro ao criar rotina: ${error}`),
       update: (error) => alert(`Erro ao atualizar rotina: ${error}`),
@@ -53,18 +62,35 @@ export default function Rotinas() {
     },
   });
 
+  React.useEffect(() => {
+    if (isFamiliar) {
+      if (targetUserId) {
+        fetchItems();
+      } else {
+        setItems([] as any);
+      }
+    } else {
+      fetchItems();
+    }
+  }, [isFamiliar, targetUserId, fetchItems, setItems]);
+
   // Handlers para formulários
   const handleSaveRotina = async (
     titulo: string,
     descricao: string | null,
     frequencia: any
   ) => {
+    if (isFamiliar && !targetUserId) {
+      alert('Selecione um idoso no menu superior antes de adicionar rotinas.');
+      return;
+    }
     await createItem({
       titulo,
       descricao: descricao ?? undefined,
       frequencia,
       created_at: new Date().toISOString(),
-    } as Omit<Rotina, 'id'>);
+      ...(targetUserId ? { user_id: targetUserId } : {}),
+    } as unknown as Omit<Rotina, 'id'>);
   };
 
   const handleUpdateRotina = async (
@@ -132,6 +158,13 @@ export default function Rotinas() {
 
   // Render content
   const renderContent = () => {
+    if (isFamiliar && !targetUserId) {
+      return (
+        <div className={styles.emptyState}>
+          <p>Selecione um idoso no menu superior para visualizar as rotinas.</p>
+        </div>
+      );
+    }
     if (loading) {
       return <FullScreenLoader />;
     }
@@ -164,11 +197,11 @@ export default function Rotinas() {
     <main className={styles.main}>
       <div className={styles.content}>
         <div className={styles.pageHeader}>
-          <h1 className={styles.content_title}>Rotinas</h1>
+          <h1 className={styles.content_title}>{selectedElderName ? `Rotinas de ${selectedElderName}` : 'Rotinas'}</h1>
         </div>
 
         <section className={styles.content_info}>
-          {!loading && !error && (
+          {!loading && !error && !(isFamiliar && !targetUserId) && (
             <div className={styles.actionsContainer}>
               <button className={styles.addButton} onClick={() => addModal.open()}>
                 <span className={styles.addIcon}>+</span>

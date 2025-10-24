@@ -130,13 +130,12 @@ export async function POST(request: Request) {
     }
 
     const body = await request.json();
-    
-    // ✅ ALTERAÇÃO: Removido 'data', adicionado 'frequencia'
     const {
       titulo,
       descricao,
-      frequencia, // <-- Adicionado aqui
-      concluido = false
+      frequencia,
+      concluido = false,
+      user_id: bodyUserId,
     } = body;
 
     // Validações
@@ -145,15 +144,32 @@ export async function POST(request: Request) {
     }
     // A validação de 'data' foi removida. Pode-se adicionar uma validação para 'frequencia' se necessário.
 
-    // ✅ ALTERAÇÃO: Insert ajustado para incluir 'frequencia'
+    let targetUserId = user.id;
+    if (bodyUserId && bodyUserId !== user.id) {
+      const { data: vinc, error: vincErr } = await supabase
+        .from('vinculos_familiares')
+        .select('id_idoso')
+        .eq('id_familiar', user.id)
+        .eq('id_idoso', bodyUserId);
+      if (vincErr) throw vincErr;
+      const autorizado = (vinc ?? []).length > 0;
+      if (!autorizado) {
+        return NextResponse.json(
+          { erro: 'Acesso não autorizado ao idoso selecionado' },
+          { status: 403, headers: corsHeaders }
+        );
+      }
+      targetUserId = bodyUserId;
+    }
+
     const { data: novaRotina, error } = await supabase
       .from('rotinas')
       .insert([{
         titulo: titulo.trim(),
         descricao,
-        frequencia, // <-- Adicionado aqui
+        frequencia,
         concluido,
-        user_id: user.id
+        user_id: targetUserId
       }])
       .select()
       .single();

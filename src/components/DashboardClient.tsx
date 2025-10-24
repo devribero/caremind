@@ -79,6 +79,16 @@ interface RotinasData {
     lista: Rotina[];         // Lista de rotinas
 }
 
+// Interface para itens da agenda vindos de historico_eventos
+interface AgendaItem {
+    id: string;
+    tipo_evento: 'medicamento' | 'rotina' | string;
+    evento_id: string;
+    titulo: string;
+    horario?: Date;
+    status: 'pendente' | 'confirmado' | 'esquecido' | string;
+}
+
 // Estado inicial para medicamentos
 const estadoInicialMedicamentos: MedicamentosData = {
     total: 0,
@@ -92,6 +102,9 @@ const estadoInicialRotinas: RotinasData = {
     concluidas: 0,
     lista: []
 };
+
+// Estado inicial para agenda
+const estadoInicialAgenda: AgendaItem[] = [];
 
 // ===== COMPONENTE PRINCIPAL =====
 
@@ -123,6 +136,7 @@ export default function DashboardClient({ readOnly = false, idosoId }: { readOnl
     // Estados para armazenar os dados
     const [medicamentos, setMedicamentos] = useState<MedicamentosData>(estadoInicialMedicamentos);
     const [rotinas, setRotinas] = useState<RotinasData>(estadoInicialRotinas);
+    const [agenda, setAgenda] = useState<AgendaItem[]>(estadoInicialAgenda);
     
     // Estados para controle de carregamento
     const { setIsLoading } = useLoading();
@@ -225,6 +239,40 @@ export default function DashboardClient({ readOnly = false, idosoId }: { readOnl
         }
     }, [idosoId]);
 
+    // Busca a lista de itens da agenda da API
+    const buscarAgenda = useCallback(async (token: string): Promise<AgendaItem[]> => {
+        try {
+            const hoje = new Date();
+            const data = hoje.toISOString().slice(0, 10);
+            const url = '/api/agenda' + (idosoId ? `?idoso_id=${encodeURIComponent(idosoId)}&data=${encodeURIComponent(data)}` : `?data=${encodeURIComponent(data)}`);
+            const resposta = await fetch(url, {
+                headers: { 'Authorization': `Bearer ${token}` },
+                cache: 'no-store'
+            });
+            if (!resposta.ok) throw new Error(`Erro HTTP! status: ${resposta.status}`);
+            const raw = await resposta.json();
+            const itens: AgendaItem[] = (raw ?? []).map((e: any) => ({
+                id: e.id,
+                tipo_evento: e.tipo_evento,
+                evento_id: e.evento_id,
+                titulo: e.evento,
+                horario: e.horario_programado ? new Date(e.horario_programado) : undefined,
+                status: e.status,
+            }));
+            const rank = (it: AgendaItem) => it.status === 'confirmado' ? 2 : (it.horario && it.horario < new Date() ? 0 : 1);
+            itens.sort((a, b) => {
+                const ra = rank(a); const rb = rank(b);
+                if (ra !== rb) return ra - rb;
+                const ta = a.horario?.getTime() || 0; const tb = b.horario?.getTime() || 0;
+                return ta - tb;
+            });
+            return itens;
+        } catch (erro) {
+            console.error('Falha ao buscar agenda:', erro);
+            throw erro;
+        }
+    }, [idosoId]);
+
     // ===== EFEITOS =====
     
     // Efeito para verificar periodicamente se os medicamentos precisam ser desmarcados
@@ -261,9 +309,10 @@ export default function DashboardClient({ readOnly = false, idosoId }: { readOnl
 
         try {
             setIsLoading(true);
-            const [dadosMedicamentos, dadosRotinas] = await Promise.all([
+            const [dadosMedicamentos, dadosRotinas, itensAgenda] = await Promise.all([
                 buscarMedicamentos(token),
-                buscarRotinas(token)
+                buscarRotinas(token),
+                buscarAgenda(token),
             ]);
 
             setMedicamentos({
@@ -277,12 +326,14 @@ export default function DashboardClient({ readOnly = false, idosoId }: { readOnl
                 concluidas: dadosRotinas.filter((r: any) => r.concluido || r.concluida).length,
                 lista: dadosRotinas as Rotina[]
             });
+
+            setAgenda(itensAgenda);
         } catch (erro) {
             handleApiError(erro, 'Não foi possível carregar os dados do dashboard.');
         } finally {
             setIsLoading(false);
         }
-    }, [user, idosoId, getAuthToken, buscarMedicamentos, buscarRotinas, handleApiError, setIsLoading]);
+    }, [user, idosoId, getAuthToken, buscarMedicamentos, buscarRotinas, buscarAgenda, handleApiError, setIsLoading]);
 
     // Carrega os dados quando o componente é montado ou quando o usuário muda
     useEffect(() => {
@@ -291,6 +342,7 @@ export default function DashboardClient({ readOnly = false, idosoId }: { readOnl
         } else {
             setMedicamentos(estadoInicialMedicamentos);
             setRotinas(estadoInicialRotinas);
+            setAgenda(estadoInicialAgenda);
         }
     }, [user, carregarDados, idosoId]);
 
@@ -607,25 +659,38 @@ export default function DashboardClient({ readOnly = false, idosoId }: { readOnl
 
     const alertasPendentes = useMemo(() => dosesOmitidas.length + estoqueBaixo.length, [dosesOmitidas.length, estoqueBaixo.length]);
 
-    const agendaDoDia = useMemo(() => {
-        type Item = { id: string; tipo: 'medicamento' | 'rotina'; titulo: string; horario?: Date; concluido: boolean };
-        const a: Item[] = [];
-        medsHoje.forEach(m => a.push({ id: m.id, tipo: 'medicamento', titulo: m.nome, horario: toDate(m.data_agendada), concluido: m.concluido }));
-        rotinasHoje.forEach(r => a.push({ id: r.id, tipo: 'rotina', titulo: r.titulo || r.descricao || 'Rotina', horario: toDate(r.data_agendada as any), concluido: r.concluido }));
-        const statusRank = (it: Item) => it.concluido ? 2 : (it.horario && it.horario < now ? 0 : 1);
-        return a.sort((x, y) => {
-            const sx = statusRank(x); const sy = statusRank(y);
-            if (sx !== sy) return sx - sy;
-            const tx = x.horario?.getTime() || 0; const ty = y.horario?.getTime() || 0;
-            return tx - ty;
-        });
-    }, [medsHoje, rotinasHoje, now, toDate]);
+    const agendaDoDia = useMemo(() => agenda, [agenda]);
 
-    const getStatus = useCallback((concluido: boolean, horario?: Date) => {
-        if (concluido) return 'concluido';
+    const getStatusBadge = useCallback((status: string, horario?: Date) => {
+        if (status === 'confirmado') return 'concluido';
         if (horario && horario < now) return 'atrasado';
         return 'pendente';
     }, [now]);
+
+    // Alterna status de conclusão de um item da agenda (historico_eventos)
+    const handleToggleAgendaStatus = useCallback(async (id: string) => {
+        let previous: AgendaItem[] = [];
+        setAgenda(prev => {
+            previous = prev;
+            return prev.map(it => it.id === id ? { ...it, status: it.status === 'confirmado' ? 'pendente' : 'confirmado' } : it);
+        });
+
+        try {
+            const token = await getAuthToken();
+            if (!token) throw new Error('Sessão não encontrada');
+            const item = (previous || []).find(i => i.id === id);
+            const novoStatus = item && item.status === 'confirmado' ? 'pendente' : 'confirmado';
+            const resp = await fetch(`/api/historico_eventos/${id}`, {
+                method: 'PATCH',
+                headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+                body: JSON.stringify({ status: novoStatus })
+            });
+            if (!resp.ok) throw new Error('Falha ao atualizar status do evento');
+        } catch (erro) {
+            if (previous) setAgenda(previous);
+            handleApiError(erro, 'Erro ao atualizar status do evento');
+        }
+    }, [getAuthToken, handleApiError]);
 
     // ===== RENDERIZAÇÃO =====
 
@@ -733,7 +798,7 @@ export default function DashboardClient({ readOnly = false, idosoId }: { readOnl
                 ) : (
                     <ul className={styles.list}>
                         {agendaDoDia.map(item => {
-                            const status = getStatus(item.concluido, item.horario);
+                            const statusBadge = getStatusBadge(item.status, item.horario);
                             return (
                                 <li key={item.id} className={styles.list_item}>
                                     <div className={styles.item_info}>
@@ -741,10 +806,12 @@ export default function DashboardClient({ readOnly = false, idosoId }: { readOnl
                                         <span>{item.horario ? item.horario.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : ''}</span>
                                     </div>
                                     <div className={styles.item_actions}>
-                                        <span className={
-                                            status === 'atrasado' ? styles.status_badge_late : status === 'concluido' ? styles.status_badge_done : styles.status_badge
-                                        }>
-                                            {status === 'atrasado' ? 'Atrasado' : status === 'concluido' ? 'Concluído' : 'Pendente'}
+                                        <span
+                                            onClick={() => handleToggleAgendaStatus(item.id)}
+                                            className={statusBadge === 'atrasado' ? styles.status_badge_late : statusBadge === 'concluido' ? styles.status_badge_done : styles.status_badge}
+                                            style={{ cursor: 'pointer' }}
+                                        >
+                                            {statusBadge === 'atrasado' ? 'Atrasado' : statusBadge === 'concluido' ? 'Concluído' : 'Pendente'}
                                         </span>
                                     </div>
                                 </li>

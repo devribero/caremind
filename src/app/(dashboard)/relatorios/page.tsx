@@ -44,9 +44,13 @@ export default function Relatorios() {
   const { user } = useAuth();
   const router = useRouter();
   const supabase = useMemo(() => createClient(), []);
-  const { idosoSelecionadoId } = useIdoso();
+  const { idosoSelecionadoId, listaIdososVinculados } = useIdoso();
   const [loading, setLoading] = useState(true);
   const [eventos, setEventos] = useState<EventoHistorico[]>([]);
+  const isFamiliar = user?.user_metadata?.account_type === 'familiar';
+  const selectedElderName = useMemo(() => (
+    listaIdososVinculados.find((i) => i.id === idosoSelecionadoId)?.nome || null
+  ), [listaIdososVinculados, idosoSelecionadoId]);
 
   const chartOptions: any = {
     responsive: true,
@@ -84,6 +88,11 @@ export default function Relatorios() {
         router.push('/auth');
         return;
       }
+      if (isFamiliar && !idosoSelecionadoId) {
+        setEventos([]);
+        setLoading(false);
+        return;
+      }
       try {
         setLoading(true);
         const { data: sessionData } = await supabase.auth.getSession();
@@ -114,7 +123,7 @@ export default function Relatorios() {
     };
 
     fetchEventos();
-  }, [user, router, supabase, idosoSelecionadoId]);
+  }, [user, router, supabase, idosoSelecionadoId, isFamiliar]);
 
   // Função para calcular estatísticas por período
   const calcularEstatisticas = (dias: number) => {
@@ -229,7 +238,14 @@ export default function Relatorios() {
   return (
     <div className={styles.main}>
       <div className={styles.content}>
-        <h1 className={styles.content_title}>Histórico de Medicamentos e Rotinas</h1>
+        <h1 className={styles.content_title}>
+          {selectedElderName ? `Histórico de ${selectedElderName}` : 'Histórico de Medicamentos e Rotinas'}
+        </h1>
+        {isFamiliar && !idosoSelecionadoId && (
+          <div className={styles.emptyState}>
+            <p>Selecione um idoso no menu superior para visualizar os relatórios.</p>
+          </div>
+        )}
         
         <div className={styles.reportGrid}>
           <div className={styles.reportCard}>

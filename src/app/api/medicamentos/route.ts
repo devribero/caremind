@@ -122,13 +122,12 @@ export async function POST(request: Request) {
     }
 
     const body = await request.json();
-    
-    // CORREÇÃO: Removidos campos que não existem na tabela (data_agendada, descricao, concluido)
-    const { 
-        nome, 
-        dosagem, 
-        frequencia, 
-        quantidade, 
+    const {
+      nome,
+      dosagem,
+      frequencia,
+      quantidade,
+      user_id: bodyUserId,
     } = body;
 
     // CORREÇÃO: Validação alterada para o campo 'nome', que é essencial
@@ -139,7 +138,24 @@ export async function POST(request: Request) {
       );
     }
 
-    // CORREÇÃO: Insert ajustado para conter apenas as colunas que existem na tabela 'medicamentos'
+    let targetUserId = user.id;
+    if (bodyUserId && bodyUserId !== user.id) {
+      const { data: vinc, error: vincErr } = await supabase
+        .from('vinculos_familiares')
+        .select('id_idoso')
+        .eq('id_familiar', user.id)
+        .eq('id_idoso', bodyUserId);
+      if (vincErr) throw vincErr;
+      const autorizado = (vinc ?? []).length > 0;
+      if (!autorizado) {
+        return NextResponse.json(
+          { erro: 'Acesso não autorizado ao idoso selecionado' },
+          { status: 403, headers: corsHeaders }
+        );
+      }
+      targetUserId = bodyUserId;
+    }
+
     const { data, error } = await supabase
       .from('medicamentos')
       .insert([{
@@ -147,7 +163,7 @@ export async function POST(request: Request) {
         dosagem, 
         frequencia,
         quantidade,
-        user_id: user.id,
+        user_id: targetUserId,
       }])
       .select()
       .single();

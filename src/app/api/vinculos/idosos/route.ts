@@ -49,14 +49,14 @@ export async function GET(request: Request) {
 
     const { data: perfis, error: perfErr } = await supabase
       .from('perfis')
-      .select('user_id, nome, foto_usuario')
-      .in('user_id', ids);
+      .select('id, nome, foto_usuario')
+      .in('id', ids);
 
     if (perfErr) throw perfErr;
 
     // Mapear saída padronizada
     const out = (perfis ?? []).map(p => ({
-      id_idoso: p.user_id,
+      id_idoso: p.id,
       nome: p.nome,
       foto_usuario: p.foto_usuario,
     }));

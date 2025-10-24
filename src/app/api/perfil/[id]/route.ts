@@ -105,7 +105,7 @@ export async function DELETE(request: Request, context: { params: Promise<{ id: 
 
     if (!id) {
       return NextResponse.json(
-        { erro: 'ID do medicamento não fornecido.' },
+        { erro: 'ID do perfil não fornecido.' },
         { status: 400, headers: corsHeaders }
       );
     }
@@ -122,7 +122,7 @@ export async function DELETE(request: Request, context: { params: Promise<{ id: 
     // Se nada foi retornado, significa que o item não existia ou não pertencia ao usuário.
     if (!data || data.length === 0) {
       return NextResponse.json(
-        { erro: `Medicamento com ID ${id} não encontrado ou não pertence ao usuário.` },
+        { erro: `Perfil com ID ${id} não encontrado ou não pertence ao usuário.` },
         { status: 404, headers: corsHeaders }
       );
     }
@@ -135,7 +135,8 @@ export async function DELETE(request: Request, context: { params: Promise<{ id: 
     if (error instanceof Error) {
       errorMessage = error.message;
     }
-    console.error('Erro em DELETE /api/medicamentos/[id]:', errorMessage);
+    console.error('Erro em DELETE /api/perfil/[id]:', errorMessage);
+
     return NextResponse.json(
       { erro: errorMessage },
       { status: 500, headers: corsHeaders }

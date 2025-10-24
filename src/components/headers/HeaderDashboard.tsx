@@ -92,7 +92,7 @@ export function Header({ isMenuOpen, onMenuToggle }: HeaderProps) {
                     <span></span>
                     <span></span>
                 </button>
-                {(user?.user_metadata?.account_type === 'familiar') && (
+                {(user?.user_metadata?.account_type === 'familiar' && listaIdososVinculados.length > 0) && (
                   <div style={{ marginLeft: 12 }}>
                     <select
                       value={idosoSelecionadoId ?? ''}
@@ -105,13 +105,9 @@ export function Header({ isMenuOpen, onMenuToggle }: HeaderProps) {
                         minWidth: 200,
                       }}
                     >
-                      {listaIdososVinculados.length === 0 ? (
-                        <option value="">Nenhum idoso</option>
-                      ) : (
-                        listaIdososVinculados.map((i) => (
-                          <option key={i.id} value={i.id}>{i.nome}</option>
-                        ))
-                      )}
+                      {listaIdososVinculados.map((i) => (
+                        <option key={i.id} value={i.id}>{i.nome}</option>
+                      ))}
                     </select>
                   </div>
                 )}

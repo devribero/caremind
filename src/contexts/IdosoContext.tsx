@@ -61,9 +61,11 @@ export function IdosoProvider({ children }: { children: ReactNode }) {
         nome: x.nome || x.nome_idoso || x.nome_completo || 'Idoso',
       }));
       setLista(mapped);
-      // Mantém seleção se ainda existir; caso contrário, seleciona primeiro
+      // Mantém seleção se ainda existir; caso contrário, usa persistido ou seleciona primeiro
+      const persisted = typeof window !== 'undefined' ? (localStorage.getItem('idosoSelecionadoId') || null) : null;
       setSelecionado((prev) => {
-        if (prev && mapped.some((i) => i.id === prev)) return prev;
+        const candidate = (persisted && persisted !== '') ? persisted : prev;
+        if (candidate && mapped.some((i) => i.id === candidate)) return candidate;
         return mapped.length ? mapped[0].id : null;
       });
     } finally {
@@ -74,6 +76,17 @@ export function IdosoProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     refresh();
   }, [refresh]);
+
+  // Persiste a seleção entre sessões
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      if (selecionado) {
+        localStorage.setItem('idosoSelecionadoId', selecionado);
+      } else {
+        localStorage.removeItem('idosoSelecionadoId');
+      }
+    }
+  }, [selecionado]);
 
   const value: IdosoContextType = useMemo(() => ({
     listaIdososVinculados: lista,

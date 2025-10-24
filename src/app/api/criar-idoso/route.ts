@@ -110,6 +110,26 @@ export async function POST(request: NextRequest) {
 
     const idosoUser = newUser.user;
 
+    // Cria o perfil do idoso em 'perfis' para garantir exibição do nome na listagem
+    const { error: perfilInsertError } = await supabaseAdmin
+      .from('perfis')
+      .insert({
+        id: idosoUser.id,
+        user_id: idosoUser.id,
+        nome: nome,
+        tipo: 'idoso',
+      });
+
+    if (perfilInsertError) {
+      try {
+        await supabaseAdmin.auth.admin.deleteUser(idosoUser.id);
+      } catch {}
+      return NextResponse.json(
+        { success: false, message: `Erro ao criar perfil do idoso: ${perfilInsertError.message}` },
+        { status: 500, headers: corsHeaders }
+      );
+    }
+
     // Insere o vínculo familiar
     const { error: linkError } = await supabaseAdmin
       .from('vinculos_familiares')
