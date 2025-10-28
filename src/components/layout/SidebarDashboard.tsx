@@ -5,6 +5,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useProfile } from "@/contexts/ProfileContext";
 import { usePathname } from "next/navigation";
 import { IoHomeOutline, IoBarChartOutline, IoClipboardOutline, IoMedkitOutline, IoPersonOutline, IoSettingsOutline, IoLogOutOutline, IoPeopleOutline, IoCalendarOutline } from "react-icons/io5";
+import { Plug } from "lucide-react";
 import styles from "./SidebarDashboard.module.css";
 
 export default function SidebarDashboard({ collapsed }: { collapsed: boolean }) {
@@ -41,6 +42,7 @@ export default function SidebarDashboard({ collapsed }: { collapsed: boolean }) 
       <nav className={styles.nav}>
         <NavItem href={isFamiliar ? "/familiar-dashboard" : "/dashboard"} label="Dashboard" icon={IoHomeOutline} />
         <NavItem href="/relatorios" label="Relatórios" icon={IoBarChartOutline} />
+        <NavItem href="/integracoes" label="Integrações" icon={Plug} />
         <NavItem href="/rotinas" label="Rotinas" icon={IoClipboardOutline} />
         <NavItem href="/compromissos" label="Compromissos" icon={IoCalendarOutline} />
         <NavItem href="/remedios" label="Medicamentos" icon={IoMedkitOutline} />
