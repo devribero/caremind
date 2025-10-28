@@ -1,49 +1,80 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
-import { Radio } from "lucide-react";
+import { Radio, Home } from "lucide-react";
+import styles from "./page.module.css";
+import { createBrowserClient } from '@supabase/ssr';
+import { useState } from 'react';
 
 export default function IntegracoesPage() {
-  const handleConnectAlexa = () => {
-    console.log("Iniciando fluxo de conexão com a Alexa...");
-    alert('Função "Conectar Alexa" a ser implementada.');
+  const supabase = createBrowserClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!);
+  const [isLoading, setIsLoading] = useState(false);
+  const handleConnectAlexa = async () => {
+    setIsLoading(true);
+    try {
+      // Chama a Edge Function que acabamos de criar
+      const { data, error } = await supabase.functions.invoke('get-amazon-auth-url');
+      
+      if (error) throw error;
+      
+      // Se der certo, 'data.url' conterá a URL da Amazon
+      // Redireciona o navegador do usuário para o login da Amazon
+      window.location.href = data.url;
+    
+    } catch (error) {
+      console.error('Erro ao conectar com a Alexa:', error.message);
+      alert('Não foi possível iniciar a conexão com a Amazon. Tente novamente.');
+      setIsLoading(false);
+    }
+  };
+
+  const handleConnectGoogleHome = () => {
+    console.log("Iniciando fluxo de conexão com o Google Home...");
+    alert('Função "Conectar Google Home" a ser implementada.');
   };
 
   return (
-    <div className="space-y-6">
-      <h1 className="text-2xl font-bold tracking-tight">Integrações</h1>
-      <p className="text-lg text-gray-700">
-        Conecte o Caremind a outros aplicativos e dispositivos para automatizar sua rotina de cuidado.
-      </p>
+    <main className={styles.main}>
+      <div className={styles.content}>
+        <h1 className={styles.content_title}>Integrações</h1>
+        <p className={styles.subtitle}>
+          Conecte o Caremind a outros aplicativos e dispositivos para automatizar sua rotina de cuidado.
+        </p>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {/* Card da Alexa */}
-        <div className="rounded-lg border bg-white shadow-sm">
-          <div className="flex items-center justify-between p-4 border-b">
-            <h2 className="text-xl font-bold">Amazon Alexa</h2>
-            <Radio className="h-6 w-6 text-blue-600" />
-          </div>
-          <div className="p-4 flex flex-col gap-4">
-            <p className="text-sm text-gray-600">
-              Receba lembretes de voz e confirme medicamentos, rotinas e compromissos diretamente no seu dispositivo Echo.
-            </p>
-            <Button onClick={handleConnectAlexa} className="w-full">Conectar</Button>
-          </div>
-        </div>
+        <section className={styles.content_info}>
+          <div className={styles.grid}>
+            {/* Card da Alexa */}
+            <div className={styles.card}>
+              <div className={styles.cardHeader}>
+                <h2 className={styles.cardTitle}>Amazon Alexa</h2>
+                <Radio className="h-6 w-6" color="#0400BA" />
+              </div>
+              <div className={styles.cardContent}>
+                <p className={styles.cardDescription}>
+                  Receba lembretes de voz e confirme medicamentos, rotinas e compromissos diretamente no seu dispositivo Echo.
+                </p>
+                <Button size="lg" onClick={handleConnectAlexa} disabled={isLoading} className={`${styles.primaryButton} w-full`}>
+                  {isLoading ? 'Conectando...' : 'Conectar'}
+                </Button>
+              </div>
+            </div>
 
-        {/* Card Placeholder (Futuro) */}
-        <div className="rounded-lg border bg-gray-50 shadow-sm opacity-60">
-          <div className="flex items-center justify-between p-4 border-b">
-            <h2 className="text-lg font-medium text-gray-500">Google Agenda (em breve)</h2>
+            {/* Card do Google Home */}
+            <div className={styles.card}>
+              <div className={styles.cardHeader}>
+                <h2 className={styles.cardTitle}>Google Home</h2>
+                <Home className="h-6 w-6" color="#10b981" />
+              </div>
+              <div className={styles.cardContent}>
+                <p className={styles.cardDescription}>
+                  Use comandos de voz com o Google Assistente para acompanhar medicamentos, rotinas e compromissos.
+                </p>
+                <Button size="lg" onClick={handleConnectGoogleHome} className={`${styles.primaryButton} w-full`}>Conectar</Button>
+              </div>
+            </div>
           </div>
-          <div className="p-4">
-            <p className="text-sm text-gray-500 mb-4">
-              Sincronize seus compromissos e rotinas diretamente com o seu Google Agenda.
-            </p>
-            <Button disabled className="w-full">Conectar</Button>
-          </div>
-        </div>
+        </section>
       </div>
-    </div>
+    </main>
   );
 }
