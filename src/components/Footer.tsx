@@ -25,7 +25,6 @@ export function Footer() {
                             <ul>
                                 <li><Link href="/funcionalidades">Funcionalidades</Link></li>
                                 <li><Link href="/seguranca">Segurança</Link></li>
-                                <li><Link href="/integracoes">Integrações</Link></li>
                             </ul>
                         </nav>
                     </div>
