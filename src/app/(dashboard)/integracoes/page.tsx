@@ -1,7 +1,8 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
-import { Radio, Home, Loader2, CheckCircle } from "lucide-react";
+import { Home, Loader2, Check } from "lucide-react";
+import Image from "next/image";
 import styles from "./page.module.css";
 import { createBrowserClient } from '@supabase/ssr';
 import { useState, useEffect } from 'react';
@@ -117,59 +118,85 @@ export default function IntegracoesPage() {
           Conecte o Caremind a outros aplicativos e dispositivos para automatizar sua rotina de cuidado.
         </p>
 
-        {/* Debug elements - mantidos para referência, mas estilizados de forma discreta */}
-        <div className="hidden">
-          <div id="status">Status: {status || "indefinido"}</div>
-          <div id="message">Mensagem: {message || "nenhuma"}</div>
-        </div>
-
         <section className={styles.content_info}>
           <div className={styles.grid}>
             {/* Card da Alexa */}
             <div className={styles.card}>
               <div className={styles.cardHeader}>
                 <h2 className={styles.cardTitle}>Amazon Alexa</h2>
-                {isCheckingStatus ? (
-                  <Loader2 className="h-6 w-6 animate-spin" />
-                ) : alexaIntegration ? (
-                  <CheckCircle className="h-6 w-6 text-green-500" />
-                ) : (
-                  <Radio className="h-6 w-6" color="#0400BA" />
-                )}
+                <div className={styles.headerRight}>
+                  {isCheckingStatus ? (
+                    <Loader2 className={`${styles.statusIcon} text-blue-500 animate-spin`} />
+                  ) : alexaIntegration ? (
+                    <div className={styles.alexaLogo}>
+                      <Image 
+                        src="/images/alexa-logo.png" 
+                        alt="Alexa" 
+                        width={32} 
+                        height={32}
+                        className="object-contain"
+                      />
+                    </div>
+                  ) : (
+                    <div className={styles.alexaLogo}>
+                      <Image 
+                        src="/images/alexa-logo.png" 
+                        alt="Alexa" 
+                        width={32} 
+                        height={32}
+                        className="object-contain"
+                      />
+                    </div>
+                  )}
+                </div>
               </div>
               <div className={styles.cardContent}>
                 {isCheckingStatus ? (
-                  <div className="flex flex-col items-center justify-center py-4">
-                    <Loader2 className="h-8 w-8 animate-spin text-gray-500 mb-2" />
-                    <p className="text-sm text-gray-500">Verificando status da integração...</p>
+                  <div className={styles.loadingState}>
+                    <div className={styles.loadingSpinner} />
+                    <p className={styles.loadingText}>Verificando status da integração...</p>
                   </div>
                 ) : alexaIntegration ? (
-                  <>
+                  <div className={styles.connectedState}>
+                    <div className={styles.connectedBadge}>
+                      <Check className="w-4 h-4 text-green-600" />
+                      <span>Conectado</span>
+                    </div>
                     <p className={styles.cardDescription}>
-                      Sua conta está conectada.
+                      Sua conta está conectada. Receba lembretes de voz e confirmações no seu dispositivo Echo.
                     </p>
                     <Button 
                       size="lg" 
                       onClick={handleDisconnectAlexa} 
                       disabled={isLoadingAlexa} 
-                      variant="destructive"
-                      className="w-full"
+                      className={`${styles.disconnectButton} w-full mt-auto`}
+                      variant="outline"
                     >
-                      {isLoadingAlexa ? 'Desconectando...' : 'Desconectar'}
+                      {isLoadingAlexa ? (
+                        <>
+                          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                          Desconectando...
+                        </>
+                      ) : 'Desconectar'}
                     </Button>
-                  </>
+                  </div>
                 ) : (
                   <>
                     <p className={styles.cardDescription}>
-                      Receba lembretes de voz e confirme medicamentos, rotinas e compromissos diretamente no seu dispositivo Echo.
+                      Conecte sua conta para receber lembretes de voz e confirmações de cuidados no seu dispositivo Echo.
                     </p>
                     <Button 
                       size="lg" 
                       onClick={handleConnectAlexa} 
                       disabled={isLoadingAlexa} 
-                      className={`${styles.primaryButton} w-full`}
+                      className={`${styles.primaryButton} w-full mt-4`}
                     >
-                      {isLoadingAlexa ? 'Conectando...' : 'Conectar'}
+                      {isLoadingAlexa ? (
+                        <>
+                          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                          Conectando...
+                        </>
+                      ) : 'Conectar com Alexa'}
                     </Button>
                   </>
                 )}
