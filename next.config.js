@@ -77,10 +77,10 @@ const nextConfig = {
             // Disallow plugin/object embedding
             "object-src 'none'",
             // Allow only self for styles and allow inline attributes without enabling full unsafe-inline
-            "style-src 'self'",
+            "style-src 'self' https://fonts.googleapis.com",
             "style-src-attr 'unsafe-inline'",
             // Fonts and media
-            "font-src 'self' data:",
+            "font-src 'self' data: https://fonts.gstatic.com",
             "media-src 'self'",
             // Connect (APIs, websockets). Allow only self and Supabase host (https and wss)
             (() => {

@@ -96,7 +96,7 @@ html { background: linear-gradient(135deg, #a8b8ff 0%, #9b7eff 100%); }
   left: 0;
   width: 100%;
   height: 300px;
-  z-index: 1; /* acima do background, abaixo do conteúdo */
+  z-index: 1; /* above background, below content */
   pointer-events: none;
 }
 
@@ -107,7 +107,7 @@ html { background: linear-gradient(135deg, #a8b8ff 0%, #9b7eff 100%); }
   width: 100%;
   height: 100%;
   background-repeat: repeat-x;
-  background-size: 200% 100%;
+  background-size: 100% 100%;
   will-change: transform, background-position;
   animation: globalWaveDrift 18s linear infinite, globalWaveBob 6s ease-in-out infinite;
 }
@@ -129,6 +129,12 @@ html { background: linear-gradient(135deg, #a8b8ff 0%, #9b7eff 100%); }
   animation-delay: -8s, -2s;
 }
 
+.global-wave:nth-child(4) {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1200 120' preserveAspectRatio='none'%3E%3Cpath d='M0,85 C250,75 350,95 550,85 S850,75 1050,85 S1150,95 1200,85 L1200,120 L0,120 Z' fill='%230400BA' fill-opacity='0.15'/%3E%3C/svg%3E");
+  animation-duration: 35s, 10s;
+  animation-delay: -12s, -3s;
+}
+
 @keyframes globalWaveDrift {
   0% { background-position-x: 0; }
   100% { background-position-x: -100%; }
@@ -136,7 +142,7 @@ html { background: linear-gradient(135deg, #a8b8ff 0%, #9b7eff 100%); }
 
 @keyframes globalWaveBob {
   0% { transform: translateY(0); }
-  50% { transform: translateY(6px); }
+  50% { transform: translateY(8px); }
   100% { transform: translateY(0); }
 }
 

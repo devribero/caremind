@@ -6,6 +6,7 @@ export function Waves() {
       <div className="global-wave" />
       <div className="global-wave" />
       <div className="global-wave" />
+      <div className="global-wave" />
     </div>
   );
 }

@@ -48,7 +48,7 @@ export function Footer() {
                             <ul>
                                 <li><Link href="/sobre">Sobre</Link></li>
                                 <li><Link href="/blog">Blog</Link></li>
-                                <li><Link href="/privacidade">Privacidade</Link></li>
+                                <li><Link href="/politica-privacidade">Privacidade</Link></li>
                             </ul>
                         </nav>
                     </div>

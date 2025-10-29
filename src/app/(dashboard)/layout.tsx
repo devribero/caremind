@@ -6,6 +6,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { FullScreenLoader } from "@/components/FullScreenLoader";
 import { IdosoProvider } from "@/contexts/IdosoContext";
 import { useProfile } from "@/contexts/ProfileContext";
+import { Waves } from "@/components/Waves";
 
 export default function DashboardGroupLayout({ children }: { children: React.ReactNode }) {
   const { user, loading } = useAuth();
@@ -29,6 +30,7 @@ export default function DashboardGroupLayout({ children }: { children: React.Rea
   // mesmo quando a conta não for familiar (o provider já trata esse caso internamente).
   return (
     <IdosoProvider>
+      <Waves />
       <AppLayout>{children}</AppLayout>
     </IdosoProvider>
   );
