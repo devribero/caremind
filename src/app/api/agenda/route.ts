@@ -1,15 +1,24 @@
 import { NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
 
-const corsHeaders = {
-  'Access-Control-Allow-Origin': 'https://caremind.online',
-  'Vary': 'Origin',
-  'Access-Control-Allow-Methods': 'GET, OPTIONS',
-  'Access-Control-Allow-Headers': 'Content-Type, Authorization',
-};
+// CORS dinâmico para dev (localhost) e produção
+function buildCorsHeaders(request: Request) {
+  const origin = request.headers.get('origin') ?? '';
+  const allowedOrigins = new Set([
+    'https://caremind.online',
+    'http://localhost:3000',
+  ]);
+  const allowOrigin = allowedOrigins.has(origin) ? origin : 'https://caremind.online';
+  return {
+    'Access-Control-Allow-Origin': allowOrigin,
+    'Vary': 'Origin',
+    'Access-Control-Allow-Methods': 'GET, OPTIONS',
+    'Access-Control-Allow-Headers': 'Content-Type, Authorization',
+  } as Record<string, string>;
+}
 
-export async function OPTIONS() {
-  return new NextResponse(null, { status: 204, headers: corsHeaders });
+export async function OPTIONS(request: Request) {
+  return new NextResponse(null, { status: 204, headers: buildCorsHeaders(request) });
 }
 
 function getDayRange(dateStr?: string) {
@@ -31,19 +40,15 @@ export async function GET(request: Request) {
     const idosoId = url.searchParams.get('idoso_id');
     const dataStr = url.searchParams.get('data'); // YYYY-MM-DD opcional
 
-    let user = null as null | { id: string };
-    if (token) {
-      const { data } = await supabase.auth.getUser(token);
-      user = data?.user ?? null;
-    } else {
-      const { data } = await supabase.auth.getUser();
-      user = data.user ?? null;
-    }
+    // Obtém usuário a partir do contexto do Supabase
+    const { data: userData, error: userErr } = await supabase.auth.getUser();
+    if (userErr) throw userErr;
+    const user = userData?.user ?? null;
 
     if (!user) {
       return NextResponse.json(
         { erro: 'Usuário não autenticado' },
-        { status: 401, headers: corsHeaders }
+        { status: 401, headers: buildCorsHeaders(request) }
       );
     }
 
@@ -59,13 +64,15 @@ export async function GET(request: Request) {
       if (!autorizado) {
         return NextResponse.json(
           { erro: 'Acesso não autorizado ao idoso selecionado' },
-          { status: 403, headers: corsHeaders }
+          { status: 403, headers: buildCorsHeaders(request) }
         );
       }
       targetUserId = idosoId;
     }
 
-    const { start, end } = getDayRange(dataStr || undefined);
+    // Valida formato da data (YYYY-MM-DD)
+    const validDate = dataStr && /^\d{4}-\d{2}-\d{2}$/.test(dataStr) ? dataStr : undefined;
+    const { start, end } = getDayRange(validDate);
 
     // Consulta usando as colunas corretas do schema: data_prevista (tempo) e titulo (nome)
     const { data: eventos, error } = await supabase
@@ -80,7 +87,7 @@ export async function GET(request: Request) {
     // Normaliza saída para o frontend
     const out = (eventos ?? []).map((e: any) => ({
       id: e.id,
-      tipo_evento: e.tipo_evento,
+      tipo_evento: String(e.tipo_evento || '').toLowerCase(),
       evento_id: e.evento_id,
       evento: e.titulo, // mapeia para o campo esperado pelo frontend
       status: e.status,
@@ -89,12 +96,34 @@ export async function GET(request: Request) {
       horario_confirmacao: e.horario_confirmacao ?? null,
     }));
 
-    return NextResponse.json(out, { headers: corsHeaders });
+    return NextResponse.json(out, { headers: buildCorsHeaders(request) });
   } catch (error: unknown) {
     const message = error instanceof Error ? error.message : 'Falha ao obter agenda';
-    return NextResponse.json(
-      { erro: message },
-      { status: 500, headers: corsHeaders }
-    );
+    const anyErr = error as any;
+    const extra = {
+      code: anyErr?.code,
+      details: anyErr?.details,
+      hint: anyErr?.hint,
+    };
+    console.error('Erro em GET /api/agenda:', message, extra);
+    try {
+      const url = new URL(request.url);
+      return NextResponse.json(
+        {
+          erro: message,
+          supabase: extra,
+          params: {
+            idoso_id: url.searchParams.get('idoso_id'),
+            data: url.searchParams.get('data'),
+          },
+        },
+        { status: 500, headers: buildCorsHeaders(request) }
+      );
+    } catch {
+      return NextResponse.json(
+        { erro: message, supabase: extra },
+        { status: 500, headers: buildCorsHeaders(request) }
+      );
+    }
   }
 }
