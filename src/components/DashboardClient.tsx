@@ -277,7 +277,14 @@ export default function DashboardClient({ readOnly = false, idosoId }: { readOnl
                 headers: { 'Authorization': `Bearer ${token}` },
                 cache: 'no-store'
             });
-            if (!resposta.ok) throw new Error(`Erro HTTP! status: ${resposta.status}`);
+            if (!resposta.ok) {
+                let detalhe: string | undefined;
+                try {
+                    const body = await resposta.json();
+                    detalhe = body?.erro || body?.error;
+                } catch {}
+                throw new Error(detalhe ? `${detalhe} (status ${resposta.status})` : `Erro HTTP! status: ${resposta.status}`);
+            }
             const raw = await resposta.json();
             const itens: AgendaItem[] = (raw ?? []).map((e: any) => ({
                 id: e.id,
@@ -582,99 +589,95 @@ export default function DashboardClient({ readOnly = false, idosoId }: { readOnl
         setIsModalOpen(true);
     }, []);
 
-    // Alterna status de conclusão do medicamento (otimista)
+    // Alterna status de conclusão do medicamento usando histórico do dia
     const handleToggleStatus = useCallback(async (id: string, historicoEventoId?: string) => {
-        if (!historicoEventoId) {
-            console.warn('ID do histórico de evento não fornecido para o medicamento:', id);
+        let resolvedId = historicoEventoId;
+        if (!resolvedId) {
+            try {
+                const token = await getAuthToken();
+                if (!token) throw new Error('Sessão não encontrada');
+                const itens = await buscarAgenda(token);
+                const pend = itens.find(it => it.tipo_evento === 'medicamento' && it.evento_id === id && it.status !== 'confirmado');
+                const any = itens.find(it => it.tipo_evento === 'medicamento' && it.evento_id === id);
+                resolvedId = (pend || any)?.id;
+            } catch (e) {}
+        }
+        if (!resolvedId) {
+            console.warn('ID do histórico de evento não encontrado para o medicamento:', id);
             return;
         }
-        
-        // estado anterior para possível rollback
-        let previousState: MedicamentosData | null = null;
-        setMedicamentos(prev => {
-            previousState = prev;
-            const lista = prev.lista.map(m => m.id === id ? { ...m, concluido: !m.concluido } : m);
-            return {
-                ...prev,
-                lista,
-                concluidos: lista.filter(m => m.concluido).length,
-            };
-        });
 
         try {
             const token = await getAuthToken();
             if (!token) throw new Error('Sessão não encontrada');
-            const med = medicamentos.lista.find(m => m.id === id);
-            const novoStatus = med ? !med.concluido : true;
+            // Deriva o status atual a partir da agenda do dia
+            const concluidoHoje = agenda.some(it => it.tipo_evento === 'medicamento' && it.evento_id === id && it.status === 'confirmado');
+            const novoStatus = concluidoHoje ? 'pendente' : 'confirmado';
 
             // Usar o endpoint de histórico de eventos em vez do de medicamentos
-            const resposta = await fetch(`/api/historico_eventos/${historicoEventoId}`, {
+            const resposta = await fetch(`/api/historico_eventos/${resolvedId}`, {
                 method: 'PATCH',
                 headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
-                body: JSON.stringify({ status: novoStatus ? 'confirmado' : 'pendente' })
+                body: JSON.stringify({ status: novoStatus })
             });
 
             if (!resposta.ok) {
-                throw new Error('Falha ao atualizar status do histórico do medicamento');
+                let detalhe: string | undefined;
+                try { detalhe = (await resposta.json())?.erro; } catch {}
+                throw new Error(detalhe || 'Falha ao atualizar status do histórico do medicamento');
             }
 
             // Atualizar a agenda após a mudança
             carregarDados();
         } catch (erro) {
-            // rollback
-            if (previousState) {
-                setMedicamentos(previousState);
-            }
             handleApiError(erro, 'Erro ao atualizar status do medicamento');
         }
-    }, [getAuthToken, handleApiError, medicamentos.lista]);
+    }, [getAuthToken, handleApiError, agenda, carregarDados, buscarAgenda]);
 
-    // Alterna status de conclusão da rotina (otimista)
+    // Alterna status de conclusão da rotina usando histórico do dia
     const handleToggleRotinaStatus = useCallback(async (id: string, historicoEventoId?: string) => {
-        if (!historicoEventoId) {
-            console.warn('ID do histórico de evento não fornecido para a rotina:', id);
+        let resolvedId = historicoEventoId;
+        if (!resolvedId) {
+            try {
+                const token = await getAuthToken();
+                if (!token) throw new Error('Sessão não encontrada');
+                const itens = await buscarAgenda(token);
+                const pend = itens.find(it => it.tipo_evento === 'rotina' && it.evento_id === id && it.status !== 'confirmado');
+                const any = itens.find(it => it.tipo_evento === 'rotina' && it.evento_id === id);
+                resolvedId = (pend || any)?.id;
+            } catch (e) {}
+        }
+        if (!resolvedId) {
+            console.warn('ID do histórico de evento não encontrado para a rotina:', id);
             return;
         }
-        
-        // estado anterior para possível rollback
-        let previousState: RotinasData | null = null;
-        setRotinas(prev => {
-            previousState = prev;
-            const lista = prev.lista.map(r => r.id === id ? { ...r, concluido: !r.concluido } : r);
-            return {
-                ...prev,
-                lista,
-                concluidas: lista.filter(r => r.concluido).length,
-            };
-        });
 
         try {
             const token = await getAuthToken();
             if (!token) throw new Error('Sessão não encontrada');
-            const rot = rotinas.lista.find(r => r.id === id);
-            const novoStatus = rot ? !rot.concluido : true;
+            // Deriva o status atual a partir da agenda do dia
+            const concluidaHoje = agenda.some(it => it.tipo_evento === 'rotina' && it.evento_id === id && it.status === 'confirmado');
+            const novoStatus = concluidaHoje ? 'pendente' : 'confirmado';
 
             // Usar o endpoint de histórico de eventos em vez do de rotinas
-            const resposta = await fetch(`/api/historico_eventos/${historicoEventoId}`, {
+            const resposta = await fetch(`/api/historico_eventos/${resolvedId}`, {
                 method: 'PATCH',
                 headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
-                body: JSON.stringify({ status: novoStatus ? 'confirmado' : 'pendente' })
+                body: JSON.stringify({ status: novoStatus })
             });
 
             if (!resposta.ok) {
-                throw new Error('Falha ao atualizar status do histórico da rotina');
+                let detalhe: string | undefined;
+                try { detalhe = (await resposta.json())?.erro; } catch {}
+                throw new Error(detalhe || 'Falha ao atualizar status do histórico da rotina');
             }
 
             // Atualizar a agenda após a mudança
             carregarDados();
         } catch (erro) {
-            // rollback
-            if (previousState) {
-                setRotinas(previousState);
-            }
             handleApiError(erro, 'Erro ao atualizar status da rotina');
         }
-    }, [getAuthToken, handleApiError, rotinas.lista]);
+    }, [getAuthToken, handleApiError, agenda, carregarDados, buscarAgenda]);
 
     // Dados focados no dia
     const medsHoje = useMemo(() => {
@@ -700,6 +703,19 @@ export default function DashboardClient({ readOnly = false, idosoId }: { readOnl
     const alertasPendentes = useMemo(() => dosesOmitidas.length + estoqueBaixo.length, [dosesOmitidas.length, estoqueBaixo.length]);
 
     const agendaDoDia = useMemo(() => agenda, [agenda]);
+
+    // Localiza o ID do histórico correspondente a um medicamento/rotina na agenda
+    const getHistoricoIdForMedicamento = useCallback((medId: string): string | undefined => {
+        const itens = agendaDoDia.filter(it => it.tipo_evento === 'medicamento' && it.evento_id === medId);
+        const pendente = itens.find(it => it.status !== 'confirmado');
+        return (pendente || itens[0])?.id;
+    }, [agendaDoDia]);
+
+    const getHistoricoIdForRotina = useCallback((rotinaId: string): string | undefined => {
+        const itens = agendaDoDia.filter(it => it.tipo_evento === 'rotina' && it.evento_id === rotinaId);
+        const pendente = itens.find(it => it.status !== 'confirmado');
+        return (pendente || itens[0])?.id;
+    }, [agendaDoDia]);
 
     const getStatusBadge = useCallback((status: string, horario?: Date) => {
         if (status === 'confirmado') return 'concluido';
@@ -844,23 +860,25 @@ export default function DashboardClient({ readOnly = false, idosoId }: { readOnl
                         <p className={styles.empty_list}>Nenhum medicamento para hoje.</p>
                     ) : (
                         <ul className={styles.list}>
-                            {medsHoje.map(m => (
-                                <li key={m.id} className={`${styles.list_item} ${m.concluido ? styles.completed : ''}`}>
+                            {medsHoje.map(m => {
+                                const isDone = agendaDoDia.some(it => it.tipo_evento === 'medicamento' && it.evento_id === m.id && it.status === 'confirmado');
+                                return (
+                                <li key={m.id} className={`${styles.list_item} ${isDone ? styles.completed : ''}`}>
                                     <div className={styles.item_info}>
                                         <strong>{m.nome}</strong>
                                         {m.dosagem ? <span>{m.dosagem}</span> : null}
                                         <span className={styles.frequencia}>{formatarFrequencia(m.frequencia)}</span>
                                     </div>
                                     <div className={styles.item_actions}>
-                                        <button
-                                            className={`${styles.statusButton} ${m.concluido ? styles.completed : ''}`}
-                                            onClick={() => handleToggleStatus(m.id)}
+                                        <button type="button"
+                                            className={`${styles.statusButton} ${isDone ? styles.completed : ''}`}
+                                            onClick={() => handleToggleStatus(m.id, getHistoricoIdForMedicamento(m.id))}
                                         >
-                                            {m.concluido ? 'Desfazer' : 'Concluir'}
+                                            {isDone ? 'Desfazer' : 'Concluir'}
                                         </button>
                                     </div>
                                 </li>
-                            ))}
+                            );})}
                         </ul>
                     )}
                 </div>
@@ -873,23 +891,25 @@ export default function DashboardClient({ readOnly = false, idosoId }: { readOnl
                         <p className={styles.empty_list}>Nenhuma rotina para hoje.</p>
                     ) : (
                         <ul className={styles.list}>
-                            {rotinasHoje.map(r => (
-                                <li key={r.id} className={`${styles.list_item} ${r.concluido ? styles.completed : ''}`}>
+                            {rotinasHoje.map(r => {
+                                const isDone = agendaDoDia.some(it => it.tipo_evento === 'rotina' && it.evento_id === r.id && it.status === 'confirmado');
+                                return (
+                                <li key={r.id} className={`${styles.list_item} ${isDone ? styles.completed : ''}`}>
                                     <div className={styles.item_info}>
                                         <strong>{r.titulo || 'Rotina'}</strong>
                                         {r.descricao ? <span>{r.descricao}</span> : null}
                                         {r.frequencia ? <span className={styles.frequencia}>{formatarFrequencia(r.frequencia as any)}</span> : null}
                                     </div>
                                     <div className={styles.item_actions}>
-                                        <button
-                                            className={`${styles.statusButton} ${r.concluido ? styles.completed : ''}`}
-                                            onClick={() => handleToggleRotinaStatus(r.id)}
+                                        <button type="button"
+                                            className={`${styles.statusButton} ${isDone ? styles.completed : ''}`}
+                                            onClick={() => handleToggleRotinaStatus(r.id, getHistoricoIdForRotina(r.id))}
                                         >
-                                            {r.concluido ? 'Desfazer' : 'Concluir'}
+                                            {isDone ? 'Desfazer' : 'Concluir'}
                                         </button>
                                     </div>
                                 </li>
-                            ))}
+                            );})}
                         </ul>
                     )}
                 </div>

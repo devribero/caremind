@@ -16,6 +16,7 @@ export default function IntegracoesPage() {
   const [isLoadingAlexa, setIsLoadingAlexa] = useState(false);
   const [status, setStatus] = useState<string | null>(null);
   const [message, setMessage] = useState<string | null>(null);
+  const [isLoadingGoogle, setIsLoadingGoogle] = useState(false);
   const searchParams = useSearchParams();
 
   const fetchIntegrationStatus = async () => {
@@ -105,9 +106,23 @@ export default function IntegracoesPage() {
     }
   };
 
-  const handleConnectGoogleHome = () => {
-    console.log("Iniciando fluxo de conexão com o Google Home...");
-    toast.info('Função "Conectar Google Home" a ser implementada.');
+  const handleConnectGoogleHome = async () => {
+    setIsLoadingGoogle(true);
+    try {
+      const { error } = await supabase.auth.signInWithOAuth({
+        provider: 'google',
+        options: {
+          scopes: 'https://www.googleapis.com/auth/calendar.events',
+        },
+      });
+
+      if (error) throw error;
+      // Redirecionamento será feito automaticamente pelo Supabase
+    } catch (err) {
+      console.error('Erro ao conectar Google:', err);
+      toast.error('Não foi possível iniciar a conexão com o Google');
+      setIsLoadingGoogle(false);
+    }
   };
 
   return (
@@ -207,13 +222,28 @@ export default function IntegracoesPage() {
             <div className={styles.card}>
               <div className={styles.cardHeader}>
                 <h2 className={styles.cardTitle}>Google Home</h2>
-                <Home className="h-6 w-6" color="#10b981" />
+                <div className={styles.alexaLogo}>
+                      <Image 
+                        src="/images/google_home-logo.png" 
+                        alt="Google" 
+                        width={32} 
+                        height={32}
+                        className="object-contain"
+                      />
+                    </div>
               </div>
               <div className={styles.cardContent}>
                 <p className={styles.cardDescription}>
                   Use comandos de voz com o Google Assistente para acompanhar medicamentos, rotinas e compromissos.
                 </p>
-                <Button size="lg" onClick={handleConnectGoogleHome} className={`${styles.primaryButton} w-full`}>Conectar</Button>
+                <Button size="lg" onClick={handleConnectGoogleHome} disabled={isLoadingGoogle} className={`${styles.primaryButton} w-full`}>
+                  {isLoadingGoogle ? (
+                    <>
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      Conectando...
+                    </>
+                  ) : 'Conectar'}
+                </Button>
               </div>
             </div>
           </div>
