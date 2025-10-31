@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useCallback, useRef } from 'react';
+import { normalizeError } from '@/utils/errors';
 
 interface ApiRequestState<T> {
   data: T | null;
@@ -33,10 +34,11 @@ export function useApiRequest<T = any>(options: UseApiRequestOptions = {}) {
       optionsRef.current.onSuccess?.(data);
       return data;
     } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : 'Erro inesperado';
+      const normalized = normalizeError(error);
+      const errorMessage = normalized.message;
       setState(prev => ({ ...prev, loading: false, error: errorMessage }));
       optionsRef.current.onError?.(errorMessage);
-      throw error;
+      throw normalized;
     }
   }, []); // Dependências vazias, usa optionsRef
 

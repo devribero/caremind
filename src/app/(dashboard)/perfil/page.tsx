@@ -9,6 +9,7 @@ import Image from 'next/image';
 import { useAuth } from '@/contexts/AuthContext';
 import { useAuthRequest } from '@/hooks/useAuthRequest';
 import { EditProfileModal } from '@/components/EditProfileModal';
+import { toast } from '@/components/Toast';
 // Elders management moved to /familia
 
 // --- DEFINIÇÃO DE TIPOS ---
@@ -248,7 +249,8 @@ export default function Perfil() {
             return true;
         } catch (error) {
             console.error('Erro ao salvar perfil:', error);
-            throw error;
+            const { normalizeError } = await import('@/utils/errors');
+            throw normalizeError(error, 'Erro ao salvar perfil');
         }
     }, [user, makeRequest]);
 
@@ -310,7 +312,7 @@ export default function Perfil() {
                 detail: { photoUrl: publicUrl } 
             }));
             
-            alert('Foto de perfil atualizada com sucesso!');
+            toast.success('Foto de perfil atualizada com sucesso!');    
         } catch (err: any) {
             console.error('Erro ao enviar/atualizar foto:', err);
             if (err?.message?.toLowerCase?.().includes('bucket not found')) {

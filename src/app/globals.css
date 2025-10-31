@@ -130,7 +130,7 @@ html { background: linear-gradient(135deg, #a8b8ff 0%, #9b7eff 100%); }
 }
 
 .global-wave:nth-child(4) {
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1200 120' preserveAspectRatio='none'%3E%3Cpath d='M0,85 C250,75 350,95 550,85 S850,75 1050,85 S1150,95 1200,85 L1200,120 L0,120 Z' fill='%230400BA' fill-opacity='0.15'/%3E%3C/svg%3E");
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3 .org/2000/svg' viewBox='0 0 1200 120' preserveAspectRatio='none'%3E%3Cpath d='M0,85 C250,75 350,95 550,85 S850,75 1050,85 S1150,95 1200,85 L1200,120 L0,120 Z' fill='%230400BA' fill-opacity='0.15'/%3E%3C/svg%3E");
   animation-duration: 35s, 10s;
   animation-delay: -12s, -3s;
 }

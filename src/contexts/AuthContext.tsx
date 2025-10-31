@@ -5,6 +5,7 @@
 import { createContext, useContext, useEffect, useState, ReactNode, useMemo } from 'react';
 import { createClient } from '@/lib/supabase/client'; 
 import { User, Session, AuthResponse, AuthError } from '@supabase/supabase-js';
+import { normalizeError } from '@/utils/errors';
 
 interface AuthContextType {
   user: User | null;
@@ -193,7 +194,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       return authResponse;
     } catch (error) {
       console.error('Erro inesperado no signUp:', error);
-      throw error;
+      throw normalizeError(error);
     }
   };
 
@@ -215,7 +216,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       }
     } catch (error) {
       console.error('Erro inesperado ao fazer logout:', error);
-      throw error;
+      throw normalizeError(error);
     }
   };
 

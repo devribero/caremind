@@ -4,6 +4,7 @@ import { LoadingProvider } from "@/contexts/LoadingContext";
 import { ProfileProvider } from "@/contexts/ProfileContext";
 import { Waves } from "@/components/Waves";
 import { ToastContainer } from "@/components/Toast";
+import { DevUnhandledRejectionLogger } from "@/components/DevUnhandledRejectionLogger";
 import "./globals.css";
 
 export const metadata: Metadata = {
@@ -25,6 +26,7 @@ export default function RootLayout({
         <AuthProvider>
           <LoadingProvider>
             <ProfileProvider>
+              <DevUnhandledRejectionLogger />
               <Waves />
               {children}
               <ToastContainer />

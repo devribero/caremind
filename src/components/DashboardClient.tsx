@@ -12,7 +12,7 @@ import { ConfirmDialog } from './ConfirmDialog';
 import { AddMedicamentoForm } from './forms/AddMedicamentoForm';
 import { AddRotinaForm } from './forms/AddRotinaForm';
 import { useLoading } from '@/contexts/LoadingContext';
-import { FiPlus, FiAlertTriangle, FiClock } from 'react-icons/fi';
+import { FiPlus, FiAlertTriangle, FiClock, FiEdit2, FiTrash2 } from 'react-icons/fi';
 
 // ===== TIPOS DE DADOS =====
 
@@ -256,7 +256,8 @@ export default function DashboardClient({ readOnly = false, idosoId }: { readOnl
             return await resposta.json();
         } catch (erro) {
             console.error('Falha ao buscar medicamentos:', erro);
-            throw erro;
+            const { normalizeError } = await import('@/utils/errors');
+            throw normalizeError(erro, 'Falha ao buscar medicamentos');
         }
     }, [idosoId]);
 
@@ -273,7 +274,8 @@ export default function DashboardClient({ readOnly = false, idosoId }: { readOnl
             return await resposta.json();
         } catch (erro) {
             console.error('Falha ao buscar rotinas:', erro);
-            throw erro;
+            const { normalizeError } = await import('@/utils/errors');
+            throw normalizeError(erro, 'Falha ao buscar rotinas');
         }
     }, [idosoId]);
 
@@ -319,7 +321,8 @@ export default function DashboardClient({ readOnly = false, idosoId }: { readOnl
             return itens;
         } catch (erro) {
             console.error('Falha ao buscar agenda:', erro);
-            throw erro;
+            const { normalizeError } = await import('@/utils/errors');
+            throw normalizeError(erro, 'Falha ao buscar agenda');
         }
     }, [idosoId]);
 
@@ -550,9 +553,12 @@ export default function DashboardClient({ readOnly = false, idosoId }: { readOnl
             });
 
             if (!resposta.ok) throw new Error('Falha ao excluir o item');
+            
+            // Recarrega os dados após excluir com sucesso
+            await carregarDados();
         } catch (erro) {
             handleApiError(erro, 'Erro ao excluir item');
-            carregarDados(); // Recarrega os dados em caso de falha
+            await carregarDados(); // Recarrega os dados em caso de falha
         } finally {
             setConfirmDialog({ isOpen: false, title: '', message: '', onConfirm: null });
         }
@@ -590,10 +596,11 @@ export default function DashboardClient({ readOnly = false, idosoId }: { readOnl
                 await criarMedicamento(data);
             }
             closeModal();
+            await carregarDados(); // Recarrega os dados após salvar
         } catch (erro) {
             handleApiError(erro, `Erro ao ${isEditing ? 'atualizar' : 'criar'} medicamento`);
         }
-    }, [isEditing, currentMedicamento, atualizarMedicamento, criarMedicamento, closeModal, handleApiError]);
+    }, [isEditing, currentMedicamento, atualizarMedicamento, criarMedicamento, closeModal, handleApiError, carregarDados]);
 
     // Lida com o salvamento de rotina
     const handleSaveRotina = useCallback(async (titulo: string, descricao: string, frequencia: any) => {
@@ -611,11 +618,20 @@ export default function DashboardClient({ readOnly = false, idosoId }: { readOnl
                 await criarRotina(data);
             }
             closeModal();
+            await carregarDados(); // Recarrega os dados após salvar
         } catch (erro) {
             handleApiError(erro, `Erro ao ${isEditing ? 'atualizar' : 'criar'} rotina`);
         }
-    }, [isEditing, currentRotina, criarRotina, atualizarRotina, closeModal, handleApiError]);
+    }, [isEditing, currentRotina, criarRotina, atualizarRotina, closeModal, handleApiError, carregarDados]);
     
+    // Lida com a edição de medicamento
+    const handleEditMedicamento = useCallback((medicamento: Medicamento) => {
+        setCurrentMedicamento(medicamento);
+        setModalType('medicamento');
+        setIsEditing(true);
+        setIsModalOpen(true);
+    }, []);
+
     // Lida com a edição de rotina
     const handleEditRotina = useCallback((rotina: Rotina) => {
         setCurrentRotina(rotina);
@@ -905,6 +921,28 @@ export default function DashboardClient({ readOnly = false, idosoId }: { readOnl
                                         <span className={styles.frequencia}>{formatarFrequencia(m.frequencia)}</span>
                                     </div>
                                     <div className={styles.item_actions}>
+                                        {!readOnly && (
+                                            <>
+                                                <button 
+                                                    type="button"
+                                                    className={styles.iconButton}
+                                                    onClick={() => handleEditMedicamento(m)}
+                                                    aria-label="Editar medicamento"
+                                                    title="Editar"
+                                                >
+                                                    <FiEdit2 size={16} />
+                                                </button>
+                                                <button 
+                                                    type="button"
+                                                    className={`${styles.iconButton} ${styles.deleteButton}`}
+                                                    onClick={() => confirmarExclusao('medicamentos', m.id)}
+                                                    aria-label="Excluir medicamento"
+                                                    title="Excluir"
+                                                >
+                                                    <FiTrash2 size={16} />
+                                                </button>
+                                            </>
+                                        )}
                                         <button type="button"
                                             className={`${styles.statusButton} ${isDone ? styles.completed : ''}`}
                                             onClick={() => handleToggleStatus(m.id, getHistoricoIdForMedicamento(m.id))}
@@ -936,6 +974,28 @@ export default function DashboardClient({ readOnly = false, idosoId }: { readOnl
                                         {r.frequencia ? <span className={styles.frequencia}>{formatarFrequencia(r.frequencia as any)}</span> : null}
                                     </div>
                                     <div className={styles.item_actions}>
+                                        {!readOnly && (
+                                            <>
+                                                <button 
+                                                    type="button"
+                                                    className={styles.iconButton}
+                                                    onClick={() => handleEditRotina(r)}
+                                                    aria-label="Editar rotina"
+                                                    title="Editar"
+                                                >
+                                                    <FiEdit2 size={16} />
+                                                </button>
+                                                <button 
+                                                    type="button"
+                                                    className={`${styles.iconButton} ${styles.deleteButton}`}
+                                                    onClick={() => confirmarExclusao('rotinas', r.id)}
+                                                    aria-label="Excluir rotina"
+                                                    title="Excluir"
+                                                >
+                                                    <FiTrash2 size={16} />
+                                                </button>
+                                            </>
+                                        )}
                                         <button type="button"
                                             className={`${styles.statusButton} ${isDone ? styles.completed : ''}`}
                                             onClick={() => handleToggleRotinaStatus(r.id, getHistoricoIdForRotina(r.id))}

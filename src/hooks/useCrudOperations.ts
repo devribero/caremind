@@ -5,6 +5,7 @@ import { toast } from '@/components/Toast';
 import { useAuthRequest } from './useAuthRequest';
 import { useModalState } from './useModalState';
 import { useOptimisticUpdates } from './useOptimisticUpdates';
+import { normalizeError } from '@/utils/errors';
 
 interface CrudOperationsConfig<T extends { id: string | number }> {
   endpoint: string;
@@ -68,9 +69,9 @@ export function useCrudOperations<T extends { id: string | number }>(
       addModal.close();
       config.onSuccess?.create?.(newItem);
     } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : 'Erro ao criar item';
-      config.onError?.create?.(errorMessage);
-      throw err;
+      const normalized = normalizeError(err, 'Erro ao criar item');
+      config.onError?.create?.(normalized.message);
+      throw normalized;
     }
   }, [makeRequest, config.endpoint, config.onSuccess?.create, config.onError?.create, addModal]);
 
@@ -102,9 +103,9 @@ export function useCrudOperations<T extends { id: string | number }>(
         }
       );
     } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : 'Erro ao atualizar item';
-      config.onError?.update?.(errorMessage);
-      throw err;
+      const normalized = normalizeError(err, 'Erro ao atualizar item');
+      config.onError?.update?.(normalized.message);
+      throw normalized;
     }
   }, [items, makeRequest, config.endpoint, executeOptimisticUpdate, editModal, config.onSuccess?.update, config.onError?.update]);
 
@@ -142,9 +143,9 @@ export function useCrudOperations<T extends { id: string | number }>(
         }
       );
     } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : 'Erro ao excluir item';
-      config.onError?.delete?.(errorMessage);
-      throw err;
+      const normalized = normalizeError(err, 'Erro ao excluir item');
+      config.onError?.delete?.(normalized.message);
+      throw normalized;
     }
   }, [items, makeRequest, config.endpoint, executeOptimisticUpdate, config.onSuccess?.delete, config.onError?.delete]);
 
