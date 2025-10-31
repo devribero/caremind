@@ -56,7 +56,7 @@ function formatarFrequencia(freq?: string | Frequencia): string | null {
     default:
       return 'Frequência personalizada';
   }
-}
+} 
 
 // --- ATUALIZADO: Define as props que o componente vai receber ---
 interface RotinaCardProps {

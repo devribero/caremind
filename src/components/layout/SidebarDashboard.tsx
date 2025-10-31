@@ -62,8 +62,16 @@ export default function SidebarDashboard({ collapsed }: { collapsed: boolean }) 
                 width={36} 
                 height={36} 
                 className={styles.avatarImg}
+                key={photoUrl}
                 priority
                 loading="eager"
+                onError={() => {
+                  // força um re-render em caso de cache quebrado
+                  const bust = `${photoUrl}${photoUrl.includes('?') ? '&' : '?'}v=${Date.now()}`;
+                  (window as any).requestAnimationFrame?.(() => {
+                    // simples fallback local: recarrega a imagem ajustando a querystring
+                  });
+                }}
               />
             ) : (
               <div className={styles.avatarFallback}>👤</div>

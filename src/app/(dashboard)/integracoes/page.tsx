@@ -17,6 +17,10 @@ export default function IntegracoesPage() {
   const [status, setStatus] = useState<string | null>(null);
   const [message, setMessage] = useState<string | null>(null);
   const [isLoadingGoogle, setIsLoadingGoogle] = useState(false);
+  
+  // (Opcional) Você pode adicionar um estado para o Google se quiser mostrar "Conectado"
+  // const [googleIntegration, setGoogleIntegration] = useState<any>(null);
+
   const searchParams = useSearchParams();
 
   const fetchIntegrationStatus = async () => {
@@ -34,6 +38,8 @@ export default function IntegracoesPage() {
       if (data) {
         setAlexaIntegration(data);
       }
+      // (Opcional) Aqui você também pode buscar o status do Google
+      // const { data: googleData } = await supabase.from('user_integrations')...
     } catch (error) {
       console.error('Erro ao verificar status da integração:', error);
       toast.error('Não foi possível verificar o status da integração com a Alexa');
@@ -66,6 +72,62 @@ export default function IntegracoesPage() {
     window.history.replaceState(null, '', '/integracoes');
   }, [searchParams]);
 
+  // NOVO useEffect para salvar o Token do Google
+  useEffect(() => {
+    // "Ouve" eventos de autenticação
+    const { data: authListener } = supabase.auth.onAuthStateChange(
+      async (event, session) => {
+        
+        // Checa se o usuário acabou de fazer login (SIGNED_IN)
+        // E se foi um login com provedor que tem um refresh token
+        if (event === 'SIGNED_IN' && session?.provider_refresh_token && session.user) {
+          
+          // Verifica se o provedor é Google
+          const userProvider = session.user.app_metadata.provider;
+  
+          if (userProvider === 'google') {
+            console.log('Detectado login com Google. Salvando tokens...');
+            
+            // Prepara os dados para salvar na sua tabela
+            const integrationData = {
+              user_id: session.user.id,
+              provider: 'google', // Salva como 'google'
+              access_token: session.access_token,
+              refresh_token: session.provider_refresh_token,
+              expires_at: new Date(Date.now() + (session.expires_in! * 1000)).toISOString(),
+              status: 'connected', // Você pode usar o campo 'status'
+            };
+  
+            // Salva ou atualiza (upsert) na sua tabela 'user_integrations'
+            // Garanta que você tenha uma política RLS para 'insert' e 'update'
+            // ou use uma 'edge function' para fazer isso com 'service_role'
+            const { error } = await supabase
+              .from('user_integrations')
+              .upsert(integrationData, {
+                onConflict: 'user_id, provider', // Evita duplicatas
+              });
+  
+            if (error) {
+              console.error('Erro ao salvar token do Google:', error);
+              toast.error('Erro ao salvar integração com Google.');
+            } else {
+              console.log('Integração com Google salva com sucesso!');
+              toast.success('Conectado com o Google Home!');
+              // (Opcional) Chame o fetchIntegrationStatus() para atualizar a UI
+              // fetchIntegrationStatus(); 
+            }
+          }
+        }
+      }
+    );
+  
+    // Limpa o listener
+    return () => {
+	  authListener?.subscription.unsubscribe();
+    };
+  }, [supabase]); // Adiciona 'supabase' como dependência
+
+
   const handleConnectAlexa = async () => {
     setIsLoadingAlexa(true);
     try {
@@ -73,8 +135,6 @@ export default function IntegracoesPage() {
 
       if (error) throw new Error(typeof error === 'string' ? error : JSON.stringify(error));
 
-      // Se der certo, 'data.url' conterá a URL da Amazon
-      // Redireciona o navegador do usuário para o login da Amazon
       window.location.href = data.url;
     
     } catch (err) {
@@ -106,13 +166,18 @@ export default function IntegracoesPage() {
     }
   };
 
+  // FUNÇÃO ATUALIZADA
   const handleConnectGoogleHome = async () => {
     setIsLoadingGoogle(true);
     try {
       const { error } = await supabase.auth.signInWithOAuth({
         provider: 'google',
         options: {
-          scopes: 'https://www.googleapis.com/auth/calendar.events',
+          scopes: 'https://www.googleapis.com/auth/userinfo.email https://www.googleapis.com/auth/userinfo.profile https://www.googleapis.com/auth/calendar.events',
+          queryParams: {
+            access_type: 'offline', // para obter refresh_token
+            prompt: 'consent',      // força o consentimento e emite refresh_token
+          },
         },
       });
 
@@ -135,7 +200,7 @@ export default function IntegracoesPage() {
 
         <section className={styles.content_info}>
           <div className={styles.grid}>
-            {/* Card da Alexa */}
+            {/* Card da Alexa (sem alterações) */}
             <div className={styles.card}>
               <div className={styles.cardHeader}>
                 <h2 className={styles.cardTitle}>Amazon Alexa</h2>
@@ -218,7 +283,7 @@ export default function IntegracoesPage() {
               </div>
             </div>
 
-            {/* Card do Google Home */}
+            {/* Card do Google Home (sem alterações visuais) */}
             <div className={styles.card}>
               <div className={styles.cardHeader}>
                 <h2 className={styles.cardTitle}>Google Home</h2>
@@ -236,6 +301,9 @@ export default function IntegracoesPage() {
                 <p className={styles.cardDescription}>
                   Use comandos de voz com o Google Assistente para acompanhar medicamentos, rotinas e compromissos.
                 </p>
+                {/* (Opcional) Você pode adicionar uma lógica aqui para mostrar 
+                  "Conectado" ou "Desconectar" se 'googleIntegration' estiver definido 
+                */}
                 <Button size="lg" onClick={handleConnectGoogleHome} disabled={isLoadingGoogle} className={`${styles.primaryButton} w-full`}>
                   {isLoadingGoogle ? (
                     <>

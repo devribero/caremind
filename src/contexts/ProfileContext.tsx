@@ -113,6 +113,35 @@ export function ProfileProvider({ children }: { children: ReactNode }) {
     return () => window.removeEventListener('storage', handleStorageChange);
   }, [user?.id, fetchOrCreateProfile]);
 
+  // Ouve eventos internos para atualização imediata da foto do perfil
+  useEffect(() => {
+    const handleProfilePhotoUpdated = (e: any) => {
+      const newUrl: string | undefined = e?.detail?.photoUrl;
+      if (!newUrl) {
+        fetchOrCreateProfile();
+        return;
+      }
+      const cacheBusted = `${newUrl}${newUrl.includes('?') ? '&' : '?'}v=${Date.now()}`;
+      setPhotoUrl(cacheBusted);
+
+      // Atualiza cache do perfil se existir
+      if (user?.id && typeof window !== 'undefined') {
+        const cacheKey = `profile_${user.id}`;
+        try {
+          const cached = sessionStorage.getItem(cacheKey);
+          if (cached) {
+            const parsed = JSON.parse(cached);
+            parsed.foto_usuario = newUrl;
+            sessionStorage.setItem(cacheKey, JSON.stringify(parsed));
+          }
+        } catch {}
+      }
+    };
+
+    window.addEventListener('profilePhotoUpdated', handleProfilePhotoUpdated as any);
+    return () => window.removeEventListener('profilePhotoUpdated', handleProfilePhotoUpdated as any);
+  }, [user?.id, fetchOrCreateProfile]);
+
   const value: ProfileContextValue = useMemo(() => ({
     profile,
     photoUrl,

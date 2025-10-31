@@ -118,9 +118,9 @@ export default function CompromissosPage() {
           .map((c) => (
             <div key={c.id} style={{ border: '1px solid #e5e7eb', borderRadius: 12, padding: 14, background: 'white' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                <h3 style={{ margin: 0, fontSize: 18 }}>{c.titulo}</h3>
+                <h3 style={{ margin: 0, fontSize: 18, color: 'black', }}>{c.titulo}</h3>
                 <div style={{ display: 'flex', gap: 8 }}>
-                  <button onClick={() => editItem(c)} style={{ padding: '6px 10px', borderRadius: 8, border: '1px solid #e5e7eb', background: 'white' }}>Editar</button>
+                  <button onClick={() => editItem(c)} style={{ padding: '6px 10px', borderRadius: 8, border: '1px solid #e5e7eb', background: '#f3f4f6', color: 'black' }}>Editar</button>
                   <button onClick={() => deleteItem(c.id)} style={{ padding: '6px 10px', borderRadius: 8, border: '1px solid #fecaca', background: '#fef2f2', color: '#b91c1c' }}>Excluir</button>
                 </div>
               </div>

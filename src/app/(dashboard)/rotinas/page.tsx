@@ -18,7 +18,7 @@ import { toast } from '@/components/Toast';
 // Estilos
 import styles from './page.module.css';
 
-type Rotina = {
+type Rotina = { 
   id: string;
   titulo: string;
   descricao?: string;

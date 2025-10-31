@@ -44,7 +44,14 @@ export function ClientAreaHeader() {
         <div className={styles.profileContainer} ref={profileMenuRef}>
           <button className={styles.profileButton} onClick={() => setIsProfileOpen((v) => !v)} aria-haspopup="menu" aria-expanded={isProfileOpen}>
             {photoUrl ? (
-              <Image src={photoUrl} alt="Foto de perfil" width={28} height={28} className={styles.profilePicture} />
+              <Image 
+                src={photoUrl} 
+                alt="Foto de perfil" 
+                width={28} 
+                height={28} 
+                className={styles.profilePicture}
+                key={photoUrl}
+              />
             ) : (
               <IoPersonCircleOutline className={styles.person} size={28} />
             )}
