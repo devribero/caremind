@@ -147,6 +147,7 @@ export default function DashboardClient({ readOnly = false, idosoId }: { readOnl
     // Dados do usuário logado
     const { user } = useAuth();
     const alertsRef = useRef<HTMLDivElement>(null);
+    const pendingControllers = useRef<AbortController[]>([]);
 
     // ===== FUNÇÕES PARA MANIPULAR O MODAL =====
     
@@ -236,14 +237,22 @@ export default function DashboardClient({ readOnly = false, idosoId }: { readOnl
     // ===== FUNÇÕES PARA BUSCAR DADOS =====
     
     // Busca a lista de medicamentos da API
-    const buscarMedicamentos = useCallback(async (token: string): Promise<Medicamento[]> => {
+    const buscarMedicamentos = useCallback(async (token: string, signal?: AbortSignal): Promise<Medicamento[]> => {
         try {
             const url = '/api/medicamentos' + (idosoId ? `?idoso_id=${encodeURIComponent(idosoId)}` : '');
             const resposta = await fetch(url, {
                 headers: { 'Authorization': `Bearer ${token}` },
-                cache: 'no-store'
+                cache: 'no-store',
+                signal,
             });
-            if (!resposta.ok) throw new Error(`Erro HTTP! status: ${resposta.status}`);
+            if (!resposta.ok) {
+                let msg = `Erro HTTP! status: ${resposta.status}`;
+                try {
+                    const j = await resposta.json();
+                    msg = j?.erro || j?.message || msg;
+                } catch {}
+                throw new Error(msg);
+            }
             return await resposta.json();
         } catch (erro) {
             console.error('Falha ao buscar medicamentos:', erro);
@@ -252,12 +261,13 @@ export default function DashboardClient({ readOnly = false, idosoId }: { readOnl
     }, [idosoId]);
 
     // Busca a lista de rotinas da API
-    const buscarRotinas = useCallback(async (token: string): Promise<Rotina[]> => {
+    const buscarRotinas = useCallback(async (token: string, signal?: AbortSignal): Promise<Rotina[]> => {
         try {
             const url = '/api/rotinas' + (idosoId ? `?idoso_id=${encodeURIComponent(idosoId)}` : '');
             const resposta = await fetch(url, {
                 headers: { 'Authorization': `Bearer ${token}` },
-                cache: 'no-store'
+                cache: 'no-store',
+                signal,
             });
             if (!resposta.ok) throw new Error(`Erro HTTP! status: ${resposta.status}`);
             return await resposta.json();
@@ -268,25 +278,37 @@ export default function DashboardClient({ readOnly = false, idosoId }: { readOnl
     }, [idosoId]);
 
     // Busca a lista de itens da agenda da API
-    const buscarAgenda = useCallback(async (token: string): Promise<AgendaItem[]> => {
+    const buscarAgenda = useCallback(async (token: string, signal?: AbortSignal): Promise<AgendaItem[]> => {
         try {
             const hoje = new Date();
             const data = hoje.toISOString().slice(0, 10);
             const url = '/api/agenda' + (idosoId ? `?idoso_id=${encodeURIComponent(idosoId)}&data=${encodeURIComponent(data)}` : `?data=${encodeURIComponent(data)}`);
             const resposta = await fetch(url, {
                 headers: { 'Authorization': `Bearer ${token}` },
-                cache: 'no-store'
+                cache: 'no-store',
+                signal,
             });
-            if (!resposta.ok) throw new Error(`Erro HTTP! status: ${resposta.status}`);
+            if (!resposta.ok) {
+                let msg = `Erro HTTP! status: ${resposta.status}`;
+                try {
+                    const j = await resposta.json();
+                    msg = j?.erro || j?.message || msg;
+                } catch {}
+                throw new Error(msg);
+            }
             const raw = await resposta.json();
-            const itens: AgendaItem[] = (raw ?? []).map((e: any) => ({
-                id: e.id,
-                tipo_evento: e.tipo_evento,
-                evento_id: e.evento_id,
-                titulo: e.evento,
-                horario: e.horario_programado ? new Date(e.horario_programado) : undefined,
-                status: e.status,
-            }));
+            const itens: AgendaItem[] = (raw ?? []).map((e: any) => {
+                const titulo = e.titulo ?? e.evento;
+                const horarioIso = e.data_prevista ?? e.horario_programado ?? e.horario;
+                return {
+                    id: e.id,
+                    tipo_evento: e.tipo_evento,
+                    evento_id: e.evento_id,
+                    titulo: titulo,
+                    horario: horarioIso ? new Date(horarioIso) : undefined,
+                    status: e.status,
+                } as AgendaItem;
+            });
             const rank = (it: AgendaItem) => it.status === 'confirmado' ? 2 : (it.horario && it.horario < new Date() ? 0 : 1);
             itens.sort((a, b) => {
                 const ra = rank(a); const rb = rank(b);
@@ -337,10 +359,12 @@ export default function DashboardClient({ readOnly = false, idosoId }: { readOnl
 
         try {
             setIsLoading(true);
+            const controller = new AbortController();
+            pendingControllers.current.push(controller);
             const [dadosMedicamentos, dadosRotinas, itensAgenda] = await Promise.all([
-                buscarMedicamentos(token),
-                buscarRotinas(token),
-                buscarAgenda(token),
+                buscarMedicamentos(token, controller.signal),
+                buscarRotinas(token, controller.signal),
+                buscarAgenda(token, controller.signal),
             ]);
 
             setMedicamentos({
@@ -357,9 +381,15 @@ export default function DashboardClient({ readOnly = false, idosoId }: { readOnl
 
             setAgenda(itensAgenda);
         } catch (erro) {
-            handleApiError(erro, 'Não foi possível carregar os dados do dashboard.');
+            if (erro instanceof DOMException && erro.name === 'AbortError') {
+                // Requisição cancelada, não fazer nada
+            } else {
+                handleApiError(erro, 'Não foi possível carregar os dados do dashboard.');
+            }
         } finally {
             setIsLoading(false);
+            // Remove controladores finalizados
+            pendingControllers.current = pendingControllers.current.filter((c: AbortController) => !c.signal.aborted);
         }
     }, [user, idosoId, getAuthToken, buscarMedicamentos, buscarRotinas, buscarAgenda, handleApiError, setIsLoading]);
 
@@ -368,10 +398,22 @@ export default function DashboardClient({ readOnly = false, idosoId }: { readOnl
         if (user) {
             carregarDados();
         } else {
+            // Aborta quaisquer requisições pendentes ao sair
+            pendingControllers.current.forEach((c: AbortController) => {
+                try { c.abort(); } catch {}
+            });
+            pendingControllers.current = [];
             setMedicamentos(estadoInicialMedicamentos);
             setRotinas(estadoInicialRotinas);
             setAgenda(estadoInicialAgenda);
         }
+        return () => {
+            // Cleanup ao desmontar
+            pendingControllers.current.forEach((c: AbortController) => {
+                try { c.abort(); } catch {}
+            });
+            pendingControllers.current = [];
+        };
     }, [user, carregarDados, idosoId]);
 
     // ===== FUNÇÕES CRUD (Criação, Leitura, Atualização, Deleção) =====

@@ -266,33 +266,38 @@ export function AddRotinaForm({ onSave, onCancel, rotina }: AddRotinaFormProps) 
             ) : (
               <div className={styles.placeholderText}>Nenhum horário adicionado</div>
             )}
-            <div className={styles.addHorarioContainer}>
-              <input 
-                type="time" 
-                value={novoHorario} 
+          </div>
+          <div className={styles.addHorarioContainer}>
+            <div className={styles.horarioInputContainer}>
+              <input
+                type="time"
+                value={novoHorario}
                 onChange={(e) => {
                   setNovoHorario(e.target.value);
                   if (formErrors.horarios) {
                     setFormErrors(prev => ({ ...prev, horarios: '' }));
                   }
-                }} 
+                }}
+                onKeyDown={(e) => e.key === 'Enter' && (e.preventDefault(), adicionarHorario())}
                 className={`${styles.timeInput} ${formErrors.horarios ? styles.inputError : ''}`}
                 aria-invalid={!!formErrors.horarios}
+                aria-describedby={formErrors.horarios ? 'horarios-error' : undefined}
+                placeholder="HH:MM"
               />
-              <button 
-                type="button" 
-                onClick={() => {
-                  adicionarHorario();
-                  if (formErrors.horarios) {
-                    setFormErrors(prev => ({ ...prev, horarios: '' }));
-                  }
-                }} 
-                className={styles.addButton}
-                disabled={!novoHorario}
-              >
-                <span className={styles.plusIcon}>+</span> Adicionar Horário
-              </button>
             </div>
+            <button
+              type="button"
+              onClick={() => {
+                adicionarHorario();
+                if (formErrors.horarios) {
+                  setFormErrors(prev => ({ ...prev, horarios: '' }));
+                }
+              }}
+              className={styles.addButton}
+              disabled={!novoHorario.trim()}
+            >
+              <span className={styles.plusIcon}>+</span> Adicionar Horário
+            </button>
           </div>
         </div>
       )}

@@ -207,6 +207,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       // Limpa o estado local imediatamente
       setUser(null);
       setSession(null);
+      // Limpa o cache de sessão para evitar reuso indevido ao reentrar
+      if (typeof window !== 'undefined') {
+        try {
+          sessionStorage.removeItem('supabase_session');
+        } catch {}
+      }
     } catch (error) {
       console.error('Erro inesperado ao fazer logout:', error);
       throw error;

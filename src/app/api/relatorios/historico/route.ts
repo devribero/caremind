@@ -65,15 +65,15 @@ export async function GET(request: Request) {
       .from('historico_eventos')
       .select('*')
       .eq('perfil_id', effectiveUserId)
-      .order('horario_programado', { ascending: false });
+      .order('data_prevista', { ascending: false });
 
     if (dataInicio) {
       // Considerar início do dia em UTC
-      query = query.gte('horario_programado', `${dataInicio}T00:00:00Z`);
+      query = query.gte('data_prevista', `${dataInicio}T00:00:00Z`);
     }
     if (dataFim) {
       // Considerar fim do dia em UTC
-      query = query.lte('horario_programado', `${dataFim}T23:59:59Z`);
+      query = query.lte('data_prevista', `${dataFim}T23:59:59Z`);
     }
     if (tipoEvento && tipoEvento !== 'Todos') {
       // Espera-se valores conforme armazenados: 'Medicamento' | 'Rotina'

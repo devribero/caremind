@@ -67,14 +67,14 @@ export async function GET(request: Request) {
 
     const { start, end } = getDayRange(dataStr || undefined);
 
+    // Consulta usando as colunas corretas do schema: data_prevista (tempo) e titulo (nome)
     const { data: eventos, error } = await supabase
       .from('historico_eventos')
       .select('*')
       .eq('perfil_id', targetUserId)
-      .gte('horario_programado', start)
-      .lt('horario_programado', end)
-      .order('horario_programado', { ascending: true });
-
+      .gte('data_prevista', start)
+      .lt('data_prevista', end)
+      .order('data_prevista', { ascending: true });
     if (error) throw error;
 
     // Normaliza saída para o frontend
@@ -82,9 +82,10 @@ export async function GET(request: Request) {
       id: e.id,
       tipo_evento: e.tipo_evento,
       evento_id: e.evento_id,
-      evento: e.evento, // nome/título armazenado no histórico
+      evento: e.titulo, // mapeia para o campo esperado pelo frontend
       status: e.status,
-      horario_programado: e.horario_programado,
+      // normaliza para o nome esperado no frontend
+      horario_programado: e.data_prevista,
       horario_confirmacao: e.horario_confirmacao ?? null,
     }));
 
