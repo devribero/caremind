@@ -1,5 +1,13 @@
 /* Em @/components/Modal.module.css */
 
+/* Adiciona classe para bloquear a rolagem do body quando o modal estiver aberto */
+body.modalOpen {
+  overflow: hidden;
+  position: fixed;
+  width: 100%;
+  height: 100%;
+}
+
 .modalOverlay {
   position: fixed;
   top: 0;
@@ -14,6 +22,8 @@
   backdrop-filter: blur(4px);
   -webkit-backdrop-filter: blur(4px);
   animation: fadeIn 0.3s ease-out;
+  overflow-y: auto;
+  padding: 20px 0;
 }
 
 .modalContent {
@@ -27,6 +37,9 @@
   overflow-y: auto;
   animation: slideUp 0.3s ease-out;
   margin: 20px;
+  position: relative;
+  scrollbar-width: thin;
+  scrollbar-color: #c1c1c1 #f0f0f0;
 }
 
 .modalHeader {

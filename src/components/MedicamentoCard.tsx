@@ -64,7 +64,7 @@ function formatarFrequencia(freq?: string | Frequencia): string | null {
 interface MedicamentoCardProps {
   medicamento: Medicamento;
   onEdit?: (medicamento: Medicamento) => void;
-  onDelete?: (id: string) => void;
+  onDelete?: (id: string, event?: React.MouseEvent) => void;
   onMarkAsDone?: () => void;
   hasPendingToday?: boolean;
   isMarking?: boolean;
@@ -102,7 +102,10 @@ const MedicamentoCard: React.FC<MedicamentoCardProps> = ({ medicamento, onEdit, 
             <button
               type="button"
               className={`${styles.actionButton} ${styles.deleteButton}`}
-              onClick={() => onDelete(medicamento.id)}
+              onClick={(e) => {
+                e.stopPropagation();
+                onDelete(medicamento.id, e);
+              }}
               aria-label="Excluir medicamento"
             >
               Excluir
@@ -127,11 +130,13 @@ const MedicamentoCard: React.FC<MedicamentoCardProps> = ({ medicamento, onEdit, 
           </p>
         )}
       </div>
-      <div className={styles.card_footer}>
-        <p>
-          Adicionado em: {new Date(medicamento.created_at).toLocaleDateString('pt-BR')}
-        </p>
-      </div>
+      {medicamento.created_at && (
+        <div className={styles.card_footer}>
+          <p>
+            Adicionado em: {new Date(medicamento.created_at).toLocaleDateString('pt-BR')}
+          </p>
+        </div>
+      )}
     </div>
   );
 };

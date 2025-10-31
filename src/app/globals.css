@@ -168,6 +168,52 @@ body::-webkit-scrollbar-thumb { background: linear-gradient(135deg, #0400ba 0%, 
 body::-webkit-scrollbar-thumb:hover { background: linear-gradient(135deg, #0600e0 0%, #020044 100%); }
 body::-webkit-scrollbar-corner { background: transparent; }
 
+/* Estilos para o toast de confirmação */
+.toast-message {
+  animation: slideIn 0.3s ease-out;
+  z-index: 10000;
+}
+
+.toast-message button {
+  padding: 8px 16px;
+  border-radius: 6px;
+  border: none;
+  cursor: pointer;
+  font-weight: 500;
+  transition: background 0.2s;
+  margin-left: 8px;
+}
+
+.toast-message button:first-child {
+  background: #16a34a;
+  color: white;
+}
+
+.toast-message button:first-child:hover {
+  background: #15803d;
+}
+
+.toast-message button:last-child {
+  background: transparent;
+  border: 1px solid #4b5563;
+  color: white;
+}
+
+.toast-message button:last-child:hover {
+  background: rgba(255, 255, 255, 0.1);
+}
+
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
 /* Garantir que nenhum canto/trilha pinte de branco */
 ::-webkit-scrollbar-corner { background: transparent; }
 ::-webkit-scrollbar-track-piece { background: transparent; }

@@ -109,8 +109,15 @@ export function useCrudOperations<T extends { id: string | number }>(
   }, [items, makeRequest, config.endpoint, executeOptimisticUpdate, editModal, config.onSuccess?.update, config.onError?.update]);
 
   // Delete item
-  const deleteItem = useCallback(async (itemId: string) => {
-    const ok = await toast.confirm('Tem certeza que deseja excluir este item?');
+  const deleteItem = useCallback(async (itemId: string, event?: React.MouseEvent) => {
+    // Obter a posição do clique, se disponível
+    const position = event ? {
+      top: `${event.clientY}px`,
+      left: `${event.clientX}px`,
+      transform: 'translateY(-100%)'
+    } : undefined;
+
+    const ok = await toast.confirm('Tem certeza que deseja excluir este item?', position);
     if (!ok) return;
 
     try {

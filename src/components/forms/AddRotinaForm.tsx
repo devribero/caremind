@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import styles from './AddForm.module.css';
 
 // Tipos de Frequência
@@ -57,6 +57,7 @@ export function AddRotinaForm({ onSave, onCancel, rotina }: AddRotinaFormProps) 
   const [intervaloDias, setIntervaloDias] = useState(2);
   const [diasSemana, setDiasSemana] = useState<number[]>([]);
   const [loading, setLoading] = useState(false);
+  const [formErrors, setFormErrors] = useState<Record<string, string>>({});
 
   const diasDaSemana = [
     { id: 1, label: 'Seg' },
@@ -87,11 +88,29 @@ export function AddRotinaForm({ onSave, onCancel, rotina }: AddRotinaFormProps) 
     );
   };
 
+  const validateForm = () => {
+    const errors: Record<string, string> = {};
+    
+    if (!titulo.trim()) {
+      errors.titulo = 'O título da rotina é obrigatório';
+    }
+    
+    if (tipoFrequencia === 'diario' && horarios.length === 0) {
+      errors.horarios = 'Adicione pelo menos um horário';
+    }
+    
+    if (tipoFrequencia === 'semanal' && diasSemana.length === 0) {
+      errors.diasSemana = 'Selecione pelo menos um dia da semana';
+    }
+    
+    setFormErrors(errors);
+    return Object.keys(errors).length === 0;
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!titulo) {
-      alert('Por favor, preencha o título da rotina.');
+    if (!validateForm()) {
       return;
     }
 
@@ -159,16 +178,35 @@ export function AddRotinaForm({ onSave, onCancel, rotina }: AddRotinaFormProps) 
     }
   };
 
+  // Efeito para rolar até o primeiro erro quando houver validação
+  useEffect(() => {
+    const firstError = Object.keys(formErrors)[0];
+    if (firstError) {
+      const element = document.querySelector(`[data-field="${firstError}"]`);
+      element?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
+  }, [formErrors]);
+
   return (
     <form onSubmit={handleSubmit} className={styles.form}>
-      <div className={styles.formGroup}>
-        <label htmlFor="titulo">Título da Rotina</label>
+      <div className={`${styles.formGroup} ${formErrors.titulo ? styles.hasError : ''}`} data-field="titulo">
+        <label htmlFor="titulo">
+          Título da Rotina
+          {formErrors.titulo && <span className={styles.errorText}> - {formErrors.titulo}</span>}
+        </label>
         <input
           id="titulo"
           type="text"
           value={titulo}
-          onChange={(e) => setTitulo(e.target.value)}
-          required
+          onChange={(e) => {
+            setTitulo(e.target.value);
+            if (formErrors.titulo) {
+              setFormErrors(prev => ({ ...prev, titulo: '' }));
+            }
+          }}
+          className={formErrors.titulo ? styles.inputError : ''}
+          aria-invalid={!!formErrors.titulo}
+          aria-describedby={formErrors.titulo ? 'titulo-error' : undefined}
         />
       </div>
       
@@ -200,18 +238,60 @@ export function AddRotinaForm({ onSave, onCancel, rotina }: AddRotinaFormProps) 
       {/* Inputs Condicionais para Frequência */}
 
       {tipoFrequencia === 'diario' && (
-        <div className={styles.formGroup}>
-          <label>Horários</label>
+        <div className={`${styles.formGroup} ${formErrors.horarios ? styles.hasError : ''}`} data-field="horarios">
+          <label>
+            Horários
+            {formErrors.horarios && <span className={styles.errorText}> - {formErrors.horarios}</span>}
+          </label>
           <div className={styles.horariosContainer}>
-            {horarios.map((horario, index) => (
-              <div key={index} className={styles.horarioItem}>
-                <span>{horario}</span>
-                <button type="button" onClick={() => removerHorario(horario)} className={styles.removeButton}>×</button>
-              </div>
-            ))}
+            {horarios.length > 0 ? (
+              horarios.map((horario, index) => (
+                <div key={index} className={styles.horarioItem}>
+                  <span>{horario}</span>
+                  <button 
+                    type="button" 
+                    onClick={() => {
+                      removerHorario(horario);
+                      if (formErrors.horarios && horarios.length === 1) {
+                        setFormErrors(prev => ({ ...prev, horarios: '' }));
+                      }
+                    }} 
+                    className={styles.removeButton}
+                    aria-label={`Remover horário ${horario}`}
+                  >
+                    ×
+                  </button>
+                </div>
+              ))
+            ) : (
+              <div className={styles.placeholderText}>Nenhum horário adicionado</div>
+            )}
             <div className={styles.addHorarioContainer}>
-              <input type="time" value={novoHorario} onChange={(e) => setNovoHorario(e.target.value)} className={styles.timeInput} />
-              <button type="button" onClick={adicionarHorario} className={styles.addButton}>+ Adicionar Horário</button>
+              <input 
+                type="time" 
+                value={novoHorario} 
+                onChange={(e) => {
+                  setNovoHorario(e.target.value);
+                  if (formErrors.horarios) {
+                    setFormErrors(prev => ({ ...prev, horarios: '' }));
+                  }
+                }} 
+                className={`${styles.timeInput} ${formErrors.horarios ? styles.inputError : ''}`}
+                aria-invalid={!!formErrors.horarios}
+              />
+              <button 
+                type="button" 
+                onClick={() => {
+                  adicionarHorario();
+                  if (formErrors.horarios) {
+                    setFormErrors(prev => ({ ...prev, horarios: '' }));
+                  }
+                }} 
+                className={styles.addButton}
+                disabled={!novoHorario}
+              >
+                <span className={styles.plusIcon}>+</span> Adicionar Horário
+              </button>
             </div>
           </div>
         </div>
@@ -245,12 +325,33 @@ export function AddRotinaForm({ onSave, onCancel, rotina }: AddRotinaFormProps) 
 
       {tipoFrequencia === 'semanal' && (
         <>
-          <div className={styles.formGroup}>
-            <label>Dias da semana</label>
+          <div className={`${styles.formGroup} ${formErrors.diasSemana ? styles.hasError : ''}`} data-field="diasSemana">
+            <label>
+              Dias da semana
+              {formErrors.diasSemana && <span className={styles.errorText}> - {formErrors.diasSemana}</span>}
+            </label>
             <div className={styles.diasSemanaContainer}>
               {diasDaSemana.map((dia) => (
-                <label key={dia.id} className={styles.diaSemanaLabel}>
-                  <input type="checkbox" checked={diasSemana.includes(dia.id)} onChange={() => toggleDiaSemana(dia.id)} className={styles.checkbox} />
+                <label 
+                  key={dia.id} 
+                  className={`${styles.diaSemanaLabel} ${diasSemana.includes(dia.id) ? styles.diaSelecionado : ''}`}
+                >
+                  <input 
+                    type="checkbox" 
+                    checked={diasSemana.includes(dia.id)} 
+                    onChange={() => {
+                      toggleDiaSemana(dia.id);
+                      if (formErrors.diasSemana) {
+                        setFormErrors(prev => ({
+                          ...prev, 
+                          diasSemana: diasSemana.length === 1 && diasSemana.includes(dia.id) ? 
+                            'Selecione pelo menos um dia' : ''
+                        }));
+                      }
+                    }} 
+                    className={styles.checkbox} 
+                    aria-label={`Dia ${dia.label}`}
+                  />
                   {dia.label}
                 </label>
               ))}
@@ -258,17 +359,37 @@ export function AddRotinaForm({ onSave, onCancel, rotina }: AddRotinaFormProps) 
           </div>
           <div className={styles.formGroup}>
             <label htmlFor="horaSemanal">No horário</label>
-            <input id="horaSemanal" type="time" value={horaInicio} onChange={(e) => setHoraInicio(e.target.value)} className={styles.input} />
+            <input 
+              id="horaSemanal" 
+              type="time" 
+              value={horaInicio} 
+              onChange={(e) => setHoraInicio(e.target.value)} 
+              className={styles.input} 
+            />
           </div>
         </>
       )}
 
       <div className={styles.buttonGroup}>
-        <button type="button" onClick={onCancel} className={styles.cancelButton}>
+        <button 
+          type="button" 
+          onClick={onCancel} 
+          className={styles.cancelButton}
+          disabled={loading}
+        >
           Cancelar
         </button>
-        <button type="submit" disabled={loading} className={styles.saveButton}>
-          {loading ? 'Salvando...' : 'Salvar'}
+        <button 
+          type="submit" 
+          disabled={loading} 
+          className={`${styles.saveButton} ${loading ? styles.loading : ''}`}
+        >
+          {loading ? (
+            <>
+              <span className={styles.spinner} aria-hidden="true" />
+              <span>Salvando...</span>
+            </>
+          ) : 'Salvar'}
         </button>
       </div>
     </form>

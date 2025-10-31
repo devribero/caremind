@@ -2,76 +2,373 @@
   display: flex;
   flex-direction: column;
   gap: 1.5rem;
-  padding: 0;
+  padding: 0.5rem 0.5rem 1rem 0.5rem;
   background: transparent;
   width: 100%;
   margin: 0;
   border: none;
   box-shadow: none;
+  max-height: 100%;
+  overflow-y: visible;
+  scroll-behavior: smooth;
+  scroll-padding: 1rem;
 }
 
 .formGroup {
   display: flex;
   flex-direction: column;
+  position: relative;
+  transition: all 0.3s ease;
+  padding: 0.5rem;
+  border-radius: 8px;
+}
+
+.formGroup:focus-within {
+  background-color: rgba(4, 0, 186, 0.03);
+}
+
+.formGroup.hasError {
+  background-color: rgba(220, 38, 38, 0.05);
+  border-left: 3px solid #ef4444;
+  padding-left: 0.75rem;
+  animation: shake 0.5s ease-in-out;
+}
+
+@keyframes shake {
+  0%, 100% { transform: translateX(0); }
+  20%, 60% { transform: translateX(-3px); }
+  40%, 80% { transform: translateX(3px); }
 }
 
 .formGroup label {
-  margin-bottom: 8px;
+  display: block;
+  margin-bottom: 0.5rem;
   font-weight: 500;
-  font-size: 0.95rem;
   color: #374151;
+  font-size: 0.9375rem;
+  transition: color 0.2s ease;
+}
+
+.formGroup:focus-within label {
+  color: #0400BA;
+}
+
+.errorText {
+  color: #ef4444;
+  font-size: 0.85rem;
+  font-weight: 400;
+  margin-left: 0.5rem;
+  white-space: nowrap;
 }
 
 .formGroup input,
-.select {
+.select,
+.timeInput {
   padding: 12px;
   border: 1px solid #d1d5db;
   border-radius: 8px;
   font-size: 1rem;
   color: #374151;
   background: #ffffff;
-  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+  transition: all 0.2s ease;
   outline: none;
   width: 100%;
   box-sizing: border-box;
+  font-family: inherit;
+}
+
+.inputError {
+  border-color: #ef4444 !important;
+  background-color: #fff5f5;
+  animation: pulseError 1.5s infinite;
+}
+
+@keyframes pulseError {
+  0% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.2); }
+  70% { box-shadow: 0 0 0 5px rgba(239, 68, 68, 0); }
+  100% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0); }
+}
+
+.formGroup input:focus,
+.select:focus,
+.timeInput:focus {
+  border-color: #0400BA;
+  box-shadow: 0 0 0 3px rgba(4, 0, 186, 0.1);
+  background-color: #fff;
+}
+
+.formGroup.hasError input,
+.formGroup.hasError .select,
+.formGroup.hasError .timeInput {
+  border-color: #fca5a5;
+  background-color: #fff5f5;
+}
+
+.formGroup.hasError input:focus,
+.formGroup.hasError .select:focus,
+.formGroup.hasError .timeInput:focus {
+  box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.1);
 }
 
 .select {
   appearance: none;
+  -webkit-appearance: none;
+  -moz-appearance: none;
   background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%236b7280' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
   background-repeat: no-repeat;
   background-position: right 12px center;
-  padding-right: 36px;
+  padding: 12px 40px 12px 16px;
+  font-size: 1rem;
+  color: #1f2937;
+  background-color: #fff;
+  border: 1px solid #d1d5db;
+  border-radius: 8px;
   cursor: pointer;
+  min-height: 48px;
+  width: 100%;
+  transition: all 0.2s ease;
+  box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+  font-family: inherit;
+  line-height: 1.5;
+}
+
+.select:focus {
+  outline: none;
+  border-color: #4f46e5;
+  box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1);
+}
+
+.select:hover {
+  border-color: #9ca3af;
+}
+
+/* Estilo para as opções do select */
+.select option {
+  padding: 12px 16px;
+  font-size: 1rem;
+  color: #1f2937;
+  background-color: #fff;
+  border: none;
+  transition: background-color 0.2s ease;
+}
+
+.select option:hover,
+.select option:focus,
+.select option:checked {
+  background-color: #f3f4f6;
+  color: #1f2937;
+}
+
+/* Melhorando o foco para acessibilidade */
+.select:focus-visible {
+  outline: 3px solid #4f46e5;
+  outline-offset: 2px;
+  border-color: transparent;
+}
+
+/* Efeito de hover mais suave */
+.select:hover:not(:disabled) {
+  border-color: #9ca3af;
+  background-color: #f9fafb;
+}
+
+/* Estilo para quando o select está aberto */
+.select:focus {
+  border-color: #4f46e5;
+  box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1);
+}
+
+/* Estilo para o container do select */
+.selectWrapper {
+  position: relative;
+  width: 100%;
+}
+
+/* Adicionando uma seta personalizada */
+.selectWrapper::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  right: 16px;
+  transform: translateY(-50%);
+  width: 0;
+  height: 0;
+  border-left: 5px solid transparent;
+  border-right: 5px solid transparent;
+  border-top: 5px solid #6b7280;
+  pointer-events: none;
+}
+
+/* Melhorando o estilo para navegação por teclado */
+.select:focus-visible {
+  outline: 3px solid #4f46e5;
+  outline-offset: 2px;
+}
+
+/* Estilo para quando o select está desativado */
+.select:disabled {
+  background-color: #f3f4f6;
+  color: #9ca3af;
+  cursor: not-allowed;
+  opacity: 0.7;
+}
+
+/* Estilo para quando o select está desabilitado */
+.select:disabled {
+  background-color: #f3f4f6;
+  cursor: not-allowed;
+  opacity: 0.7;
+}
+
+.horarioInputContainer {
+  position: relative;
+  width: 100%;
+  margin-bottom: 8px;
+}
+
+.horarioInputContainer .errorMessage {
+  color: #ef4444;
+  font-size: 0.75rem;
+  margin-top: 4px;
+  position: absolute;
+  bottom: -20px;
+  left: 0;
+  white-space: nowrap;
 }
 
 .horariosContainer {
-  display: flex;
-  flex-direction: column;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
   gap: 8px;
-  margin-top: 8px;
+  margin: 12px 0;
+  max-height: 200px;
+  overflow-y: auto;
+  padding: 4px 4px 12px 0;
+  scrollbar-width: thin;
+  scrollbar-color: #d1d5db #f3f4f6;
+  align-items: start;
+  position: relative;
+  min-height: 60px;
+  background-color: #f9fafb;
+  border-radius: 8px;
+  padding: 12px;
+  border: 1px dashed #e5e7eb;
+}
+
+.horariosContainer::-webkit-scrollbar {
+  width: 4px;
+}
+
+.horariosContainer::-webkit-scrollbar-track {
+  background: #f3f4f6;
+  border-radius: 4px;
+}
+
+.horariosContainer::-webkit-scrollbar-thumb {
+  background-color: #d1d5db;
+  border-radius: 4px;
+}
+
+.placeholderText {
+  color: #9ca3af;
+  font-size: 0.9rem;
+  padding: 12px;
+  font-style: italic;
+  text-align: center;
+  background-color: #f8fafc;
+  border-radius: 6px;
+  border: 1px dashed #e2e8f0;
+  grid-column: 1 / -1;
+  margin: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 60px;
 }
 
 .horarioItem {
-  display: flex;
+  display: inline-flex;
   justify-content: space-between;
   align-items: center;
-  padding: 8px 12px;
-  background-color: #f9fafb;
+  padding: 8px 10px;
+  background-color: white;
   border-radius: 6px;
   border: 1px solid #e5e7eb;
+  transition: all 0.2s ease;
+  animation: popIn 0.2s ease-out;
+  font-size: 0.9rem;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+  position: relative;
+  overflow: hidden;
+}
+
+@keyframes popIn {
+  0% {
+    opacity: 0;
+    transform: scale(0.9) translateY(5px);
+  }
+  50% {
+    transform: scale(1.05);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+.horarioItem:hover {
+  background-color: #f8fafc;
+  border-color: #cbd5e1;
+  transform: translateY(-1px);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
+}
+
+.horarioItem:active {
+  transform: translateY(0);
+  box-shadow: none;
+}
+
+.horarioItem span {
+  flex: 1;
+  text-align: center;
+  font-feature-settings: 'tnum';
+  font-variant-numeric: tabular-nums;
+}
+
+/* Melhorias na responsividade */
+@media (max-width: 480px) {
+  .horariosContainer {
+    grid-template-columns: repeat(auto-fill, minmax(80px, 1fr));
+    padding: 8px;
+  }
+  
+  .horarioItem {
+    padding: 6px 8px;
+    font-size: 0.85rem;
+  }
+  
+  .addHorarioContainer {
+    padding: 12px;
+  }
 }
 
 .removeButton {
-  background: none;
+  background: rgba(239, 68, 68, 0.1);
   border: none;
   color: #ef4444;
-  font-size: 1.2rem;
+  font-size: 1rem;
   cursor: pointer;
-  padding: 2px 6px;
+  padding: 4px;
   line-height: 1;
   border-radius: 4px;
-  transition: background-color 0.2s ease;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  margin-left: 6px;
+  flex-shrink: 0;
 }
 
 .removeButton:hover {
@@ -80,8 +377,93 @@
 
 .addHorarioContainer {
   display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin: 16px 0 8px;
+  position: relative;
+  background: white;
+  padding: 16px;
+  border-radius: 8px;
+  border: 1px solid #e5e7eb;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+}
+
+.timeInput {
+  flex: 1;
+  min-width: 100%;
+  padding: 12px;
+  font-size: 1rem;
+  border: 1px solid #d1d5db;
+  border-radius: 6px;
+  background-color: white;
+  transition: all 0.2s ease;
+}
+
+.timeInput:focus {
+  border-color: #0400BA;
+  box-shadow: 0 0 0 3px rgba(4, 0, 186, 0.1);
+  outline: none;
+}
+
+.addButton {
+  background-color: #0400BA;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  padding: 12px 16px;
+  font-size: 0.95rem;
+  font-weight: 500;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   gap: 8px;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+  width: 100%;
   margin-top: 8px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.addButton:hover:not(:disabled) {
+  background-color: #03008f;
+  transform: translateY(-1px);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.15);
+}
+
+.addButton:active:not(:disabled) {
+  transform: translateY(0);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+}
+
+.addButton:disabled {
+  background-color: #9ca3af;
+  cursor: not-allowed;
+  opacity: 0.7;
+}
+
+.addButton:hover:not(:disabled) {
+  background-color: #c7d2fe;
+  transform: translateY(-1px);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.addButton:active:not(:disabled) {
+  transform: translateY(0);
+  box-shadow: none;
+}
+
+.addButton:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.plusIcon {
+  font-size: 1.2rem;
+  line-height: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .timeInput {
@@ -113,7 +495,7 @@
   display: flex;
   flex-wrap: wrap;
   gap: 8px;
-  margin-top: 8px;
+  margin: 8px 0 0;
 }
 
 .diaSemanaLabel {
@@ -122,12 +504,47 @@
   gap: 6px;
   cursor: pointer;
   font-size: 0.9rem;
-  padding: 6px 10px;
+  padding: 8px 12px;
   background-color: #f9fafb;
-  border-radius: 20px;
+  border-radius: 8px;
   border: 1px solid #e5e7eb;
   transition: all 0.2s ease;
   user-select: none;
+  margin: 0;
+  flex: 1;
+  min-width: calc(33.333% - 6px);
+  justify-content: center;
+  text-align: center;
+}
+
+@media (min-width: 400px) {
+  .diaSemanaLabel {
+    min-width: calc(25% - 6px);
+  }
+}
+
+@media (min-width: 500px) {
+  .diaSemanaLabel {
+    min-width: auto;
+    flex: 0 0 auto;
+  }
+}
+
+.diaSemanaLabel:hover {
+  background-color: #f3f4f6;
+  border-color: #d1d5db;
+}
+
+.diaSelecionado {
+  background-color: #e0e7ff;
+  border-color: #c7d2fe;
+  color: #4338ca;
+  font-weight: 500;
+}
+
+.diaSelecionado .checkbox {
+  border-color: #4338ca;
+  background-color: #4338ca;
 }
 
 .diaSemanaLabel:hover {
@@ -180,8 +597,26 @@
   display: flex;
   justify-content: flex-end;
   gap: 12px;
-  margin-top: 24px;
+  margin-top: 1.5rem;
+  padding-top: 1rem;
+  border-top: 1px solid #e5e7eb;
   width: 100%;
+  position: sticky;
+  bottom: 0;
+  background: white;
+  z-index: 10;
+  padding: 1rem 0 0.5rem 0;
+}
+
+@media (max-width: 480px) {
+  .buttonGroup {
+    flex-direction: column-reverse;
+    gap: 8px;
+  }
+  
+  .buttonGroup button {
+    width: 100%;
+  }
 }
 
 .buttonGroup button {
@@ -191,8 +626,78 @@
   cursor: pointer;
   font-weight: 500;
   font-size: 0.95rem;
-  transition: background-color 0.2s ease, transform 0.1s ease;
+  transition: all 0.2s ease;
   min-width: 100px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  position: relative;
+  overflow: hidden;
+}
+
+.buttonGroup button:focus {
+  outline: 2px solid #0400BA;
+  outline-offset: 2px;
+}
+
+.buttonGroup button:active {
+  transform: translateY(1px);
+}
+
+.cancelButton {
+  background-color: #f3f4f6;
+  color: #4b5563;
+}
+
+.cancelButton:hover {
+  background-color: #e5e7eb;
+}
+
+.saveButton {
+  background-color: #0400BA;
+  color: white;
+  position: relative;
+  overflow: hidden;
+}
+
+.saveButton:hover:not(:disabled) {
+  background-color: #03008f;
+  box-shadow: 0 2px 8px rgba(4, 0, 186, 0.2);
+}
+
+.saveButton:disabled {
+  background-color: #9ca3af;
+  cursor: not-allowed;
+  opacity: 0.8;
+}
+
+.saveButton.loading {
+  pointer-events: none;
+  padding-left: 2.5rem;
+}
+
+.spinner {
+  width: 16px;
+  height: 16px;
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  border-radius: 50%;
+  border-top-color: white;
+  animation: spin 1s ease-in-out infinite;
+  position: absolute;
+  left: 1rem;
+  opacity: 0;
+  transform: scale(0.8);
+  transition: opacity 0.2s ease, transform 0.2s ease;
+}
+
+.saveButton.loading .spinner {
+  opacity: 1;
+  transform: scale(1);
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
 }
 
 .buttonGroup button:focus {
@@ -260,6 +765,33 @@
 }
 
 /* Responsivo para dispositivos móveis */
+/* Animações de feedback */
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes slideUp {
+  from { 
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to { 
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Animações específicas para os campos */
+.formGroup {
+  animation: fadeIn 0.3s ease-out;
+}
+
+.horarioItem {
+  animation: slideUp 0.2s ease-out;
+}
+
+/* Responsividade */
 @media (max-width: 768px) {
   .form {
     gap: 1.25rem;
@@ -417,4 +949,150 @@
     font-size: 1rem;
     padding: 2px 6px;
   }
+}
+
+/* Estilos para o campo de horário */
+.timeInput {
+  width: 100%;
+  padding: 0.5rem 0.75rem;
+  border: 1px solid #d1d5db;
+  border-radius: 0.375rem;
+  font-size: 0.9375rem;
+  color: #111827;
+  background-color: #fff;
+  transition: border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  appearance: none;
+  height: 2.5rem;
+}
+
+.timeInput:focus {
+  outline: none;
+  border-color: #4f46e5;
+  box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1);
+}
+
+.timeInput.inputError {
+  border-color: #ef4444;
+  padding-right: 2.5rem;
+  background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='%23ef4444' viewBox='-2 -2 7 7'%3e%3cpath stroke='%23ef4444' d='M0 0l3 3m0-3L0 3'/%3e%3ccircle r='.5'/%3e%3ccircle cx='3' r='.5'/%3e%3ccircle cy='3' r='.5'/%3e%3ccircle cx='3' cy='3' r='.5'/%3e%3c/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 0.75rem center;
+  background-size: 1.25rem 1.25rem;
+}
+
+.timeInput.inputError:focus {
+  border-color: #ef4444;
+  box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.1);
+}
+
+.timeInput:disabled {
+  background-color: #f3f4f6;
+  cursor: not-allowed;
+  opacity: 0.7;
+}
+
+/* Estilo para o container do campo de horário */
+.timeInputContainer {
+  position: relative;
+  display: flex;
+  width: 100%;
+}
+
+/* Estilo para a mensagem de erro */
+.errorMessage {
+  color: #ef4444;
+  font-size: 0.75rem;
+  margin-top: 0.25rem;
+  display: block;
+  line-height: 1.25;
+}
+
+/* Estilo para o botão de adicionar horário */
+.addButton {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.5rem 1rem;
+  background-color: #4f46e5;
+  color: white;
+  border: none;
+  border-radius: 0.375rem;
+  font-size: 0.875rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background-color 0.2s ease-in-out;
+  margin-top: 0.5rem;
+}
+
+.addButton:hover {
+  background-color: #4338ca;
+}
+
+.addButton:disabled {
+  background-color: #9ca3af;
+  cursor: not-allowed;
+}
+
+.addButton .plusIcon {
+  margin-right: 0.5rem;
+  font-size: 1rem;
+  line-height: 1;
+}
+
+/* Melhorias para acessibilidade */
+.timeInput:focus-visible {
+  outline: 2px solid #4f46e5;
+  outline-offset: 2px;
+}
+
+.timeInput[aria-invalid="true"] {
+  border-color: #ef4444;
+  padding-right: 2.5rem;
+}
+
+.timeInput[aria-invalid="true"]:focus {
+  box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.1);
+}
+
+/* Estilo para o container de horários */
+.horariosList {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-top: 0.5rem;
+}
+
+.horarioTag {
+  display: inline-flex;
+  align-items: center;
+  background-color: #eef2ff;
+  color: #4f46e5;
+  padding: 0.25rem 0.75rem;
+  border-radius: 9999px;
+  font-size: 0.875rem;
+  font-weight: 500;
+}
+
+.horarioTag button {
+  margin-left: 0.5rem;
+  color: #4f46e5;
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0.125rem;
+  border-radius: 0.25rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.horarioTag button:hover {
+  background-color: rgba(79, 70, 229, 0.1);
+}
+
+.horarioTag button:focus {
+  outline: 2px solid #4f46e5;
+  outline-offset: 2px;
 }

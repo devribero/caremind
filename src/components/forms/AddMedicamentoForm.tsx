@@ -1,5 +1,5 @@
 'use client';
-import { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import styles from './AddForm.module.css';
 
 type FrequenciaDiaria = {
@@ -76,6 +76,9 @@ export function AddMedicamentoForm({ onSave, onCancel, medicamento }: AddMedicam
   );
 
   const [loading, setLoading] = useState(false);
+  const [formErrors, setFormErrors] = useState<Record<string, string>>({});
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [horarioError, setHorarioError] = useState('');
 
   const diasDaSemana = [
     { id: 1, label: 'Seg' },
@@ -88,9 +91,38 @@ export function AddMedicamentoForm({ onSave, onCancel, medicamento }: AddMedicam
   ];
 
   const adicionarHorario = () => {
-    if (novoHorario && !horarios.includes(novoHorario)) {
-      setHorarios([...horarios, novoHorario].sort());
-      setNovoHorario('');
+    const horarioFormatado = novoHorario.trim();
+    
+    // Limpa erros anteriores
+    setHorarioError('');
+    
+    if (!horarioFormatado) {
+      setHorarioError('Por favor, informe um horário');
+      return;
+    }
+
+    // Garante que o horário tenha o formato HH:MM
+    const horarioValido = /^([01]?[0-9]|2[0-3]):[0-5][0-9]$/.test(horarioFormatado);
+    if (!horarioValido) {
+      setHorarioError('Formato inválido. Use HH:MM (ex: 08:00)');
+      return;
+    }
+
+    // Verifica se o horário já existe
+    const horarioJaExiste = horarios.some(h => h === horarioFormatado);
+    
+    if (horarioJaExiste) {
+      setHorarioError('Este horário já foi adicionado');
+      return;
+    }
+
+    // Adiciona o horário e limpa o campo
+    setHorarios(prev => [...prev, horarioFormatado].sort((a, b) => a.localeCompare(b)));
+    setNovoHorario('');
+    
+    // Limpa mensagem de erro se existir
+    if (formErrors.horarios) {
+      setFormErrors(prev => ({ ...prev, horarios: '' }));
     }
   };
 
@@ -106,13 +138,37 @@ export function AddMedicamentoForm({ onSave, onCancel, medicamento }: AddMedicam
     );
   };
 
+  const validateForm = () => {
+    const errors: Record<string, string> = {};
+    
+    if (!nome.trim()) {
+      errors.nome = 'O nome do medicamento é obrigatório';
+    }
+    
+    if (tipoFrequencia === 'diario' && horarios.length === 0) {
+      errors.horarios = 'Adicione pelo menos um horário';
+    }
+    
+    if (tipoFrequencia === 'semanal' && diasSemana.length === 0) {
+      errors.diasSemana = 'Selecione pelo menos um dia da semana';
+    }
+    
+    if (quantidade <= 0) {
+      errors.quantidade = 'A quantidade deve ser maior que zero';
+    }
+    
+    setFormErrors(errors);
+    return Object.keys(errors).length === 0;
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-
-    if (!nome) {
-      alert('Por favor, preencha o nome do medicamento.');
+    
+    if (!validateForm()) {
       return;
     }
+    
+    setIsSubmitting(true);
 
     let frequencia: Frequencia;
 
@@ -225,16 +281,37 @@ export function AddMedicamentoForm({ onSave, onCancel, medicamento }: AddMedicam
     }
   }, [medicamento]);
 
+  // Efeito para rolar até o primeiro erro quando houver validação
+  React.useEffect(() => {
+    const firstError = Object.keys(formErrors)[0];
+    if (firstError) {
+      const element = document.querySelector(`[data-field="${firstError}"]`);
+      element?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
+  }, [formErrors]);
+
   return (
-    <form onSubmit={handleSubmit} className={styles.form}>
-      <div className={styles.formGroup}>
-        <label htmlFor="nome">Nome do Medicamento</label>
+    <form className={styles.form} onSubmit={handleSubmit} noValidate>
+      <div className={`${styles.formGroup} ${formErrors.nome ? styles.hasError : ''}`} data-field="nome">
+        <label htmlFor="nome">
+          Nome do Medicamento
+          {formErrors.nome && <span className={styles.errorText}> - {formErrors.nome}</span>}
+        </label>
         <input
           id="nome"
           type="text"
           value={nome}
-          onChange={(e) => setNome(e.target.value)}
+          onChange={(e) => {
+            setNome(e.target.value);
+            if (formErrors.nome) {
+              setFormErrors(prev => ({ ...prev, nome: '' }));
+            }
+          }}
+          placeholder="Ex: Paracetamol"
           required
+          className={formErrors.nome ? styles.inputError : ''}
+          aria-invalid={!!formErrors.nome}
+          aria-describedby={formErrors.nome ? 'nome-error' : undefined}
         />
       </div>
       
@@ -249,25 +326,48 @@ export function AddMedicamentoForm({ onSave, onCancel, medicamento }: AddMedicam
         />
       </div>
       
-      <div className={styles.formGroup}>
-        <label htmlFor="quantidade">Quantidade</label>
+      <div className={`${styles.formGroup} ${formErrors.quantidade ? styles.hasError : ''}`} data-field="quantidade">
+        <label htmlFor="quantidade">
+          Quantidade
+          {formErrors.quantidade && <span className={styles.errorText}> - {formErrors.quantidade}</span>}
+        </label>
         <input
           id="quantidade"
           type="number"
           min="1"
           value={quantidade}
-          onChange={(e) => setQuantidade(Number(e.target.value))}
-          required
+          onChange={(e) => {
+            const value = Math.max(1, Number(e.target.value) || 1);
+            setQuantidade(value);
+            if (formErrors.quantidade) {
+              setFormErrors(prev => ({ ...prev, quantidade: '' }));
+            }
+          }}
+          onBlur={(e) => {
+            const value = Math.max(1, Number(e.target.value) || 1);
+            setQuantidade(value);
+          }}
+          placeholder="Ex: 30"
+          className={formErrors.quantidade ? styles.inputError : ''}
+          aria-invalid={!!formErrors.quantidade}
+          aria-describedby={formErrors.quantidade ? 'quantidade-error' : undefined}
         />
       </div>
 
-      <div className={styles.formGroup}>
-        <label htmlFor="tipoFrequencia">Frequência</label>
+      <div className={styles.formGroup} data-field="frequencia">
+        <label>Frequência</label>
         <select
-          id="tipoFrequencia"
-          value={tipoFrequencia}
-          onChange={(e) => setTipoFrequencia(e.target.value as any)}
           className={styles.select}
+          value={tipoFrequencia}
+          onChange={(e) => {
+            setTipoFrequencia(e.target.value as any);
+            // Limpa erros de validação quando o tipo de frequência muda
+            setFormErrors(prev => ({
+              ...prev,
+              horarios: '',
+              diasSemana: ''
+            }));
+          }}
         >
           <option value="diario">Diariamente</option>
           <option value="intervalo">Intervalo de Horas</option>
@@ -276,135 +376,194 @@ export function AddMedicamentoForm({ onSave, onCancel, medicamento }: AddMedicam
         </select>
       </div>
 
-      {/* Diariamente */}
+      {/* Lista de horários para frequência diária */}
       {tipoFrequencia === 'diario' && (
-        <div className={styles.formGroup}>
-          <label>Horários</label>
+        <div className={`${styles.formGroup} ${formErrors.horarios ? styles.hasError : ''}`} data-field="horarios">
+          <label>
+            Horários
+            {formErrors.horarios && <span className={styles.errorText}> - {formErrors.horarios}</span>}
+          </label>
           <div className={styles.horariosContainer}>
-            {horarios.map((horario, index) => (
-              <div key={index} className={styles.horarioItem}>
-                <span>{horario}</span>
-                <button 
-                  type="button" 
-                  onClick={() => removerHorario(horario)}
-                  className={styles.removeButton}
-                >
-                  ×
-                </button>
-              </div>
-            ))}
-            <div className={styles.addHorarioContainer}>
+            {horarios.length > 0 ? (
+              horarios.map((horario, index) => (
+                <div key={index} className={styles.horarioItem}>
+                  <span>{horario}</span>
+                  <button
+                    type="button"
+                    className={styles.removeButton}
+                    onClick={() => {
+                      removerHorario(horario);
+                      if (formErrors.horarios && horarios.length === 1) {
+                        setFormErrors(prev => ({ ...prev, horarios: '' }));
+                      }
+                    }}
+                    aria-label={`Remover horário ${horario}`}
+                  >
+                    ×
+                  </button>
+                </div>
+              ))
+            ) : (
+              <div className={styles.placeholderText}>Nenhum horário adicionado</div>
+            )}
+          </div>
+          <div className={styles.addHorarioContainer}>
+            <div className={styles.horarioInputContainer}>
               <input
                 type="time"
                 value={novoHorario}
-                onChange={(e) => setNovoHorario(e.target.value)}
-                className={styles.timeInput}
+                onChange={(e) => {
+                  setNovoHorario(e.target.value);
+                  if (horarioError) setHorarioError('');
+                  if (formErrors.horarios) setFormErrors(prev => ({ ...prev, horarios: '' }));
+                }}
+                onKeyDown={(e) => e.key === 'Enter' && (e.preventDefault(), adicionarHorario())}
+                className={`${styles.timeInput} ${horarioError || formErrors.horarios ? styles.inputError : ''}`}
+                aria-invalid={!!horarioError || !!formErrors.horarios}
+                aria-describedby={horarioError || formErrors.horarios ? 'horario-error' : undefined}
+                placeholder="HH:MM"
               />
-              <button 
-                type="button" 
-                onClick={adicionarHorario}
-                className={styles.addButton}
-              >
-                + Adicionar Horário
-              </button>
+              {horarioError && (
+                <div id="horario-error" className={styles.errorMessage}>
+                  {horarioError}
+                </div>
+              )}
             </div>
+            <button
+              type="button"
+              className={styles.addButton}
+              onClick={adicionarHorario}
+              disabled={!novoHorario.trim()}
+            >
+              <span className={styles.plusIcon}>+</span> Adicionar Horário
+            </button>
           </div>
         </div>
       )}
 
       {/* Intervalo de Horas */}
       {tipoFrequencia === 'intervalo' && (
-        <>
+        <div className={styles.formGroup}>
+          <label htmlFor="intervaloHoras">A cada quantas horas?</label>
+          <input
+            id="intervaloHoras"
+            type="number"
+            min="1"
+            max="24"
+            value={intervaloHoras}
+            onChange={(e) => setIntervaloHoras(Number(e.target.value))}
+            className={styles.input}
+          />
           <div className={styles.formGroup}>
-            <label htmlFor="intervaloHoras">A cada quantas horas?</label>
+            <label htmlFor="horaUnica">A partir das</label>
             <input
-              id="intervaloHoras"
-              type="number"
-              min="1"
-              max="24"
-              value={intervaloHoras}
-              onChange={(e) => setIntervaloHoras(Number(e.target.value))}
-              className={styles.input}
-            />
-          </div>
-          <div className={styles.formGroup}>
-            <label htmlFor="horaInicio">A partir das</label>
-            <input
-              id="horaInicio"
+              id="horaUnica"
               type="time"
               value={horaInicio}
               onChange={(e) => setHoraInicio(e.target.value)}
               className={styles.input}
+              aria-required="true"
             />
           </div>
-        </>
+        </div>
       )}
 
       {/* Dias Alternados */}
       {tipoFrequencia === 'dias_alternados' && (
-        <>
+        <div className={styles.formGroup}>
+          <label htmlFor="intervaloDias">A cada quantos dias?</label>
+          <input
+            id="intervaloDias"
+            type="number"
+            min="1"
+            value={intervaloDias}
+            onChange={(e) => setIntervaloDias(Number(e.target.value))}
+            className={styles.input}
+          />
           <div className={styles.formGroup}>
-            <label htmlFor="intervaloDias">A cada quantos dias?</label>
+            <label htmlFor="horaUnica">No horário</label>
             <input
-              id="intervaloDias"
-              type="number"
-              min="1"
-              value={intervaloDias}
-              onChange={(e) => setIntervaloDias(Number(e.target.value))}
-              className={styles.input}
-            />
-          </div>
-          <div className={styles.formGroup}>
-            <label htmlFor="horaDiasAlternados">No horário</label>
-            <input
-              id="horaDiasAlternados"
+              id="horaUnica"
               type="time"
               value={horaInicio}
               onChange={(e) => setHoraInicio(e.target.value)}
               className={styles.input}
+              aria-required="true"
             />
           </div>
-        </>
+        </div>
       )}
 
       {/* Dias da Semana */}
       {tipoFrequencia === 'semanal' && (
-        <>
-          <div className={styles.formGroup}>
-            <label>Dias da semana</label>
-            <div className={styles.diasSemanaContainer}>
-              {diasDaSemana.map((dia) => (
-                <label key={dia.id} className={styles.diaSemanaLabel}>
-                  <input
-                    type="checkbox"
-                    checked={diasSemana.includes(dia.id)}
-                    onChange={() => toggleDiaSemana(dia.id)}
-                    className={styles.checkbox}
-                  />
-                  {dia.label}
-                </label>
-              ))}
-            </div>
+        <div className={`${styles.formGroup} ${formErrors.diasSemana ? styles.hasError : ''}`} data-field="diasSemana">
+          <label>
+            Dias da Semana
+            {formErrors.diasSemana && <span className={styles.errorText}> - {formErrors.diasSemana}</span>}
+          </label>
+          <div className={styles.diasSemanaContainer}>
+            {diasDaSemana.map((dia) => (
+              <label 
+                key={dia.id} 
+                className={`${styles.diaSemanaLabel} ${
+                  diasSemana.includes(dia.id) ? styles.diaSelecionado : ''
+                }`}
+              >
+                <input
+                  type="checkbox"
+                  className={styles.checkbox}
+                  checked={diasSemana.includes(dia.id)}
+                  onChange={() => {
+                    toggleDiaSemana(dia.id);
+                    if (formErrors.diasSemana) {
+                      setFormErrors(prev => ({
+                        ...prev,
+                        diasSemana: diasSemana.length === 1 && diasSemana.includes(dia.id) ? 
+                          'Selecione pelo menos um dia' : ''
+                      }));
+                    }
+                  }}
+                  aria-label={`Dia ${dia.label}`}
+                />
+                {dia.label}
+              </label>
+            ))}
           </div>
           <div className={styles.formGroup}>
-            <label htmlFor="horaSemanal">No horário</label>
+            <label htmlFor="horaUnica">No horário</label>
             <input
-              id="horaSemanal"
+              id="horaUnica"
               type="time"
               value={horaInicio}
               onChange={(e) => setHoraInicio(e.target.value)}
               className={styles.input}
+              aria-required="true"
             />
           </div>
-        </>
+        </div>
       )}
 
+
       <div className={styles.buttonGroup}>
-        <button type="button" onClick={onCancel} className={styles.cancelButton}>
+        <button
+          type="button"
+          onClick={onCancel}
+          className={styles.cancelButton}
+          disabled={isSubmitting}
+        >
           Cancelar
         </button>
-        <button type="submit" disabled={loading} className={styles.saveButton}>
-          {loading ? 'Salvando...' : 'Salvar'}
+        <button
+          type="submit"
+          className={`${styles.saveButton} ${isSubmitting ? styles.loading : ''}`}
+          disabled={isSubmitting}
+        >
+          {isSubmitting ? (
+            <>
+              <span className={styles.spinner} aria-hidden="true" />
+              <span>Salvando...</span>
+            </>
+          ) : 'Salvar'}
         </button>
       </div>
     </form>

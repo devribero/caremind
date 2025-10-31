@@ -3,12 +3,12 @@
 import pageStyles from '@/app/(dashboard)/perfil/page.module.css';
 import modalStyles from '@/app/(dashboard)/perfil/modal.module.css';
 import { createClient } from '@/lib/supabase/client';
-import { useState, useEffect, ChangeEvent, useRef } from 'react';
-import { usePersistentState } from '@/hooks/usePersistentState';
+import { useState, useEffect, useRef, useCallback, ChangeEvent } from 'react';
 import { useRouter } from 'next/navigation';
 import Image from 'next/image';
 import { useAuth } from '@/contexts/AuthContext';
 import { useAuthRequest } from '@/hooks/useAuthRequest';
+import { EditProfileModal } from '@/components/EditProfileModal';
 // Elders management moved to /familia
 
 // --- DEFINIÇÃO DE TIPOS ---
@@ -162,7 +162,6 @@ export default function Perfil() {
     const { makeRequest } = useAuthRequest();
     
     
-    const [isEditing, setIsEditing] = useState(false);
     const [uploadingPhoto, setUploadingPhoto] = useState(false); 
     const [successMessage, setSuccessMessage] = useState<string>('');
     const [passwordLoading, setPasswordLoading] = useState(false); 
@@ -174,8 +173,9 @@ export default function Perfil() {
         photoUrl: '/foto_padrao.png'
     });
     const [showPasswordModal, setShowPasswordModal] = useState(false);
-    const [isMenuOpen, setIsMenuOpen] = usePersistentState<boolean>('ui.perfil.menuOpen', false);
+    const [isMenuOpen, setIsMenuOpen] = useState<boolean>(false);
     const [showPhotoViewer, setShowPhotoViewer] = useState(false);
+    const [showEditModal, setShowEditModal] = useState(false);
 
     const fileInputRef = useRef<HTMLInputElement>(null); // ADICIONADO
     const BUCKET_NAME = process.env.NEXT_PUBLIC_SUPABASE_BUCKET || 'avatars'; // ADICIONADO
@@ -212,13 +212,45 @@ export default function Perfil() {
         router.push('/auth');
     };
 
-    const handleInputChange = (e: ChangeEvent<HTMLInputElement>) => {
-        const { name, value } = e.target;
-        setProfileData(prevData => ({
-            ...prevData,
-            [name]: value,
-        }));
-    };
+    const handleSaveProfile = useCallback(async (data: { fullName: string; phone: string; dob: string }) => {
+        if (!user) {
+            alert("Erro: Usuário não encontrado.");
+            return;
+        }
+
+        try {
+            await makeRequest(`/api/perfil/${user.id}`, {
+                method: 'PUT',
+                body: JSON.stringify({
+                    fullName: data.fullName,
+                    phone: data.phone,
+                    dob: data.dob,
+                }),
+            });
+            
+            // Atualiza o estado local
+            setProfileData(prev => ({
+                ...prev,
+                fullName: data.fullName,
+                phone: data.phone,
+                dob: data.dob,
+            }));
+            
+            // Dispara evento para atualizar outros componentes
+            window.dispatchEvent(new CustomEvent('profileUpdated', { 
+                detail: { 
+                    fullName: data.fullName,
+                    phone: data.phone,
+                    dob: data.dob,
+                } 
+            }));
+            
+            return true;
+        } catch (error) {
+            console.error('Erro ao salvar perfil:', error);
+            throw error;
+        }
+    }, [user, makeRequest]);
 
     // Função refatorada para centralizar o upload de foto
     const handleUploadButtonClick = () => {
@@ -292,34 +324,10 @@ export default function Perfil() {
         }
     };
 
-    const handleEditProfile = async () => {
-        if (!user) {
-            alert("Erro: Usuário não encontrado.");
-            return;
-        }
-
-        if (isEditing) {
-            try {
-                await makeRequest(`/api/perfil/${user.id}`, {
-                    method: 'PUT',
-                    body: JSON.stringify({
-                        fullName: profileData.fullName,
-                        phone: profileData.phone,
-                        dob: profileData.dob,
-                    }),
-                });
-                alert('Perfil atualizado com sucesso!');
-            } catch (error) {
-                if (error instanceof Error) {
-                    alert(`Erro ao salvar os dados: ${error.message}`);
-                } else {
-                    alert('Um erro inesperado ocorreu ao salvar o perfil.');
-                }
-            }
-        }
-        setIsEditing(!isEditing);
+    const handleEditClick = () => {
+        setShowEditModal(true);
     };
-    
+
     // Salvar nova senha via API
     const handleSavePassword = async (data: PasswordData) => {
         setPasswordLoading(true);
@@ -433,9 +441,8 @@ export default function Perfil() {
                                                 id="fullName"
                                                 name="fullName"
                                                 value={profileData.fullName}
-                                                onChange={handleInputChange}
                                                 className={pageStyles.fieldInput}
-                                                disabled={!isEditing}
+                                                disabled
                                             />
                                         </div>
                                         <div className={pageStyles.infoField}>
@@ -456,9 +463,8 @@ export default function Perfil() {
                                                 id="phone"
                                                 name="phone"
                                                 value={profileData.phone}
-                                                onChange={handleInputChange}
                                                 className={pageStyles.fieldInput}
-                                                disabled={!isEditing}
+                                                disabled
                                             />
                                         </div>
                                         <div className={pageStyles.infoField}>
@@ -468,19 +474,19 @@ export default function Perfil() {
                                                 id="dob"
                                                 name="dob"
                                                 value={profileData.dob}
-                                                onChange={handleInputChange}
                                                 className={pageStyles.fieldInput}
-                                                disabled={!isEditing}
+                                                disabled
                                             />
                                         </div>
                                     </div>
                                     <div className={pageStyles.editButtonContainer}>
                                         <button
                                             className={pageStyles.editProfileButton}
-                                            onClick={handleEditProfile}
+                                            onClick={handleEditClick}
                                             disabled={uploadingPhoto || passwordLoading}
+                                            type="button"
                                         >
-                                            {isEditing ? 'Salvar Perfil' : 'Editar Perfil'}
+                                            Editar Perfil
                                         </button>
                                     </div>
                                 </div>
@@ -491,8 +497,20 @@ export default function Perfil() {
                                 onSave={handleSavePassword}
                                 loading={passwordLoading}
                             />
-
                             
+                            <EditProfileModal
+                                isOpen={showEditModal}
+                                onClose={() => setShowEditModal(false)}
+                                onSave={handleSaveProfile}
+                                initialData={{
+                                    fullName: profileData.fullName,
+                                    phone: profileData.phone,
+                                    dob: profileData.dob,
+                                }}
+                                loading={uploadingPhoto || passwordLoading}
+                            />
+
+
 
                             {showPhotoViewer && (
                                 <div className={modalStyles.modalOverlay} onClick={() => setShowPhotoViewer(false)}>
