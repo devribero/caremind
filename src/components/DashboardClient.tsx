@@ -642,48 +642,61 @@ export default function DashboardClient({ readOnly = false, idosoId }: { readOnl
 
     // Alterna status de conclusão do medicamento usando histórico do dia
     const handleToggleStatus = useCallback(async (id: string, historicoEventoId?: string) => {
-        let resolvedId = historicoEventoId;
-        if (!resolvedId) {
-            try {
-                const token = await getAuthToken();
-                if (!token) throw new Error('Sessão não encontrada');
-                const itens = await buscarAgenda(token);
-                const pend = itens.find(it => it.tipo_evento === 'medicamento' && it.evento_id === id && it.status !== 'confirmado');
-                const any = itens.find(it => it.tipo_evento === 'medicamento' && it.evento_id === id);
-                resolvedId = (pend || any)?.id;
-            } catch (e) {}
-        }
-        if (!resolvedId) {
-            console.warn('ID do histórico de evento não encontrado para o medicamento:', id);
-            return;
-        }
-
         try {
             const token = await getAuthToken();
             if (!token) throw new Error('Sessão não encontrada');
-            // Deriva o status atual a partir da agenda do dia
-            const concluidoHoje = agenda.some(it => it.tipo_evento === 'medicamento' && it.evento_id === id && it.status === 'confirmado');
-            const novoStatus = concluidoHoje ? 'pendente' : 'confirmado';
 
-            // Usar o endpoint de histórico de eventos em vez do de medicamentos
-            const resposta = await fetch(`/api/historico_eventos/${resolvedId}`, {
-                method: 'PATCH',
-                headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
-                body: JSON.stringify({ status: novoStatus })
-            });
+            // Determina o status atual do medicamento na agenda
+            const concluidoHoje = agenda.some(it => 
+                it.tipo_evento === 'medicamento' && 
+                it.evento_id === id && 
+                it.status === 'confirmado'
+            );
+            
+            // Inverte o status (true -> false ou false -> true)
+            const novoConcluido = !concluidoHoje;
 
-            if (!resposta.ok) {
-                let detalhe: string | undefined;
-                try { detalhe = (await resposta.json())?.erro; } catch {}
-                throw new Error(detalhe || 'Falha ao atualizar status do histórico do medicamento');
+            // Atualiza o status no histórico de eventos (mantém a funcionalidade existente)
+            if (historicoEventoId) {
+                const respostaHistorico = await fetch(`/api/historico_eventos/${historicoEventoId}`, {
+                    method: 'PATCH',
+                    headers: { 
+                        'Content-Type': 'application/json', 
+                        'Authorization': `Bearer ${token}` 
+                    },
+                    body: JSON.stringify({ 
+                        status: novoConcluido ? 'confirmado' : 'pendente' 
+                    })
+                });
+
+                if (!respostaHistorico.ok) {
+                    throw new Error('Falha ao atualizar status do histórico');
+                }
             }
 
-            // Atualizar a agenda após a mudança
-            carregarDados();
+            // Atualiza o status na tabela de medicamentos
+            const respostaMedicamento = await fetch(`/api/medicamentos/${id}`, {
+                method: 'PATCH',
+                headers: { 
+                    'Content-Type': 'application/json', 
+                    'Authorization': `Bearer ${token}` 
+                },
+                body: JSON.stringify({ 
+                    concluido: novoConcluido 
+                })
+            });
+
+            if (!respostaMedicamento.ok) {
+                throw new Error('Falha ao atualizar status do medicamento');
+            }
+
+            // Recarrega os dados após a atualização bem-sucedida
+            await carregarDados();
+
         } catch (erro) {
             handleApiError(erro, 'Erro ao atualizar status do medicamento');
         }
-    }, [getAuthToken, handleApiError, agenda, carregarDados, buscarAgenda]);
+    }, [getAuthToken, handleApiError, agenda, carregarDados]);
 
     // Alterna status de conclusão da rotina usando histórico do dia
     const handleToggleRotinaStatus = useCallback(async (id: string, historicoEventoId?: string) => {
@@ -921,28 +934,6 @@ export default function DashboardClient({ readOnly = false, idosoId }: { readOnl
                                         <span className={styles.frequencia}>{formatarFrequencia(m.frequencia)}</span>
                                     </div>
                                     <div className={styles.item_actions}>
-                                        {!readOnly && (
-                                            <>
-                                                <button 
-                                                    type="button"
-                                                    className={styles.iconButton}
-                                                    onClick={() => handleEditMedicamento(m)}
-                                                    aria-label="Editar medicamento"
-                                                    title="Editar"
-                                                >
-                                                    <FiEdit2 size={16} />
-                                                </button>
-                                                <button 
-                                                    type="button"
-                                                    className={`${styles.iconButton} ${styles.deleteButton}`}
-                                                    onClick={() => confirmarExclusao('medicamentos', m.id)}
-                                                    aria-label="Excluir medicamento"
-                                                    title="Excluir"
-                                                >
-                                                    <FiTrash2 size={16} />
-                                                </button>
-                                            </>
-                                        )}
                                         <button type="button"
                                             className={`${styles.statusButton} ${isDone ? styles.completed : ''}`}
                                             onClick={() => handleToggleStatus(m.id, getHistoricoIdForMedicamento(m.id))}

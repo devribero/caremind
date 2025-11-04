@@ -383,6 +383,7 @@
   overflow: hidden;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
   padding: 20px;
+  display: flex;
 }
 
 .list_item:hover {
@@ -420,6 +421,7 @@
   font-size: 0.9rem;
   color: #64748b;
   line-height: 1.5;
+  max-width: 75%;
 }
 
 .item_actions {
@@ -679,8 +681,8 @@
 /* Estilo para o botão de status (concluir/desfazer) */
 .statusButton {
   background: #f0fdf4;
-  color: #16a34a;
   border: 1px solid #bbf7d0;
+  margin-right: 10px;
   border-radius: 8px;
   width: 36px;
   height: 36px;
@@ -716,7 +718,6 @@
 
 .statusButton:hover {
   background: #dcfce7;
-  color: #15803d;
   border-color: #86efac;
   transform: translateY(-1px);
   box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
