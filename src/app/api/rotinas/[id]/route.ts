@@ -22,7 +22,7 @@ export async function OPTIONS() {
 // FUNÇÃO PATCH - Atualizar uma Rotina existente
 // ================================================================= //
 export async function PATCH(request: NextRequest, { params }: { params: { id: string } }) {
-  const { id } = params;
+  const { id } = await params;
   const authHeader = request.headers.get('authorization');
   const token = authHeader?.startsWith('Bearer ')
     ? authHeader.slice('Bearer '.length)
@@ -80,7 +80,7 @@ export async function PATCH(request: NextRequest, { params }: { params: { id: st
 // FUNÇÃO DELETE - Deletar uma Rotina existente
 // ================================================================= //
 export async function DELETE(request: NextRequest, { params }: { params: { id: string } }) {
-  const { id } = params;
+  const { id } = await params;
   const authHeader = request.headers.get('authorization');
   const token = authHeader?.startsWith('Bearer ')
     ? authHeader.slice('Bearer '.length)

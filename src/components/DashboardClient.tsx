@@ -113,11 +113,11 @@ export default function DashboardClient({ readOnly = false, idosoId }: { readOnl
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [modalType, setModalType] = useState<'medicamento' | 'rotina'>('medicamento');
     const [isEditing, setIsEditing] = useState(false);
-    
+
     // Estados para os itens atuais sendo editados
     const [currentMedicamento, setCurrentMedicamento] = useState<Medicamento | null>(null);
     const [currentRotina, setCurrentRotina] = useState<Rotina | null>(null);
-    
+
     // Estados para o diálogo de confirmação
     const [confirmDialog, setConfirmDialog] = useState<{
         isOpen: boolean;
@@ -132,25 +132,25 @@ export default function DashboardClient({ readOnly = false, idosoId }: { readOnl
         message: '',
         onConfirm: null
     });
-    
+
     // Estados para armazenar os dados
     const [medicamentos, setMedicamentos] = useState<MedicamentosData>(estadoInicialMedicamentos);
     const [rotinas, setRotinas] = useState<RotinasData>(estadoInicialRotinas);
     const [agenda, setAgenda] = useState<AgendaItem[]>(estadoInicialAgenda);
-    
+
     // Estados para controle de carregamento
     const { setIsLoading } = useLoading();
-    
+
     // Conexão com o banco de dados
     const supabase = useMemo(() => createClient(), []);
-    
+
     // Dados do usuário logado
     const { user } = useAuth();
     const alertsRef = useRef<HTMLDivElement>(null);
     const pendingControllers = useRef<AbortController[]>([]);
 
     // ===== FUNÇÕES PARA MANIPULAR O MODAL =====
-    
+
     // Fecha o modal e limpa os dados
     const closeModal = useCallback(() => {
         setIsModalOpen(false);
@@ -165,7 +165,7 @@ export default function DashboardClient({ readOnly = false, idosoId }: { readOnl
 
     const toDate = useCallback((iso?: string) => (iso ? new Date(iso) : undefined), []);
 
-    const now = new Date();
+    const now = useMemo(() => new Date(), []);
     const yesterday = useMemo(() => {
         const d = new Date(now);
         d.setDate(d.getDate() - 1);
@@ -176,7 +176,7 @@ export default function DashboardClient({ readOnly = false, idosoId }: { readOnl
     const openModal = useCallback((type: 'medicamento' | 'rotina', medicamento: Medicamento | null = null) => {
         setModalType(type);
         setIsModalOpen(true);
-        
+
         if (medicamento) {
             setIsEditing(true);
             setCurrentMedicamento(medicamento);
@@ -187,7 +187,7 @@ export default function DashboardClient({ readOnly = false, idosoId }: { readOnl
     }, []);
 
     // ===== FUNÇÕES AUXILIARES =====
-    
+
     // Pega o token de autenticação do usuário
     const getAuthToken = useCallback(async () => {
         try {
@@ -235,7 +235,7 @@ export default function DashboardClient({ readOnly = false, idosoId }: { readOnl
     }, [now, isSameDay, toDate]);
 
     // ===== FUNÇÕES PARA BUSCAR DADOS =====
-    
+
     // Busca a lista de medicamentos da API
     const buscarMedicamentos = useCallback(async (token: string, signal?: AbortSignal): Promise<Medicamento[]> => {
         try {
@@ -250,7 +250,7 @@ export default function DashboardClient({ readOnly = false, idosoId }: { readOnl
                 try {
                     const j = await resposta.json();
                     msg = j?.erro || j?.message || msg;
-                } catch {}
+                } catch { }
                 throw new Error(msg);
             }
             return await resposta.json();
@@ -295,7 +295,7 @@ export default function DashboardClient({ readOnly = false, idosoId }: { readOnl
                 try {
                     const j = await resposta.json();
                     msg = j?.erro || j?.message || msg;
-                } catch {}
+                } catch { }
                 throw new Error(msg);
             }
             const raw = await resposta.json();
@@ -327,7 +327,7 @@ export default function DashboardClient({ readOnly = false, idosoId }: { readOnl
     }, [idosoId]);
 
     // ===== EFEITOS =====
-    
+
     // Efeito para verificar periodicamente se os medicamentos precisam ser desmarcados
     useEffect(() => {
         const intervalo = setInterval(() => {
@@ -338,7 +338,7 @@ export default function DashboardClient({ readOnly = false, idosoId }: { readOnl
                     }
                     return med;
                 });
-                
+
                 if (JSON.stringify(listaAtualizada) !== JSON.stringify(medicamentosAtuais.lista)) {
                     return {
                         ...medicamentosAtuais,
@@ -346,10 +346,10 @@ export default function DashboardClient({ readOnly = false, idosoId }: { readOnl
                         concluidos: listaAtualizada.filter(med => med.concluido).length
                     };
                 }
-                
+
                 return medicamentosAtuais;
             });
-        }, 60000); 
+        }, 60000);
 
         return () => clearInterval(intervalo);
     }, []);
@@ -403,7 +403,7 @@ export default function DashboardClient({ readOnly = false, idosoId }: { readOnl
         } else {
             // Aborta quaisquer requisições pendentes ao sair
             pendingControllers.current.forEach((c: AbortController) => {
-                try { c.abort(); } catch {}
+                try { c.abort(); } catch { }
             });
             pendingControllers.current = [];
             setMedicamentos(estadoInicialMedicamentos);
@@ -413,19 +413,19 @@ export default function DashboardClient({ readOnly = false, idosoId }: { readOnl
         return () => {
             // Cleanup ao desmontar
             pendingControllers.current.forEach((c: AbortController) => {
-                try { c.abort(); } catch {}
+                try { c.abort(); } catch { }
             });
             pendingControllers.current = [];
         };
     }, [user, carregarDados, idosoId]);
 
     // ===== FUNÇÕES CRUD (Criação, Leitura, Atualização, Deleção) =====
-    
+
     // Função para criar um novo medicamento
     const criarMedicamento = useCallback(async (data: any) => {
         const token = await getAuthToken();
         if (!token) throw new Error('Sessão não encontrada');
-        
+
         const resposta = await fetch('/api/medicamentos', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
@@ -449,7 +449,7 @@ export default function DashboardClient({ readOnly = false, idosoId }: { readOnl
     const atualizarMedicamento = useCallback(async (id: string, data: any) => {
         const token = await getAuthToken();
         if (!token) throw new Error('Sessão não encontrada');
-        
+
         const resposta = await fetch(`/api/medicamentos/${id}`, {
             method: 'PATCH', // Usar PATCH para atualizações parciais
             headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
@@ -472,7 +472,7 @@ export default function DashboardClient({ readOnly = false, idosoId }: { readOnl
     const criarRotina = useCallback(async (data: any) => {
         const token = await getAuthToken();
         if (!token) throw new Error('Sessão não encontrada');
-        
+
         const resposta = await fetch('/api/rotinas', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
@@ -491,30 +491,30 @@ export default function DashboardClient({ readOnly = false, idosoId }: { readOnl
             total: anterior.total + 1
         }));
     }, [getAuthToken]);
-    
+
     // Função para atualizar uma rotina existente
     const atualizarRotina = useCallback(async (id: string, data: Partial<Rotina>) => {
         const token = await getAuthToken();
         if (!token) throw new Error('Sessão não encontrada');
-        
+
         const resposta = await fetch(`/api/rotinas/${id}`, {
             method: 'PATCH',
             headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
             body: JSON.stringify(data)
         });
-        
+
         if (!resposta.ok) {
             const erro = await resposta.json();
             throw new Error(erro.error || 'Falha ao atualizar rotina');
         }
-        
+
         const rotinaAtualizada = await resposta.json();
         setRotinas(prev => ({
             ...prev,
             lista: prev.lista.map(rot => rot.id === id ? { ...rot, ...rotinaAtualizada } : rot)
         }));
     }, [getAuthToken]);
-    
+
     // Função para confirmar a exclusão
     const confirmarExclusao = (tipo: 'medicamentos' | 'rotinas', id: string) => {
         const itemType = tipo === 'medicamentos' ? 'medicamento' : 'rotina';
@@ -553,7 +553,7 @@ export default function DashboardClient({ readOnly = false, idosoId }: { readOnl
             });
 
             if (!resposta.ok) throw new Error('Falha ao excluir o item');
-            
+
             // Recarrega os dados após excluir com sucesso
             await carregarDados();
         } catch (erro) {
@@ -563,7 +563,7 @@ export default function DashboardClient({ readOnly = false, idosoId }: { readOnl
             setConfirmDialog({ isOpen: false, title: '', message: '', onConfirm: null });
         }
     };
-    
+
     const fecharConfirmacao = useCallback(() => {
         setConfirmDialog(prev => ({ ...prev, isOpen: false }));
     }, []);
@@ -585,7 +585,7 @@ export default function DashboardClient({ readOnly = false, idosoId }: { readOnl
     }, []);
 
     // ===== HANDLERS PARA FORMULÁRIOS =====
-    
+
     // Lida com o salvamento de medicamento
     const handleSaveMedicamento = useCallback(async (nome: string, dosagem: string | null, frequencia: Frequencia, quantidade: number) => {
         try {
@@ -623,7 +623,7 @@ export default function DashboardClient({ readOnly = false, idosoId }: { readOnl
             handleApiError(erro, `Erro ao ${isEditing ? 'atualizar' : 'criar'} rotina`);
         }
     }, [isEditing, currentRotina, criarRotina, atualizarRotina, closeModal, handleApiError, carregarDados]);
-    
+
     // Lida com a edição de medicamento
     const handleEditMedicamento = useCallback((medicamento: Medicamento) => {
         setCurrentMedicamento(medicamento);
@@ -646,26 +646,42 @@ export default function DashboardClient({ readOnly = false, idosoId }: { readOnl
             const token = await getAuthToken();
             if (!token) throw new Error('Sessão não encontrada');
 
-            // Determina o status atual do medicamento na agenda
-            const concluidoHoje = agenda.some(it => 
-                it.tipo_evento === 'medicamento' && 
-                it.evento_id === id && 
-                it.status === 'confirmado'
+            // Encontra o item
+            const agendaItem = agenda.find(it =>
+                it.tipo_evento === 'medicamento' &&
+                it.evento_id === id
             );
+            const medicamento = medicamentos.lista.find(m => m.id === id);
+            if (!medicamento) return;
+
+            // Inverte o status baseado no estado atual do medicamento
+            const novoStatus = medicamento.concluido ? 'pendente' : 'confirmado';
+            const novoConcluido = !medicamento.concluido;
+
+            // Atualização otimista da agenda e medicamentos
+            setAgenda(prevAgenda => prevAgenda.map(item =>
+                item.tipo_evento === 'medicamento' && item.evento_id === id
+                    ? { ...item, status: novoStatus }
+                    : item
+            ));
             
-            // Inverte o status (true -> false ou false -> true)
-            const novoConcluido = !concluidoHoje;
+            // Atualização otimista dos medicamentos
+            setMedicamentos(prev => ({
+                ...prev,
+                lista: prev.lista.map(m => m.id === id ? { ...m, concluido: novoConcluido } : m),
+                concluidos: prev.lista.reduce((acc, m) => acc + ((m.id === id ? novoConcluido : m.concluido) ? 1 : 0), 0)
+            }));
 
             // Atualiza o status no histórico de eventos (mantém a funcionalidade existente)
             if (historicoEventoId) {
                 const respostaHistorico = await fetch(`/api/historico_eventos/${historicoEventoId}`, {
                     method: 'PATCH',
-                    headers: { 
-                        'Content-Type': 'application/json', 
-                        'Authorization': `Bearer ${token}` 
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
                     },
-                    body: JSON.stringify({ 
-                        status: novoConcluido ? 'confirmado' : 'pendente' 
+                    body: JSON.stringify({
+                        status: novoStatus
                     })
                 });
 
@@ -677,12 +693,12 @@ export default function DashboardClient({ readOnly = false, idosoId }: { readOnl
             // Atualiza o status na tabela de medicamentos
             const respostaMedicamento = await fetch(`/api/medicamentos/${id}`, {
                 method: 'PATCH',
-                headers: { 
-                    'Content-Type': 'application/json', 
-                    'Authorization': `Bearer ${token}` 
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`
                 },
-                body: JSON.stringify({ 
-                    concluido: novoConcluido 
+                body: JSON.stringify({
+                    concluido: novoConcluido
                 })
             });
 
@@ -690,58 +706,101 @@ export default function DashboardClient({ readOnly = false, idosoId }: { readOnl
                 throw new Error('Falha ao atualizar status do medicamento');
             }
 
-            // Recarrega os dados após a atualização bem-sucedida
-            await carregarDados();
-
         } catch (erro) {
+            // Em caso de erro, reverte as alterações otimistas
+            setAgenda(prevAgenda => prevAgenda.map(item =>
+                item.tipo_evento === 'medicamento' && item.evento_id === id
+                    ? { ...item, status: item.status === 'confirmado' ? 'pendente' : 'confirmado' }
+                    : item
+            ));
+            setMedicamentos(prev => ({
+                ...prev,
+                lista: prev.lista.map(m => m.id === id ? { ...m, concluido: !m.concluido } : m)
+            }));
             handleApiError(erro, 'Erro ao atualizar status do medicamento');
         }
-    }, [getAuthToken, handleApiError, agenda, carregarDados]);
+    }, [getAuthToken, handleApiError, medicamentos.lista]);
 
     // Alterna status de conclusão da rotina usando histórico do dia
     const handleToggleRotinaStatus = useCallback(async (id: string, historicoEventoId?: string) => {
-        let resolvedId = historicoEventoId;
-        if (!resolvedId) {
-            try {
-                const token = await getAuthToken();
-                if (!token) throw new Error('Sessão não encontrada');
-                const itens = await buscarAgenda(token);
-                const pend = itens.find(it => it.tipo_evento === 'rotina' && it.evento_id === id && it.status !== 'confirmado');
-                const any = itens.find(it => it.tipo_evento === 'rotina' && it.evento_id === id);
-                resolvedId = (pend || any)?.id;
-            } catch (e) {}
-        }
-        if (!resolvedId) {
-            console.warn('ID do histórico de evento não encontrado para a rotina:', id);
-            return;
-        }
-
         try {
             const token = await getAuthToken();
             if (!token) throw new Error('Sessão não encontrada');
-            // Deriva o status atual a partir da agenda do dia
-            const concluidaHoje = agenda.some(it => it.tipo_evento === 'rotina' && it.evento_id === id && it.status === 'confirmado');
-            const novoStatus = concluidaHoje ? 'pendente' : 'confirmado';
 
-            // Usar o endpoint de histórico de eventos em vez do de rotinas
-            const resposta = await fetch(`/api/historico_eventos/${resolvedId}`, {
-                method: 'PATCH',
-                headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
-                body: JSON.stringify({ status: novoStatus })
-            });
+            // Encontra o item
+            const agendaItem = agenda.find(it =>
+                it.tipo_evento === 'rotina' &&
+                it.evento_id === id
+            );
+            const rotina = rotinas.lista.find(r => r.id === id);
+            if (!rotina) return;
 
-            if (!resposta.ok) {
-                let detalhe: string | undefined;
-                try { detalhe = (await resposta.json())?.erro; } catch {}
-                throw new Error(detalhe || 'Falha ao atualizar status do histórico da rotina');
+            // Inverte o status baseado no estado atual da rotina
+            const novoStatus = rotina.concluido ? 'pendente' : 'confirmado';
+            const novoConcluido = !rotina.concluido;
+
+            // Atualização otimista da agenda e rotinas
+            setAgenda(prevAgenda => prevAgenda.map(item =>
+                item.tipo_evento === 'rotina' && item.evento_id === id
+                    ? { ...item, status: novoStatus }
+                    : item
+            ));
+            
+            // Atualização otimista das rotinas
+            setRotinas(prev => ({
+                ...prev,
+                lista: prev.lista.map(r => r.id === id ? { ...r, concluido: novoConcluido } : r),
+                concluidas: prev.lista.reduce((acc, r) => acc + ((r.id === id ? novoConcluido : r.concluido) ? 1 : 0), 0)
+            }));
+
+            // Atualiza o status no histórico de eventos
+            if (historicoEventoId) {
+                const respostaHistorico = await fetch(`/api/historico_eventos/${historicoEventoId}`, {
+                    method: 'PATCH',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: JSON.stringify({
+                        status: novoStatus
+                    })
+                });
+
+                if (!respostaHistorico.ok) {
+                    throw new Error('Falha ao atualizar status do histórico');
+                }
             }
 
-            // Atualizar a agenda após a mudança
-            carregarDados();
+            // Atualiza o status na tabela de rotinas
+            const respostaRotina = await fetch(`/api/rotinas/${id}`, {
+                method: 'PATCH',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`
+                },
+                body: JSON.stringify({
+                    concluido: novoConcluido
+                })
+            });
+
+            if (!respostaRotina.ok) {
+                throw new Error('Falha ao atualizar status da rotina');
+            }
+
         } catch (erro) {
+            // Em caso de erro, reverte as alterações otimistas
+            setAgenda(prevAgenda => prevAgenda.map(item =>
+                item.tipo_evento === 'rotina' && item.evento_id === id
+                    ? { ...item, status: item.status === 'confirmado' ? 'pendente' : 'confirmado' }
+                    : item
+            ));
+            setRotinas(prev => ({
+                ...prev,
+                lista: prev.lista.map(r => r.id === id ? { ...r, concluido: !r.concluido } : r)
+            }));
             handleApiError(erro, 'Erro ao atualizar status da rotina');
         }
-    }, [getAuthToken, handleApiError, agenda, carregarDados, buscarAgenda]);
+    }, [getAuthToken, handleApiError, rotinas.lista]);
 
     // Dados focados no dia
     const medsHoje = useMemo(() => {
@@ -819,19 +878,19 @@ export default function DashboardClient({ readOnly = false, idosoId }: { readOnl
         if (!isModalOpen) return null;
 
         return (
-            <Modal 
-                isOpen={isModalOpen} 
+            <Modal
+                isOpen={isModalOpen}
                 onClose={closeModal}
                 title={isEditing ? `Editar ${modalType}` : `Adicionar ${modalType}`}
             >
                 {modalType === 'medicamento' ? (
-                    <AddMedicamentoForm 
+                    <AddMedicamentoForm
                         onSave={handleSaveMedicamento}
                         onCancel={closeModal}
                         medicamento={currentMedicamento ?? undefined}
                     />
                 ) : (
-                    <AddRotinaForm 
+                    <AddRotinaForm
                         onSave={handleSaveRotina}
                         onCancel={closeModal}
                         rotina={currentRotina ?? undefined}
@@ -845,7 +904,6 @@ export default function DashboardClient({ readOnly = false, idosoId }: { readOnl
 
     return (
         <div className={styles.dashboard_client}>
-
             <div className={styles.cards_container}>
                 <div className={styles.card}>
                     <h3>Medicamentos Hoje</h3>
@@ -862,7 +920,7 @@ export default function DashboardClient({ readOnly = false, idosoId }: { readOnl
                         </button>
                     )}
                 </div>
-                
+
                 <div className={styles.card}>
                     <h3>Rotinas Hoje</h3>
                     <p><strong></strong> {rotinasHojeConcluidas} de {rotinasHoje.length} concluídas</p>
@@ -925,24 +983,31 @@ export default function DashboardClient({ readOnly = false, idosoId }: { readOnl
                     ) : (
                         <ul className={styles.list}>
                             {medsHoje.map(m => {
-                                const isDone = agendaDoDia.some(it => it.tipo_evento === 'medicamento' && it.evento_id === m.id && it.status === 'confirmado');
+                                const agendaItem = agendaDoDia.find(it => it.tipo_evento === 'medicamento' && it.evento_id === m.id);
+                                const isDone = agendaItem?.status === 'confirmado' || m.concluido;
+                                const historicoId = getHistoricoIdForMedicamento(m.id);
+                                
                                 return (
-                                <li key={m.id} className={`${styles.list_item} ${isDone ? styles.completed : ''}`}>
-                                    <div className={styles.item_info}>
-                                        <strong>{m.nome}</strong>
-                                        {m.dosagem ? <span>{m.dosagem}</span> : null}
-                                        <span className={styles.frequencia}>{formatarFrequencia(m.frequencia)}</span>
-                                    </div>
-                                    <div className={styles.item_actions}>
-                                        <button type="button"
-                                            className={`${styles.statusButton} ${isDone ? styles.completed : ''}`}
-                                            onClick={() => handleToggleStatus(m.id, getHistoricoIdForMedicamento(m.id))}
-                                        >
-                                            {isDone ? 'Desfazer' : 'Concluir'}
-                                        </button>
-                                    </div>
-                                </li>
-                            );})}
+                                    <li key={m.id} className={`${styles.list_item} ${isDone ? styles.completed : ''}`}>
+                                        <div className={styles.item_info}>
+                                            <strong>{m.nome}</strong>
+                                            {m.dosagem && <span>{m.dosagem}</span>}
+                                            {m.frequencia && <span className={styles.frequencia}>{formatarFrequencia(m.frequencia)}</span>}
+                                            <span className={styles.quantidade}>Quantidade: {m.quantidade}</span>
+                                        </div>
+                                        {!readOnly && (
+                                            <div className={styles.item_actions}>
+                                                <button
+                                                    onClick={() => handleToggleStatus(m.id, historicoId)}
+                                                    className={isDone ? styles.desfazer_btn : styles.concluir_btn}
+                                                >
+                                                    {isDone ? 'Desfazer' : 'Concluir'}
+                                                </button>
+                                            </div>
+                                        )}
+                                    </li>
+                                );
+                            })}
                         </ul>
                     )}
                 </div>
@@ -956,46 +1021,28 @@ export default function DashboardClient({ readOnly = false, idosoId }: { readOnl
                     ) : (
                         <ul className={styles.list}>
                             {rotinasHoje.map(r => {
-                                const isDone = agendaDoDia.some(it => it.tipo_evento === 'rotina' && it.evento_id === r.id && it.status === 'confirmado');
+                                const agendaItem = agendaDoDia.find(it => it.tipo_evento === 'rotina' && it.evento_id === r.id);
+                                const isDone = agendaItem?.status === 'confirmado' || r.concluido;
                                 return (
-                                <li key={r.id} className={`${styles.list_item} ${isDone ? styles.completed : ''}`}>
-                                    <div className={styles.item_info}>
-                                        <strong>{r.titulo || 'Rotina'}</strong>
-                                        {r.descricao ? <span>{r.descricao}</span> : null}
-                                        {r.frequencia ? <span className={styles.frequencia}>{formatarFrequencia(r.frequencia as any)}</span> : null}
-                                    </div>
-                                    <div className={styles.item_actions}>
+                                    <li key={r.id} className={`${styles.list_item} ${isDone ? styles.completed : ''}`}>
+                                        <div className={styles.item_info}>
+                                            <strong>{r.titulo || 'Rotina'}</strong>
+                                            {r.descricao ? <span>{r.descricao}</span> : null}
+                                            {r.frequencia ? <span className={styles.frequencia}>{formatarFrequencia(r.frequencia as any)}</span> : null}
+                                        </div>
                                         {!readOnly && (
-                                            <>
-                                                <button 
-                                                    type="button"
-                                                    className={styles.iconButton}
-                                                    onClick={() => handleEditRotina(r)}
-                                                    aria-label="Editar rotina"
-                                                    title="Editar"
+                                            <div className={styles.item_actions}>
+                                                <button
+                                                    onClick={() => handleToggleRotinaStatus(r.id, getHistoricoIdForRotina(r.id))}
+                                                    className={isDone ? styles.desfazer_btn : styles.concluir_btn}
                                                 >
-                                                    <FiEdit2 size={16} />
+                                                    {isDone ? 'Desfazer' : 'Concluir'}
                                                 </button>
-                                                <button 
-                                                    type="button"
-                                                    className={`${styles.iconButton} ${styles.deleteButton}`}
-                                                    onClick={() => confirmarExclusao('rotinas', r.id)}
-                                                    aria-label="Excluir rotina"
-                                                    title="Excluir"
-                                                >
-                                                    <FiTrash2 size={16} />
-                                                </button>
-                                            </>
+                                            </div>
                                         )}
-                                        <button type="button"
-                                            className={`${styles.statusButton} ${isDone ? styles.completed : ''}`}
-                                            onClick={() => handleToggleRotinaStatus(r.id, getHistoricoIdForRotina(r.id))}
-                                        >
-                                            {isDone ? 'Desfazer' : 'Concluir'}
-                                        </button>
-                                    </div>
-                                </li>
-                            );})}
+                                    </li>
+                                );
+                            })}
                         </ul>
                     )}
                 </div>
@@ -1030,20 +1077,21 @@ export default function DashboardClient({ readOnly = false, idosoId }: { readOnl
                     </ul>
                 )}
             </div>
-        {!readOnly && renderModal}
-        
-        {!readOnly && (
-            <ConfirmDialog
-                isOpen={confirmDialog.isOpen}
-                title={confirmDialog.title}
-                message={confirmDialog.message}
-                confirmText="Excluir"
-                cancelText="Cancelar"
-                onConfirm={confirmDialog.onConfirm || (() => {})}
-                onCancel={fecharConfirmacao}
-                danger
-            />
-        )}
-    </div>
+
+            {!readOnly && renderModal}
+
+            {!readOnly && (
+                <ConfirmDialog
+                    isOpen={confirmDialog.isOpen}
+                    title={confirmDialog.title}
+                    message={confirmDialog.message}
+                    confirmText="Excluir"
+                    cancelText="Cancelar"
+                    onConfirm={confirmDialog.onConfirm || (() => { })}
+                    onCancel={fecharConfirmacao}
+                    danger
+                />
+            )}
+        </div>
     );
 }

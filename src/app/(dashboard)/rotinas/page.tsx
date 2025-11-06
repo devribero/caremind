@@ -45,6 +45,7 @@ export default function Rotinas() {
   const { makeRequest } = useAuthRequest();
   const [eventosDoDia, setEventosDoDia] = useState<Array<{ id: string; tipo_evento: string; evento_id: string; status: string }>>([]);
   const [marking, setMarking] = useState<Record<string, boolean>>({});
+  const [deleting, setDeleting] = useState<Record<string, boolean>>({});
 
   // Usar o hook CRUD personalizado
   const {
@@ -62,9 +63,13 @@ export default function Rotinas() {
   } = useCrudOperations<Rotina>({
     endpoint: targetUserId ? `/api/rotinas?idoso_id=${encodeURIComponent(targetUserId)}` : '/api/rotinas',
     onError: {
-      create: (error) => alert(`Erro ao criar rotina: ${error}`),
-      update: (error) => alert(`Erro ao atualizar rotina: ${error}`),
-      delete: (error) => alert(`Erro ao excluir rotina: ${error}`),
+      create: (error) => toast.error(`Erro ao criar rotina: ${error}`),
+      update: (error) => toast.error(`Erro ao atualizar rotina: ${error}`),
+      delete: (error) => toast.error(`Erro ao excluir rotina: ${error}`),
+    },
+    onSuccess: {
+      create: () => toast.success('Rotina criada com sucesso'),
+      update: () => toast.success('Rotina atualizada com sucesso'),
     },
   });
 
@@ -232,9 +237,15 @@ export default function Rotinas() {
               key={rotina.id}
               rotina={rotina}
               onEdit={editItem}
-              onDelete={deleteItem}
+              onDelete={(id) => {
+                setDeleting(prev => ({ ...prev, [id]: true }));
+                deleteItem(id).finally(() => {
+                  setDeleting(prev => ({ ...prev, [id]: false }));
+                });
+              }}
               hasPendingToday={hasPendingForRotina(rotina.id)}
               isMarking={!!marking[rotina.id]}
+              isDeleting={!!deleting[rotina.id]}
               onMarkAsDone={() => handleMarkRotinaDone(rotina.id)}
             />
           ))}

@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createServerClient, type CookieOptions } from '@supabase/ssr';
 import { cookies } from 'next/headers';
+import type { Session } from '@supabase/supabase-js';
 
 const corsHeaders = {
     'Access-Control-Allow-Origin': 'https://caremind.online',
@@ -21,7 +22,7 @@ export async function PATCH(
     context: { params: { id: string } }
 ) {
     try {
-        const cookieStore = await cookies();
+                const cookieStore = await cookies();
         
         // Create Supabase client with cookie handling
         const supabase = createServerClient(
@@ -30,29 +31,28 @@ export async function PATCH(
             {
                 cookies: {
                     get(name: string) {
-                        return cookieStore.get(name)?.value
+                        return cookieStore.get(name)?.value;
                     },
                     set(name: string, value: string, options: CookieOptions) {
-                        try {
-                            cookieStore.set({ name, value, ...options })
-                        } catch (error) {
-                            // Ignore set error in route handlers
-                        }
+                        cookieStore.set({ name, value, ...options });
                     },
                     remove(name: string, options: CookieOptions) {
-                        try {
-                            cookieStore.set({ name, value: '', ...options })
-                        } catch (error) {
-                            // Ignore set error in route handlers
-                        }
+                        cookieStore.set({ name, value: '', ...options });
                     },
                 },
             }
-        )
+        );
 
         // Debug: log cookie names in dev
         if (process.env.NODE_ENV !== 'production') {
-            console.debug('[medicamentos PATCH] Auth cookie:', cookieStore.get('sb-njxsuqvqaeesxmoajzyb-auth-token')?.value ? 'present' : 'missing');
+            const cookieStore = await cookies();
+            const allCookies = cookieStore.getAll();
+            const authCookie = cookieStore.get('sb-njxsuqvqaeesxmoajzyb-auth-token');
+            console.debug('[medicamentos PATCH] incoming cookies:', allCookies.map(c => c.name));
+            console.debug('[medicamentos PATCH] auth cookie present:', !!authCookie);
+            if (authCookie) {
+                console.debug('[medicamentos PATCH] auth cookie value length:', authCookie.value?.length ?? 0);
+            }
         }
         
         // Verificar autenticação
@@ -65,7 +65,7 @@ export async function PATCH(
                 const accessToken = authHeader.split(' ')[1];
                 const { data: { user }, error } = await supabase.auth.getUser(accessToken);
                 if (user && !error) {
-                    session = { user, access_token: accessToken } as any;
+                    session = { user, access_token: accessToken } as Session;
                 }
             }
         }
@@ -139,24 +139,55 @@ export async function DELETE(
     context: { params: { id: string } }
 ) {
     try {
-    // Get the cookie store first and pass a function that returns it to the
-    // auth helper. This ensures the supabase adapter can call `context.cookies()`
-    // synchronously without triggering Next.js "sync dynamic APIs" checks.
-        const cookieStore = await cookies();
-        // Debug: log cookie names (safe — don't log values). Only in non-prod.
+        // Debug: log cookie names in dev
         if (process.env.NODE_ENV !== 'production') {
-            try {
-                const names = cookieStore.getAll().map(c => c.name);
-                console.debug('[medicamentos DELETE] incoming cookies:', names);
-            } catch {
-                // ignore
+            const cookieStore = await cookies();
+            const allCookies = cookieStore.getAll();
+            const authCookie = cookieStore.get('sb-njxsuqvqaeesxmoajzyb-auth-token');
+            console.debug('[medicamentos DELETE] incoming cookies:', allCookies.map(c => c.name));
+            console.debug('[medicamentos DELETE] auth cookie present:', !!authCookie);
+            if (authCookie) {
+                console.debug('[medicamentos DELETE] auth cookie value length:', authCookie.value?.length ?? 0);
             }
         }
-    // Return the resolved cookie store directly (not a Promise).
-    const supabase = createRouteHandlerClient({ cookies: () => cookieStore });
+
+        const cookieStore = await cookies();
         
-        // Verificar autenticação
-        const { data: { session } } = await supabase.auth.getSession();
+        // Create Supabase client with cookie handling
+        const supabase = createServerClient(
+            process.env.NEXT_PUBLIC_SUPABASE_URL!,
+            process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+            {
+                cookies: {
+                    get(name: string) {
+                        return cookieStore.get(name)?.value;
+                    },
+                    set(name: string, value: string, options: CookieOptions) {
+                        cookieStore.set({ name, value, ...options });
+                    },
+                    remove(name: string, options: CookieOptions) {
+                        cookieStore.set({ name, value: '', ...options });
+                    },
+                },
+            }
+        );
+        
+        // Verificar autenticação e tentar recuperar via Authorization header se necessário
+        let { data: { session } } = await supabase.auth.getSession();
+        
+        if (!session) {
+            const authHeader = request.headers.get('Authorization');
+            if (authHeader?.startsWith('Bearer ')) {
+                const accessToken = authHeader.split(' ')[1];
+                const { data: { user }, error } = await supabase.auth.getUser(accessToken);
+                if (user && !error) {
+                    session = { user, access_token: accessToken } as Session;
+                    if (process.env.NODE_ENV !== 'production') {
+                        console.debug('[medicamentos DELETE] recovered session from Authorization header');
+                    }
+                }
+            }
+        }
         if (!session) {
             return NextResponse.json(
                 { error: 'Não autorizado' },

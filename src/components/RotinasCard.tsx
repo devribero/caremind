@@ -66,9 +66,10 @@ interface RotinaCardProps {
   onMarkAsDone?: () => void;
   hasPendingToday?: boolean;
   isMarking?: boolean;
+  isDeleting?: boolean;
 }
 
-const RotinaCard: React.FC<RotinaCardProps> = ({ rotina, onEdit, onDelete, onMarkAsDone, hasPendingToday, isMarking }) => {
+const RotinaCard: React.FC<RotinaCardProps> = ({ rotina, onEdit, onDelete, onMarkAsDone, hasPendingToday, isMarking, isDeleting }) => {
   const frequenciaTexto = formatarFrequencia(rotina.frequencia);
   return (
     <div className={styles.card}>
@@ -102,9 +103,10 @@ const RotinaCard: React.FC<RotinaCardProps> = ({ rotina, onEdit, onDelete, onMar
               type="button"
               className={`${styles.actionButton} ${styles.deleteButton}`}
               onClick={() => onDelete(rotina.id)}
+              disabled={isDeleting}
               aria-label="Excluir rotina"
             >
-              Excluir
+              {isDeleting ? 'Excluindo...' : 'Excluir'}
             </button>
           )}
         </div>

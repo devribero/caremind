@@ -110,44 +110,38 @@ export function useCrudOperations<T extends { id: string | number }>(
   }, [items, makeRequest, config.endpoint, executeOptimisticUpdate, editModal, config.onSuccess?.update, config.onError?.update]);
 
   // Delete item
-  const deleteItem = useCallback(async (itemId: string, event?: React.MouseEvent) => {
-    // Obter a posição do clique, se disponível
-    const position = event ? {
-      top: `${event.clientY}px`,
-      left: `${event.clientX}px`,
-      transform: 'translateY(-100%)'
-    } : undefined;
-
-    const ok = await toast.confirm('Tem certeza que deseja excluir este item?', position);
+  const deleteItem = useCallback(async (itemId: string) => {
+    const ok = await toast.confirm('Tem certeza que deseja excluir este item?');
     if (!ok) return;
 
     try {
-      await executeOptimisticUpdate(
-        items,
-        updater => setItems(updater),
-        itemId,
-        () => ({ id: '' } as T),
-        async () => {
-          return makeRequest(`${baseEndpoint}/${itemId}`, {
-            method: 'DELETE',
-          });
-        },
-        {
-          onSuccess: () => {
-            setItems(prev => prev.filter(item => item.id !== itemId));
-            config.onSuccess?.delete?.(itemId);
-          },
-          onError: (error) => {
-            config.onError?.delete?.(error.message);
-          },
-        }
-      );
+      // Guardar estado anterior para possível rollback
+      const previousItems = [...items];
+      
+      // Atualização otimista: remover o item imediatamente
+      setItems(prev => prev.filter(item => item.id !== itemId));
+
+      try {
+        // Fazer a requisição DELETE
+        await makeRequest(`${baseEndpoint}/${itemId}`, {
+          method: 'DELETE',
+        });
+
+        // Se chegou aqui, deu certo
+        config.onSuccess?.delete?.(itemId);
+        toast.success('Item excluído com sucesso');
+        return true;
+      } catch (error) {
+        // Rollback em caso de erro
+        setItems(previousItems);
+        throw error;
+      }
     } catch (err) {
       const normalized = normalizeError(err, 'Erro ao excluir item');
       config.onError?.delete?.(normalized.message);
       throw normalized;
     }
-  }, [items, makeRequest, config.endpoint, executeOptimisticUpdate, config.onSuccess?.delete, config.onError?.delete]);
+  }, [items, makeRequest, baseEndpoint, config.onSuccess, config.onError]);
 
   // Edit item (open modal)
   const editItem = useCallback((item: T) => {
