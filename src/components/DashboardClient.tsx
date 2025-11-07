@@ -4,82 +4,60 @@
 import React, { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import { createClient } from '@/lib/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
-import { shouldResetMedicamento } from '@/lib/medicamentoUtils';
-
-import styles from './DashboardClient.module.css';
-import { Modal } from './Modal';
-import { ConfirmDialog } from './ConfirmDialog';
-import { AddMedicamentoForm } from './forms/AddMedicamentoForm';
+import { shouldResetMedicamento } from '@/lib/utils/medicamento';
+import { MedicamentosService } from '@/lib/supabase/services/medicamentos';
+import { RotinasService } from '@/lib/supabase/services/rotinas';
+import { HistoricoEventosService } from '@/lib/supabase/services/historicoEventos';
 import { AddRotinaForm } from './forms/AddRotinaForm';
+import { AddMedicamentoForm } from './forms/AddMedicamentoForm';
+import { ConfirmDialog } from '@/components/ConfirmDialog';
+import { Modal } from '@/components/Modal';
+import styles from './DashboardClient.module.css';
 import { useLoading } from '@/contexts/LoadingContext';
 import { FiPlus, FiAlertTriangle, FiClock, FiEdit2, FiTrash2 } from 'react-icons/fi';
+import type { Database } from '@/types/supabase';
 
 // ===== TIPOS DE DADOS =====
 
-// Tipos para as frequências de medicamentos
-type FrequenciaDiaria = {
-    tipo: 'diario';
-    horarios: string[];  // Ex: ['08:00', '14:00', '20:00']
+// Tipos baseados no schema do banco de dados
+type Medicamento = Database['public']['Tables']['medicamentos']['Row'] & {
+    quantidade?: number | null;
+    data_agendada?: string | null;
 };
 
-type FrequenciaIntervalo = {
-    tipo: 'intervalo';
-    intervalo_horas: number;  // Ex: 8 (a cada 8 horas)
-    inicio: string;           // Ex: '08:00'
-};
+type Rotina = Database['public']['Tables']['rotinas']['Row'];
 
-type FrequenciaDiasAlternados = {
-    tipo: 'dias_alternados';
-    intervalo_dias: number;  // Ex: 2 (a cada 2 dias)
-    horario: string;         // Ex: '09:00'
-};
-
-type FrequenciaSemanal = {
-    tipo: 'semanal';
-    dias_da_semana: number[];  // Números de 1 a 7 representando os dias da semana
-    horario: string;           // Ex: '09:00'
-};
-
-// Tipo que une todos os tipos de frequência
-type Frequencia = FrequenciaDiaria | FrequenciaIntervalo | FrequenciaDiasAlternados | FrequenciaSemanal;
-
-// Interface para um medicamento
-interface Medicamento {
-    id: string;
-    nome: string;
-    dosagem: string | null;  // Ex: '500mg', '1 comprimido'
-    quantidade: number;       // Quantidade em estoque
-    frequencia: Frequencia | null;
-    data_agendada: string;    // Próxima data/hora da dose
-    concluido: boolean;       // Se a última dose foi tomada
-    ultimaAtualizacao?: string; // Quando foi a última atualização
-}
-
-// Interface para uma rotina
-interface Rotina {
-    id: string;
-    titulo?: string;
-    descricao?: string;
-    concluido: boolean;      // API usa 'concluido'
-    frequencia?: any;
-    data_agendada?: string;  // opcional
-}
-
-// Interface para os dados de medicamentos
+// Tipos para o estado do componente
 interface MedicamentosData {
-    total: number;           // Total de medicamentos
-    concluidos: number;      // Quantos estão marcados como concluídos
-    lista: Medicamento[];    // Lista de medicamentos
+    total: number;
+    concluidos: number;
+    lista: Medicamento[];
 }
 
-// Interface para os dados de rotinas
 interface RotinasData {
-    total: number;           // Total de rotinas
-    concluidas: number;      // Quantas estão marcadas como concluídas
-    lista: Rotina[];         // Lista de rotinas
+    total: number;
+    concluidas: number;
+    lista: Rotina[];
 }
 
-// Interface para itens da agenda vindos de historico_eventos
+interface Frequencia {
+    tipo: 'diario' | 'intervalo' | 'especifico' | 'semanal' | 'mensal' | 'dias_alternados';
+    intervalo?: number;
+    dias?: number[];
+    dias_da_semana?: number[];
+    dias_do_mes?: number[];
+}
+
+type MedicamentoFrequencia = Frequencia;
+
+interface MedicamentoFormData extends Omit<Medicamento, 'id' | 'created_at' | 'updated_at' | 'user_id'> {
+    id?: string | number;
+}
+
+interface RotinaFormData extends Omit<Rotina, 'id' | 'created_at' | 'updated_at' | 'user_id'> {
+    id?: string | number;
+}
+
 interface AgendaItem {
     id: string;
     tipo_evento: 'medicamento' | 'rotina' | string;
@@ -89,36 +67,119 @@ interface AgendaItem {
     status: 'pendente' | 'confirmado' | 'esquecido' | string;
 }
 
-// Estado inicial para medicamentos
 const estadoInicialMedicamentos: MedicamentosData = {
     total: 0,
     concluidos: 0,
     lista: []
 };
 
-// Estado inicial para rotinas
 const estadoInicialRotinas: RotinasData = {
     total: 0,
     concluidas: 0,
     lista: []
 };
 
-// Estado inicial para agenda
 const estadoInicialAgenda: AgendaItem[] = [];
 
 // ===== COMPONENTE PRINCIPAL =====
 
+interface User {
+    id: string;
+    email?: string;
+    // Add other user properties as needed
+}
+
+function useCarregarDados(user: User | null, idosoId?: string) {
+    const [medicamentos, setMedicamentos] = useState<MedicamentosData>(estadoInicialMedicamentos);
+    const [rotinas, setRotinas] = useState<RotinasData>(estadoInicialRotinas);
+    const [agenda, setAgenda] = useState<AgendaItem[]>(estadoInicialAgenda);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState<Error | null>(null);
+    const { setIsLoading } = useLoading();
+
+    const carregarDados = useCallback(async () => {
+        if (!user) return;
+
+        try {
+            setLoading(true);
+            setError(null);
+            setIsLoading(true);
+
+            const [dadosMedicamentos, dadosRotinas, itensAgenda] = await Promise.all([
+                idosoId ? MedicamentosService.listarMedicamentos(idosoId) : Promise.resolve([]),
+                idosoId ? RotinasService.listarRotinas(idosoId) : Promise.resolve([]),
+                idosoId ? buscarAgenda(idosoId) : Promise.resolve([]),
+            ]);
+
+            setMedicamentos({
+                total: dadosMedicamentos.length,
+                concluidos: dadosMedicamentos.filter((m: any) => m.concluido).length,
+                lista: dadosMedicamentos
+            });
+
+            setRotinas({
+                total: dadosRotinas.length,
+                concluidas: dadosRotinas.filter((r: any) => r.concluido).length,
+                lista: dadosRotinas
+            });
+
+            setAgenda(itensAgenda);
+        } catch (err) {
+            console.error('Erro ao carregar dados:', err);
+            setError(err instanceof Error ? err : new Error('Erro desconhecido ao carregar dados'));
+        } finally {
+            setLoading(false);
+            setIsLoading(false);
+        }
+    }, [user, idosoId, setIsLoading]);
+
+    useEffect(() => {
+        carregarDados();
+    }, [carregarDados]);
+
+    return { medicamentos, rotinas, agenda, loading, error, recarregar: carregarDados, setMedicamentos, setRotinas, setAgenda };
+}
+
+async function buscarAgenda(idosoId: string): Promise<AgendaItem[]> {
+    try {
+        const hoje = new Date();
+        const data = hoje.toISOString().split('T')[0]; // Formato YYYY-MM-DD
+
+        const eventos = await HistoricoEventosService.listarEventosPorData(idosoId, data);
+
+        return eventos.map((evento) => ({
+            id: evento.id.toString(),
+            tipo_evento: evento.tipo_evento || 'outro',
+            evento_id: evento.evento_id?.toString() || '',
+            titulo: evento.descricao || 'Evento sem descrição',
+            horario: evento.data_prevista ? new Date(evento.data_prevista) : undefined,
+            status: (evento.status as 'pendente' | 'confirmado' | 'esquecido') || 'pendente',
+        })).sort((a, b) => {
+            const rank = (it: AgendaItem) => it.status === 'confirmado' ? 2 : (it.horario && it.horario < new Date() ? 0 : 1);
+            const ra = rank(a);
+            const rb = rank(b);
+            if (ra !== rb) return ra - rb;
+            return (a.horario?.getTime() || 0) - (b.horario?.getTime() || 0);
+        });
+    } catch (erro) {
+        console.error('Falha ao buscar agenda:', erro);
+        return [];
+    }
+}
+
 export default function DashboardClient({ readOnly = false, idosoId }: { readOnly?: boolean; idosoId?: string }): React.ReactElement {
-    // Estados para controle do modal
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [modalType, setModalType] = useState<'medicamento' | 'rotina'>('medicamento');
     const [isEditing, setIsEditing] = useState(false);
 
-    // Estados para os itens atuais sendo editados
-    const [currentMedicamento, setCurrentMedicamento] = useState<Medicamento | null>(null);
-    const [currentRotina, setCurrentRotina] = useState<Rotina | null>(null);
+    const [medicamentoSelecionado, setMedicamentoSelecionado] = useState<Medicamento | null>(null);
+    const [rotinaSelecionada, setRotinaSelecionada] = useState<Rotina | null>(null);
+    const [mostrarFormMedicamento, setMostrarFormMedicamento] = useState(false);
+    const [mostrarFormRotina, setMostrarFormRotina] = useState(false);
+    const [mostrarConfirmacaoExclusao, setMostrarConfirmacaoExclusao] = useState(false);
+    const [itemParaExcluir, setItemParaExcluir] = useState<{ tipo: 'medicamento' | 'rotina'; id: string } | null>(null);
+    // agenda manipulada via hook
 
-    // Estados para o diálogo de confirmação
     const [confirmDialog, setConfirmDialog] = useState<{
         isOpen: boolean;
         title: string;
@@ -133,37 +194,45 @@ export default function DashboardClient({ readOnly = false, idosoId }: { readOnl
         onConfirm: null
     });
 
-    // Estados para armazenar os dados
-    const [medicamentos, setMedicamentos] = useState<MedicamentosData>(estadoInicialMedicamentos);
-    const [rotinas, setRotinas] = useState<RotinasData>(estadoInicialRotinas);
-    const [agenda, setAgenda] = useState<AgendaItem[]>(estadoInicialAgenda);
-
-    // Estados para controle de carregamento
+    const { user } = useAuth();
     const { setIsLoading } = useLoading();
 
-    // Conexão com o banco de dados
-    const supabase = useMemo(() => createClient(), []);
+    const { 
+      medicamentos, 
+      rotinas, 
+      agenda, 
+      loading, 
+      error, 
+      recarregar: recarregarDados,
+      setMedicamentos,
+      setRotinas,
+      setAgenda
+    } = useCarregarDados(user, idosoId);
 
-    // Dados do usuário logado
-    const { user } = useAuth();
+    const supabase = useMemo(() => createClient(), []);
     const alertsRef = useRef<HTMLDivElement>(null);
     const pendingControllers = useRef<AbortController[]>([]);
 
-    // ===== FUNÇÕES PARA MANIPULAR O MODAL =====
-
-    // Fecha o modal e limpa os dados
     const closeModal = useCallback(() => {
         setIsModalOpen(false);
         setIsEditing(false);
-        setCurrentMedicamento(null);
-        setCurrentRotina(null);
+        setMedicamentoSelecionado(null);
+        setRotinaSelecionada(null);
     }, []);
 
     const isSameDay = useCallback((a: Date, b: Date) => (
         a.getFullYear() === b.getFullYear() && a.getMonth() === b.getMonth() && a.getDate() === b.getDate()
     ), []);
 
-    const toDate = useCallback((iso?: string) => (iso ? new Date(iso) : undefined), []);
+    const toDate = useCallback((iso: string | null | undefined) => {
+        if (!iso) return undefined;
+        try {
+            return new Date(iso);
+        } catch (e) {
+            console.error('Erro ao converter data:', e);
+            return undefined;
+        }
+    }, []);
 
     const now = useMemo(() => new Date(), []);
     const yesterday = useMemo(() => {
@@ -172,23 +241,19 @@ export default function DashboardClient({ readOnly = false, idosoId }: { readOnl
         return d;
     }, [now]);
 
-    // Abre o modal para adicionar ou editar um item
     const openModal = useCallback((type: 'medicamento' | 'rotina', medicamento: Medicamento | null = null) => {
         setModalType(type);
         setIsModalOpen(true);
 
         if (medicamento) {
             setIsEditing(true);
-            setCurrentMedicamento(medicamento);
+            setMedicamentoSelecionado(medicamento);
         } else {
             setIsEditing(false);
-            setCurrentMedicamento(null);
+            setMedicamentoSelecionado(null);
         }
     }, []);
 
-    // ===== FUNÇÕES AUXILIARES =====
-
-    // Pega o token de autenticação do usuário
     const getAuthToken = useCallback(async () => {
         try {
             const { data: { session } } = await supabase.auth.getSession();
@@ -199,14 +264,12 @@ export default function DashboardClient({ readOnly = false, idosoId }: { readOnl
         }
     }, [supabase]);
 
-    // Mostra mensagens de erro
     const handleApiError = useCallback((error: unknown, mensagemPadrao: string) => {
         const mensagem = error instanceof Error ? error.message : mensagemPadrao;
         console.error('Erro na API:', error);
         alert(`Erro: ${mensagem}`);
     }, []);
 
-    // Determina se um medicamento está previsto para o dia de hoje quando data_agendada está ausente
     const isMedicamentoHoje = useCallback((m: Medicamento): boolean => {
         const d = toDate(m.data_agendada);
         if (d && isSameDay(d, now)) return true;
@@ -220,7 +283,6 @@ export default function DashboardClient({ readOnly = false, idosoId }: { readOnl
         return false;
     }, [now, isSameDay, toDate]);
 
-    // Determina se uma rotina está prevista para o dia de hoje quando data_agendada está ausente
     const isRotinaHoje = useCallback((r: Rotina): boolean => {
         const d = toDate(r.data_agendada as any);
         if (d && isSameDay(d, now)) return true;
@@ -234,569 +296,319 @@ export default function DashboardClient({ readOnly = false, idosoId }: { readOnl
         return false;
     }, [now, isSameDay, toDate]);
 
-    // ===== FUNÇÕES PARA BUSCAR DADOS =====
-
-    // Busca a lista de medicamentos da API
-    const buscarMedicamentos = useCallback(async (token: string, signal?: AbortSignal): Promise<Medicamento[]> => {
-        try {
-            const url = '/api/medicamentos' + (idosoId ? `?idoso_id=${encodeURIComponent(idosoId)}` : '');
-            const resposta = await fetch(url, {
-                headers: { 'Authorization': `Bearer ${token}` },
-                cache: 'no-store',
-                signal,
-            });
-            if (!resposta.ok) {
-                let msg = `Erro HTTP! status: ${resposta.status}`;
-                try {
-                    const j = await resposta.json();
-                    msg = j?.erro || j?.message || msg;
-                } catch { }
-                throw new Error(msg);
-            }
-            return await resposta.json();
-        } catch (erro) {
-            console.error('Falha ao buscar medicamentos:', erro);
-            const { normalizeError } = await import('@/utils/errors');
-            throw normalizeError(erro, 'Falha ao buscar medicamentos');
-        }
-    }, [idosoId]);
-
-    // Busca a lista de rotinas da API
-    const buscarRotinas = useCallback(async (token: string, signal?: AbortSignal): Promise<Rotina[]> => {
-        try {
-            const url = '/api/rotinas' + (idosoId ? `?idoso_id=${encodeURIComponent(idosoId)}` : '');
-            const resposta = await fetch(url, {
-                headers: { 'Authorization': `Bearer ${token}` },
-                cache: 'no-store',
-                signal,
-            });
-            if (!resposta.ok) throw new Error(`Erro HTTP! status: ${resposta.status}`);
-            return await resposta.json();
-        } catch (erro) {
-            console.error('Falha ao buscar rotinas:', erro);
-            const { normalizeError } = await import('@/utils/errors');
-            throw normalizeError(erro, 'Falha ao buscar rotinas');
-        }
-    }, [idosoId]);
-
-    // Busca a lista de itens da agenda da API
-    const buscarAgenda = useCallback(async (token: string, signal?: AbortSignal): Promise<AgendaItem[]> => {
-        try {
-            const hoje = new Date();
-            const data = hoje.toISOString().slice(0, 10);
-            const url = '/api/agenda' + (idosoId ? `?idoso_id=${encodeURIComponent(idosoId)}&data=${encodeURIComponent(data)}` : `?data=${encodeURIComponent(data)}`);
-            const resposta = await fetch(url, {
-                headers: { 'Authorization': `Bearer ${token}` },
-                cache: 'no-store',
-                signal,
-            });
-            if (!resposta.ok) {
-                let msg = `Erro HTTP! status: ${resposta.status}`;
-                try {
-                    const j = await resposta.json();
-                    msg = j?.erro || j?.message || msg;
-                } catch { }
-                throw new Error(msg);
-            }
-            const raw = await resposta.json();
-            const itens: AgendaItem[] = (raw ?? []).map((e: any) => {
-                const titulo = e.titulo ?? e.evento;
-                const horarioIso = e.data_prevista ?? e.horario_programado ?? e.horario;
-                return {
-                    id: e.id,
-                    tipo_evento: e.tipo_evento,
-                    evento_id: e.evento_id,
-                    titulo: titulo,
-                    horario: horarioIso ? new Date(horarioIso) : undefined,
-                    status: e.status,
-                } as AgendaItem;
-            });
-            const rank = (it: AgendaItem) => it.status === 'confirmado' ? 2 : (it.horario && it.horario < new Date() ? 0 : 1);
-            itens.sort((a, b) => {
-                const ra = rank(a); const rb = rank(b);
-                if (ra !== rb) return ra - rb;
-                const ta = a.horario?.getTime() || 0; const tb = b.horario?.getTime() || 0;
-                return ta - tb;
-            });
-            return itens;
-        } catch (erro) {
-            console.error('Falha ao buscar agenda:', erro);
-            const { normalizeError } = await import('@/utils/errors');
-            throw normalizeError(erro, 'Falha ao buscar agenda');
-        }
-    }, [idosoId]);
-
-    // ===== EFEITOS =====
-
-    // Efeito para verificar periodicamente se os medicamentos precisam ser desmarcados
-    useEffect(() => {
-        const intervalo = setInterval(() => {
-            setMedicamentos(medicamentosAtuais => {
-                const listaAtualizada = medicamentosAtuais.lista.map(med => {
-                    if (med.concluido && shouldResetMedicamento(med)) {
-                        return { ...med, concluido: false };
-                    }
-                    return med;
-                });
-
-                if (JSON.stringify(listaAtualizada) !== JSON.stringify(medicamentosAtuais.lista)) {
-                    return {
-                        ...medicamentosAtuais,
-                        lista: listaAtualizada,
-                        concluidos: listaAtualizada.filter(med => med.concluido).length
-                    };
-                }
-
-                return medicamentosAtuais;
-            });
-        }, 60000);
-
-        return () => clearInterval(intervalo);
-    }, []);
-
-    // Função para carregar todos os dados
-    const carregarDados = useCallback(async () => {
-        if (!user) return;
-        const token = await getAuthToken();
-        if (!token) return;
-
-        try {
-            setIsLoading(true);
-            const controller = new AbortController();
-            pendingControllers.current.push(controller);
-            const [dadosMedicamentos, dadosRotinas, itensAgenda] = await Promise.all([
-                buscarMedicamentos(token, controller.signal),
-                buscarRotinas(token, controller.signal),
-                buscarAgenda(token, controller.signal),
-            ]);
-
-            setMedicamentos({
-                total: dadosMedicamentos.length,
-                concluidos: dadosMedicamentos.filter(m => m.concluido).length,
-                lista: dadosMedicamentos
-            });
-
-            setRotinas({
-                total: dadosRotinas.length,
-                concluidas: dadosRotinas.filter((r: any) => r.concluido || r.concluida).length,
-                lista: dadosRotinas as Rotina[]
-            });
-
-            setAgenda(itensAgenda);
-        } catch (erro) {
-            if (erro instanceof DOMException && erro.name === 'AbortError') {
-                // Requisição cancelada, não fazer nada
-            } else {
-                handleApiError(erro, 'Não foi possível carregar os dados do dashboard.');
-            }
-        } finally {
-            setIsLoading(false);
-            // Remove controladores finalizados
-            pendingControllers.current = pendingControllers.current.filter((c: AbortController) => !c.signal.aborted);
-        }
-    }, [user, idosoId, getAuthToken, buscarMedicamentos, buscarRotinas, buscarAgenda, handleApiError, setIsLoading]);
-
-    // Carrega os dados quando o componente é montado ou quando o usuário muda
-    useEffect(() => {
-        if (user) {
-            carregarDados();
-        } else {
-            // Aborta quaisquer requisições pendentes ao sair
-            pendingControllers.current.forEach((c: AbortController) => {
-                try { c.abort(); } catch { }
-            });
-            pendingControllers.current = [];
-            setMedicamentos(estadoInicialMedicamentos);
-            setRotinas(estadoInicialRotinas);
-            setAgenda(estadoInicialAgenda);
-        }
-        return () => {
-            // Cleanup ao desmontar
-            pendingControllers.current.forEach((c: AbortController) => {
-                try { c.abort(); } catch { }
-            });
-            pendingControllers.current = [];
-        };
-    }, [user, carregarDados, idosoId]);
-
-    // ===== FUNÇÕES CRUD (Criação, Leitura, Atualização, Deleção) =====
-
-    // Função para criar um novo medicamento
     const criarMedicamento = useCallback(async (data: any) => {
         const token = await getAuthToken();
         if (!token) throw new Error('Sessão não encontrada');
 
-        const resposta = await fetch('/api/medicamentos', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
-            body: JSON.stringify(data)
-        });
-
-        if (!resposta.ok) {
-            const erro = await resposta.json();
-            throw new Error(erro.error || 'Falha ao criar medicamento');
+        try {
+            setIsLoading(true);
+            const novoMedicamento = await MedicamentosService.criarMedicamento({
+                ...(data as any),
+                user_id: idosoId as any,
+            } as any);
+            setMedicamentos((anterior: MedicamentosData) => ({
+                ...anterior,
+                lista: [...anterior.lista, novoMedicamento as any],
+                total: anterior.total + 1
+            }));
+        } catch (erro) {
+            console.error('Erro ao criar medicamento:', erro);
+            handleApiError(erro, 'Não foi possível criar o medicamento');
+            throw erro as any;
+        } finally {
+            setIsLoading(false);
         }
+    }, [getAuthToken, idosoId]);
 
-        const novoMedicamento = await resposta.json();
-        setMedicamentos(anterior => ({
-            ...anterior,
-            lista: [...anterior.lista, novoMedicamento],
-            total: anterior.total + 1
-        }));
-    }, [getAuthToken]);
-
-    // Função para atualizar um medicamento existente
     const atualizarMedicamento = useCallback(async (id: string, data: any) => {
         const token = await getAuthToken();
         if (!token) throw new Error('Sessão não encontrada');
 
-        const resposta = await fetch(`/api/medicamentos/${id}`, {
-            method: 'PATCH', // Usar PATCH para atualizações parciais
-            headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
-            body: JSON.stringify(data)
-        });
-
-        if (!resposta.ok) {
-            const erro = await resposta.json();
-            throw new Error(erro.error || 'Falha ao atualizar medicamento');
+        try {
+            setIsLoading(true);
+            const medicamentoAtualizado = await MedicamentosService.atualizarMedicamento(Number(id), data as any);
+            setMedicamentos((anterior: MedicamentosData) => ({
+                ...anterior,
+                lista: anterior.lista.map((m: Medicamento) => String(m.id) === String(id) ? { ...m, ...medicamentoAtualizado as any } : m)
+            }));
+        } catch (erro) {
+            console.error('Erro ao atualizar medicamento:', erro);
+            handleApiError(erro, 'Não foi possível atualizar o medicamento');
+            throw erro as any;
+        } finally {
+            setIsLoading(false);
         }
-
-        const medicamentoAtualizado = await resposta.json();
-        setMedicamentos(anterior => ({
-            ...anterior,
-            lista: anterior.lista.map(m => m.id === id ? { ...m, ...medicamentoAtualizado } : m)
-        }));
     }, [getAuthToken]);
 
-    // Função para criar uma nova rotina
     const criarRotina = useCallback(async (data: any) => {
         const token = await getAuthToken();
         if (!token) throw new Error('Sessão não encontrada');
 
-        const resposta = await fetch('/api/rotinas', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
-            body: JSON.stringify(data)
-        });
-
-        if (!resposta.ok) {
-            const erro = await resposta.json();
-            throw new Error(erro.error || 'Falha ao criar rotina');
+        try {
+            setIsLoading(true);
+            const novaRotina = await RotinasService.criarRotina({
+                ...(data as any),
+                user_id: idosoId as any,
+            } as any);
+            setRotinas((anterior: RotinasData) => ({
+                ...anterior,
+                lista: [...anterior.lista, novaRotina as any],
+                total: anterior.total + 1
+            }));
+        } catch (erro) {
+            console.error('Erro ao criar rotina:', erro);
+            handleApiError(erro, 'Não foi possível criar a rotina');
+            throw erro as any;
+        } finally {
+            setIsLoading(false);
         }
+    }, [getAuthToken, idosoId]);
 
-        const novaRotina = await resposta.json();
-        setRotinas(anterior => ({
-            ...anterior,
-            lista: [...anterior.lista, novaRotina],
-            total: anterior.total + 1
-        }));
-    }, [getAuthToken]);
-
-    // Função para atualizar uma rotina existente
-    const atualizarRotina = useCallback(async (id: string, data: Partial<Rotina>) => {
+    const atualizarRotina = useCallback(async (id: string, data: any) => {
         const token = await getAuthToken();
         if (!token) throw new Error('Sessão não encontrada');
 
-        const resposta = await fetch(`/api/rotinas/${id}`, {
-            method: 'PATCH',
-            headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
-            body: JSON.stringify(data)
-        });
-
-        if (!resposta.ok) {
-            const erro = await resposta.json();
-            throw new Error(erro.error || 'Falha ao atualizar rotina');
+        try {
+            setIsLoading(true);
+            const rotinaAtualizada = await RotinasService.atualizarRotina(Number(id), data as any);
+            setRotinas((prev: RotinasData) => ({
+                ...prev,
+                lista: prev.lista.map((rot: Rotina) => String(rot.id) === String(id) ? { ...rot, ...rotinaAtualizada as any } : rot)
+            }));
+        } catch (erro) {
+            console.error('Erro ao atualizar rotina:', erro);
+            handleApiError(erro, 'Não foi possível atualizar a rotina');
+            throw erro as any;
+        } finally {
+            setIsLoading(false);
         }
-
-        const rotinaAtualizada = await resposta.json();
-        setRotinas(prev => ({
-            ...prev,
-            lista: prev.lista.map(rot => rot.id === id ? { ...rot, ...rotinaAtualizada } : rot)
-        }));
     }, [getAuthToken]);
 
-    // Função para confirmar a exclusão
-    const confirmarExclusao = (tipo: 'medicamentos' | 'rotinas', id: string) => {
-        const itemType = tipo === 'medicamentos' ? 'medicamento' : 'rotina';
+    const confirmarExclusao = useCallback((itemId: string, itemType: 'medicamentos' | 'rotinas') => {
         setConfirmDialog({
             isOpen: true,
-            title: `Excluir ${itemType}`,
-            message: `Tem certeza que deseja excluir este ${itemType}?`,
-            onConfirm: () => executarExclusao(tipo, id)
+            title: 'Confirmar Exclusão',
+            message: `Tem certeza que deseja excluir este ${itemType === 'medicamentos' ? 'medicamento' : 'rotina'}?`,
+            onConfirm: async () => {
+                try {
+                    await executarExclusao(itemId, itemType);
+                    await recarregarDados();
+                } catch (erro) {
+                    console.error(`Erro ao excluir ${itemType === 'medicamentos' ? 'medicamento' : 'rotina'}:`, erro);
+                    handleApiError(erro, `Não foi possível excluir o ${itemType === 'medicamentos' ? 'medicamento' : 'rotina'}`);
+                }
+            },
+            itemId,
+            itemType
         });
-    };
+    }, [executarExclusao, recarregarDados]);
 
-    // Função que executa a exclusão
-    const executarExclusao = async (tipo: 'medicamentos' | 'rotinas', id: string) => {
+    async function executarExclusao(itemId: string, itemType: 'medicamentos' | 'rotinas'): Promise<void> {
         try {
             const token = await getAuthToken();
             if (!token) throw new Error('Sessão não encontrada');
 
-            // Atualização otimista
-            if (tipo === 'medicamentos') {
-                setMedicamentos(anterior => ({
+            if (itemType === 'medicamentos') {
+                setMedicamentos((anterior: MedicamentosData) => ({
                     ...anterior,
-                    lista: anterior.lista.filter(med => med.id !== id),
+                    lista: anterior.lista.filter((med: Medicamento) => String(med.id) !== String(itemId)),
                     total: anterior.total - 1
                 }));
             } else {
-                setRotinas(anterior => ({
+                setRotinas((anterior: RotinasData) => ({
                     ...anterior,
-                    lista: anterior.lista.filter(rot => rot.id !== id),
+                    lista: anterior.lista.filter((rot: Rotina) => String(rot.id) !== String(itemId)),
                     total: anterior.total - 1
                 }));
             }
 
-            const resposta = await fetch(`/api/${tipo}/${id}`, {
-                method: 'DELETE',
-                headers: { 'Authorization': `Bearer ${token}` }
-            });
-
-            if (!resposta.ok) throw new Error('Falha ao excluir o item');
-
-            // Recarrega os dados após excluir com sucesso
-            await carregarDados();
+            if (itemType === 'medicamentos') {
+                await MedicamentosService.excluirMedicamento(Number(itemId));
+            } else {
+                await RotinasService.excluirRotina(Number(itemId));
+            }
         } catch (erro) {
-            handleApiError(erro, 'Erro ao excluir item');
-            await carregarDados(); // Recarrega os dados em caso de falha
-        } finally {
-            setConfirmDialog({ isOpen: false, title: '', message: '', onConfirm: null });
+            console.error(`Erro ao excluir ${itemType === 'medicamentos' ? 'medicamento' : 'rotina'}:`, erro);
+            handleApiError(erro, `Não foi possível excluir o ${itemType === 'medicamentos' ? 'medicamento' : 'rotina'}`);
         }
-    };
+    }
 
-    const fecharConfirmacao = useCallback(() => {
-        setConfirmDialog(prev => ({ ...prev, isOpen: false }));
-    }, []);
-
-    // Formata a frequência para exibição
     const formatarFrequencia = useCallback((frequencia: Frequencia | null): string => {
         if (!frequencia) return 'Sem repetição';
         switch (frequencia.tipo) {
-            case 'diario': return `Diário - ${frequencia.horarios.join(', ')}`;
-            case 'intervalo': return `A cada ${frequencia.intervalo_horas}h (início: ${frequencia.inicio})`;
-            case 'dias_alternados': return `A cada ${frequencia.intervalo_dias} dias (${frequencia.horario})`;
-            case 'semanal': {
-                const diasSemana = ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb'];
-                const dias = frequencia.dias_da_semana.map(dia => diasSemana[dia - 1]).join(', ');
-                return `Toda ${dias} (${frequencia.horario})`;
+            case 'diario': {
+                const horarios = (frequencia as any).horarios as string[] | undefined;
+                const texto = Array.isArray(horarios) && horarios.length > 0 ? horarios.join(', ') : 'horário não definido';
+                return `Diário - ${texto}`;
             }
-            default: return 'Frequência personalizada';
+            case 'intervalo': {
+                const h = (frequencia as any).intervalo_horas ?? (frequencia as any).intervalo;
+                return `A cada ${h ?? 24}h`;
+            }
+            case 'dias_alternados': {
+                const d = (frequencia as any).intervalo_dias ?? (frequencia as any).intervalo;
+                const horario = (frequencia as any).horario;
+                return `A cada ${d ?? 2} dias${horario ? ` (${horario})` : ''}`;
+            }
+            case 'semanal': {
+                const dias = (frequencia as any).dias_da_semana as number[] | undefined;
+                const horario = (frequencia as any).horario as string | undefined;
+                if (Array.isArray(dias) && dias.length > 0) {
+                    const diasSemana = ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb'];
+                    const txt = dias.map(dia => diasSemana[(dia - 1 + 7) % 7]).join(', ');
+                    return `Toda ${txt}${horario ? ` (${horario})` : ''}`;
+                }
+                return `Semanal${horario ? ` (${horario})` : ''}`;
+            }
+            default:
+                return 'Frequência personalizada';
         }
     }, []);
 
-    // ===== HANDLERS PARA FORMULÁRIOS =====
-
-    // Lida com o salvamento de medicamento
     const handleSaveMedicamento = useCallback(async (nome: string, dosagem: string | null, frequencia: Frequencia, quantidade: number) => {
         try {
-            const data = { nome, dosagem, frequencia, quantidade, data_agendada: new Date().toISOString(), concluido: false };
-            if (isEditing && currentMedicamento) {
-                await atualizarMedicamento(currentMedicamento.id, data);
+            const data: Pick<Medicamento, 'nome' | 'dosagem' | 'frequencia' | 'quantidade' | 'data_agendada' | 'concluido'> = {
+                nome,
+                dosagem: dosagem as any, // conforme schema atual
+                frequencia: frequencia as any,
+                quantidade,
+                data_agendada: new Date().toISOString(),
+                concluido: false
+            };
+
+            if (isEditing && medicamentoSelecionado) {
+                await atualizarMedicamento(String(medicamentoSelecionado.id), data);
             } else {
                 await criarMedicamento(data);
             }
             closeModal();
-            await carregarDados(); // Recarrega os dados após salvar
+            await recarregarDados(); // Recarrega os dados após salvar
         } catch (erro) {
             handleApiError(erro, `Erro ao ${isEditing ? 'atualizar' : 'criar'} medicamento`);
         }
-    }, [isEditing, currentMedicamento, atualizarMedicamento, criarMedicamento, closeModal, handleApiError, carregarDados]);
+    }, [isEditing, medicamentoSelecionado, atualizarMedicamento, criarMedicamento, closeModal, handleApiError, recarregarDados]);
 
-    // Lida com o salvamento de rotina
     const handleSaveRotina = useCallback(async (titulo: string, descricao: string, frequencia: any) => {
         try {
-            // A API espera: { titulo, descricao, frequencia, concluido }
             const data = {
                 titulo,
                 descricao,
                 frequencia,
                 concluido: false,
             };
-            if (isEditing && currentRotina) {
-                await atualizarRotina(currentRotina.id, data);
+            if (isEditing && rotinaSelecionada) {
+                await atualizarRotina(String(rotinaSelecionada.id), data);
             } else {
                 await criarRotina(data);
             }
             closeModal();
-            await carregarDados(); // Recarrega os dados após salvar
+            await recarregarDados(); // Recarrega os dados após salvar
         } catch (erro) {
             handleApiError(erro, `Erro ao ${isEditing ? 'atualizar' : 'criar'} rotina`);
         }
-    }, [isEditing, currentRotina, criarRotina, atualizarRotina, closeModal, handleApiError, carregarDados]);
+    }, [isEditing, rotinaSelecionada, criarRotina, atualizarRotina, closeModal, handleApiError, recarregarDados]);
 
-    // Lida com a edição de medicamento
     const handleEditMedicamento = useCallback((medicamento: Medicamento) => {
-        setCurrentMedicamento(medicamento);
+        setMedicamentoSelecionado(medicamento);
         setModalType('medicamento');
         setIsEditing(true);
         setIsModalOpen(true);
     }, []);
 
-    // Lida com a edição de rotina
     const handleEditRotina = useCallback((rotina: Rotina) => {
-        setCurrentRotina(rotina);
+        setRotinaSelecionada(rotina);
         setModalType('rotina');
         setIsEditing(true);
         setIsModalOpen(true);
     }, []);
 
-    // Alterna status de conclusão do medicamento usando histórico do dia
     const handleToggleStatus = useCallback(async (id: string, historicoEventoId?: string) => {
         try {
             const token = await getAuthToken();
             if (!token) throw new Error('Sessão não encontrada');
 
-            // Encontra o item
             const agendaItem = agenda.find(it =>
                 it.tipo_evento === 'medicamento' &&
                 it.evento_id === id
             );
-            const medicamento = medicamentos.lista.find(m => m.id === id);
+            const medicamento = medicamentos.lista.find(m => String(m.id) === String(id));
             if (!medicamento) return;
 
-            // Inverte o status baseado no estado atual do medicamento
             const novoStatus = medicamento.concluido ? 'pendente' : 'confirmado';
             const novoConcluido = !medicamento.concluido;
 
-            // Atualização otimista da agenda e medicamentos
             setAgenda(prevAgenda => prevAgenda.map(item =>
-                item.tipo_evento === 'medicamento' && item.evento_id === id
+                item.tipo_evento === 'medicamento' && String(item.evento_id) === String(id)
                     ? { ...item, status: novoStatus }
                     : item
             ));
-            
-            // Atualização otimista dos medicamentos
-            setMedicamentos(prev => ({
+
+            setMedicamentos((prev: MedicamentosData) => ({
                 ...prev,
-                lista: prev.lista.map(m => m.id === id ? { ...m, concluido: novoConcluido } : m),
-                concluidos: prev.lista.reduce((acc, m) => acc + ((m.id === id ? novoConcluido : m.concluido) ? 1 : 0), 0)
+                lista: prev.lista.map((m: Medicamento) => String(m.id) === String(id) ? { ...m, concluido: novoConcluido } : m),
+                concluidos: prev.lista.reduce((acc: number, m: Medicamento) => acc + ((String(m.id) === String(id) ? novoConcluido : m.concluido) ? 1 : 0), 0)
             }));
 
-            // Atualiza o status no histórico de eventos (mantém a funcionalidade existente)
             if (historicoEventoId) {
-                const respostaHistorico = await fetch(`/api/historico_eventos/${historicoEventoId}`, {
-                    method: 'PATCH',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'Authorization': `Bearer ${token}`
-                    },
-                    body: JSON.stringify({
-                        status: novoStatus
-                    })
-                });
-
-                if (!respostaHistorico.ok) {
-                    throw new Error('Falha ao atualizar status do histórico');
-                }
+                await HistoricoEventosService.atualizarEvento(Number(historicoEventoId), { status: novoStatus, horario_confirmacao: novoStatus === 'confirmado' ? new Date().toISOString() : null } as any);
             }
 
-            // Atualiza o status na tabela de medicamentos
-            const respostaMedicamento = await fetch(`/api/medicamentos/${id}`, {
-                method: 'PATCH',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${token}`
-                },
-                body: JSON.stringify({
-                    concluido: novoConcluido
-                })
-            });
-
-            if (!respostaMedicamento.ok) {
-                throw new Error('Falha ao atualizar status do medicamento');
-            }
-
+            await MedicamentosService.atualizarMedicamento(Number(id), { concluido: novoConcluido } as any);
         } catch (erro) {
-            // Em caso de erro, reverte as alterações otimistas
             setAgenda(prevAgenda => prevAgenda.map(item =>
-                item.tipo_evento === 'medicamento' && item.evento_id === id
+                item.tipo_evento === 'medicamento' && String(item.evento_id) === String(id)
                     ? { ...item, status: item.status === 'confirmado' ? 'pendente' : 'confirmado' }
                     : item
             ));
-            setMedicamentos(prev => ({
+            setMedicamentos((prev: MedicamentosData) => ({
                 ...prev,
-                lista: prev.lista.map(m => m.id === id ? { ...m, concluido: !m.concluido } : m)
+                lista: prev.lista.map((m: Medicamento) => String(m.id) === String(id) ? { ...m, concluido: !m.concluido } : m)
             }));
             handleApiError(erro, 'Erro ao atualizar status do medicamento');
         }
     }, [getAuthToken, handleApiError, medicamentos.lista]);
 
-    // Alterna status de conclusão da rotina usando histórico do dia
     const handleToggleRotinaStatus = useCallback(async (id: string, historicoEventoId?: string) => {
         try {
             const token = await getAuthToken();
             if (!token) throw new Error('Sessão não encontrada');
 
-            // Encontra o item
             const agendaItem = agenda.find(it =>
                 it.tipo_evento === 'rotina' &&
                 it.evento_id === id
             );
-            const rotina = rotinas.lista.find(r => r.id === id);
+            const rotina = rotinas.lista.find(r => String(r.id) === String(id));
             if (!rotina) return;
 
-            // Inverte o status baseado no estado atual da rotina
             const novoStatus = rotina.concluido ? 'pendente' : 'confirmado';
             const novoConcluido = !rotina.concluido;
 
-            // Atualização otimista da agenda e rotinas
             setAgenda(prevAgenda => prevAgenda.map(item =>
-                item.tipo_evento === 'rotina' && item.evento_id === id
+                item.tipo_evento === 'rotina' && String(item.evento_id) === String(id)
                     ? { ...item, status: novoStatus }
                     : item
             ));
-            
-            // Atualização otimista das rotinas
-            setRotinas(prev => ({
+
+            setRotinas((prev: RotinasData) => ({
                 ...prev,
-                lista: prev.lista.map(r => r.id === id ? { ...r, concluido: novoConcluido } : r),
-                concluidas: prev.lista.reduce((acc, r) => acc + ((r.id === id ? novoConcluido : r.concluido) ? 1 : 0), 0)
+                lista: prev.lista.map((r: Rotina) => String(r.id) === String(id) ? { ...r, concluido: novoConcluido } : r),
+                concluidas: prev.lista.reduce((acc: number, r: Rotina) => acc + ((String(r.id) === String(id) ? novoConcluido : r.concluido) ? 1 : 0), 0)
             }));
 
-            // Atualiza o status no histórico de eventos
             if (historicoEventoId) {
-                const respostaHistorico = await fetch(`/api/historico_eventos/${historicoEventoId}`, {
-                    method: 'PATCH',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'Authorization': `Bearer ${token}`
-                    },
-                    body: JSON.stringify({
-                        status: novoStatus
-                    })
-                });
-
-                if (!respostaHistorico.ok) {
-                    throw new Error('Falha ao atualizar status do histórico');
-                }
+                await HistoricoEventosService.atualizarEvento(Number(historicoEventoId), { status: novoStatus, horario_confirmacao: novoStatus === 'confirmado' ? new Date().toISOString() : null } as any);
             }
 
-            // Atualiza o status na tabela de rotinas
-            const respostaRotina = await fetch(`/api/rotinas/${id}`, {
-                method: 'PATCH',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${token}`
-                },
-                body: JSON.stringify({
-                    concluido: novoConcluido
-                })
-            });
-
-            if (!respostaRotina.ok) {
-                throw new Error('Falha ao atualizar status da rotina');
-            }
-
+            await RotinasService.atualizarRotina(Number(id), { concluido: novoConcluido } as any);
         } catch (erro) {
-            // Em caso de erro, reverte as alterações otimistas
             setAgenda(prevAgenda => prevAgenda.map(item =>
-                item.tipo_evento === 'rotina' && item.evento_id === id
+                item.tipo_evento === 'rotina' && String(item.evento_id) === String(id)
                     ? { ...item, status: item.status === 'confirmado' ? 'pendente' : 'confirmado' }
                     : item
             ));
-            setRotinas(prev => ({
+            setRotinas((prev: RotinasData) => ({
                 ...prev,
-                lista: prev.lista.map(r => r.id === id ? { ...r, concluido: !r.concluido } : r)
+                lista: prev.lista.map((r: Rotina) => String(r.id) === String(id) ? { ...r, concluido: !r.concluido } : r)
             }));
             handleApiError(erro, 'Erro ao atualizar status da rotina');
         }
@@ -857,14 +669,9 @@ export default function DashboardClient({ readOnly = false, idosoId }: { readOnl
         try {
             const token = await getAuthToken();
             if (!token) throw new Error('Sessão não encontrada');
-            const item = (previous || []).find(i => i.id === id);
+            const item = (previous || []).find(i => String(i.id) === String(id));
             const novoStatus = item && item.status === 'confirmado' ? 'pendente' : 'confirmado';
-            const resp = await fetch(`/api/historico_eventos/${id}`, {
-                method: 'PATCH',
-                headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
-                body: JSON.stringify({ status: novoStatus })
-            });
-            if (!resp.ok) throw new Error('Falha ao atualizar status do evento');
+            await HistoricoEventosService.atualizarEvento(Number(id), { status: novoStatus, horario_confirmacao: novoStatus === 'confirmado' ? new Date().toISOString() : null } as any);
         } catch (erro) {
             if (previous) setAgenda(previous);
             handleApiError(erro, 'Erro ao atualizar status do evento');
@@ -887,18 +694,26 @@ export default function DashboardClient({ readOnly = false, idosoId }: { readOnl
                     <AddMedicamentoForm
                         onSave={handleSaveMedicamento}
                         onCancel={closeModal}
-                        medicamento={currentMedicamento ?? undefined}
+                        medicamento={medicamentoSelecionado ? {
+                            id: String(medicamentoSelecionado.id),
+                            nome: (medicamentoSelecionado.nome as any) ?? '',
+                            dosagem: (medicamentoSelecionado.dosagem as any) ?? null,
+                            quantidade: Number(medicamentoSelecionado.quantidade ?? 0),
+                            frequencia: (medicamentoSelecionado.frequencia as any) ?? null,
+                            data_agendada: medicamentoSelecionado.data_agendada || undefined,
+                            concluido: Boolean(medicamentoSelecionado.concluido)
+                        } : undefined}
                     />
                 ) : (
                     <AddRotinaForm
                         onSave={handleSaveRotina}
                         onCancel={closeModal}
-                        rotina={currentRotina ?? undefined}
+                        rotina={rotinaSelecionada ? { id: String(rotinaSelecionada.id), titulo: (rotinaSelecionada as any).titulo, descricao: (rotinaSelecionada as any).descricao } : undefined}
                     />
                 )}
             </Modal>
         );
-    }, [isModalOpen, modalType, isEditing, currentMedicamento, currentRotina, handleSaveMedicamento, handleSaveRotina, closeModal]);
+    }, [isModalOpen, modalType, isEditing, medicamentoSelecionado, rotinaSelecionada, handleSaveMedicamento, handleSaveRotina, closeModal]);
 
     // Removido: listas completas de medicamentos e rotinas do dashboard
 
@@ -983,10 +798,10 @@ export default function DashboardClient({ readOnly = false, idosoId }: { readOnl
                     ) : (
                         <ul className={styles.list}>
                             {medsHoje.map(m => {
-                                const agendaItem = agendaDoDia.find(it => it.tipo_evento === 'medicamento' && it.evento_id === m.id);
+                                const agendaItem = agendaDoDia.find(it => it.tipo_evento === 'medicamento' && String(it.evento_id) === String(m.id));
                                 const isDone = agendaItem?.status === 'confirmado' || m.concluido;
-                                const historicoId = getHistoricoIdForMedicamento(m.id);
-                                
+                                const historicoId = getHistoricoIdForMedicamento(String(m.id));
+
                                 return (
                                     <li key={m.id} className={`${styles.list_item} ${isDone ? styles.completed : ''}`}>
                                         <div className={styles.item_info}>
@@ -998,7 +813,7 @@ export default function DashboardClient({ readOnly = false, idosoId }: { readOnl
                                         {!readOnly && (
                                             <div className={styles.item_actions}>
                                                 <button
-                                                    onClick={() => handleToggleStatus(m.id, historicoId)}
+                                                    onClick={() => handleToggleStatus(String(m.id), historicoId)}
                                                     className={isDone ? styles.desfazer_btn : styles.concluir_btn}
                                                 >
                                                     {isDone ? 'Desfazer' : 'Concluir'}
@@ -1021,7 +836,7 @@ export default function DashboardClient({ readOnly = false, idosoId }: { readOnl
                     ) : (
                         <ul className={styles.list}>
                             {rotinasHoje.map(r => {
-                                const agendaItem = agendaDoDia.find(it => it.tipo_evento === 'rotina' && it.evento_id === r.id);
+                                const agendaItem = agendaDoDia.find(it => it.tipo_evento === 'rotina' && String(it.evento_id) === String(r.id));
                                 const isDone = agendaItem?.status === 'confirmado' || r.concluido;
                                 return (
                                     <li key={r.id} className={`${styles.list_item} ${isDone ? styles.completed : ''}`}>
@@ -1033,7 +848,7 @@ export default function DashboardClient({ readOnly = false, idosoId }: { readOnl
                                         {!readOnly && (
                                             <div className={styles.item_actions}>
                                                 <button
-                                                    onClick={() => handleToggleRotinaStatus(r.id, getHistoricoIdForRotina(r.id))}
+                                                    onClick={() => handleToggleRotinaStatus(String(r.id), getHistoricoIdForRotina(String(r.id)))}
                                                     className={isDone ? styles.desfazer_btn : styles.concluir_btn}
                                                 >
                                                     {isDone ? 'Desfazer' : 'Concluir'}
@@ -1088,7 +903,7 @@ export default function DashboardClient({ readOnly = false, idosoId }: { readOnl
                     confirmText="Excluir"
                     cancelText="Cancelar"
                     onConfirm={confirmDialog.onConfirm || (() => { })}
-                    onCancel={fecharConfirmacao}
+                    onCancel={() => setConfirmDialog(prev => ({ ...prev, isOpen: false }))}
                     danger
                 />
             )}

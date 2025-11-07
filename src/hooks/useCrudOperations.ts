@@ -9,6 +9,12 @@ import { normalizeError } from '@/utils/errors';
 
 interface CrudOperationsConfig<T extends { id: string | number }> {
   endpoint: string;
+  actions?: {
+    read?: () => Promise<T[]>;
+    create?: (data: Omit<T, 'id'>) => Promise<T>;
+    update?: (itemId: string, data: Partial<T>) => Promise<T>;
+    delete?: (itemId: string) => Promise<void>;
+  };
   onSuccess?: {
     create?: (item: T) => void;
     update?: (item: T) => void;
@@ -44,7 +50,9 @@ export function useCrudOperations<T extends { id: string | number }>(
     setError(null);
 
     try {
-      const data = await makeRequest<T[]>(config.endpoint);
+      const data = config.actions?.read
+        ? await config.actions.read()
+        : await makeRequest<T[]>(config.endpoint);
       setItems(data || []);
       config.onSuccess?.read?.(data || []);
     } catch (err) {
@@ -60,10 +68,12 @@ export function useCrudOperations<T extends { id: string | number }>(
   // Create item
   const createItem = useCallback(async (data: Omit<T, 'id'>) => {
     try {
-      const newItem = await makeRequest<T>(config.endpoint, {
-        method: 'POST',
-        body: JSON.stringify(data),
-      });
+      const newItem = config.actions?.create
+        ? await config.actions.create(data)
+        : await makeRequest<T>(config.endpoint, {
+            method: 'POST',
+            body: JSON.stringify(data),
+          });
 
       setItems(prev => [newItem, ...prev]);
       addModal.close();
@@ -86,6 +96,9 @@ export function useCrudOperations<T extends { id: string | number }>(
         itemId,
         optimisticUpdate,
         async () => {
+          if (config.actions?.update) {
+            return config.actions.update(itemId, data);
+          }
           return makeRequest<T>(`${baseEndpoint}/${itemId}`, {
             method: 'PATCH',
             body: JSON.stringify(data),
@@ -123,9 +136,13 @@ export function useCrudOperations<T extends { id: string | number }>(
 
       try {
         // Fazer a requisição DELETE
-        await makeRequest(`${baseEndpoint}/${itemId}`, {
-          method: 'DELETE',
-        });
+        if (config.actions?.delete) {
+          await config.actions.delete(itemId);
+        } else {
+          await makeRequest(`${baseEndpoint}/${itemId}`, {
+            method: 'DELETE',
+          });
+        }
 
         // Se chegou aqui, deu certo
         config.onSuccess?.delete?.(itemId);

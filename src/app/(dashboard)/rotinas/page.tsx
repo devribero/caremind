@@ -10,7 +10,9 @@ import { AddRotinaForm } from '@/components/forms/AddRotinaForm';
 import { Modal } from '@/components/Modal';
 import RotinaCard from '@/components/RotinasCard';
 import { useCrudOperations } from '@/hooks/useCrudOperations';
+import { RotinasService } from '@/lib/supabase/services/rotinas';
 import { createClient } from '@/lib/supabase/client';
+import { HistoricoEventosService } from '@/lib/supabase/services/historicoEventos';
 import { useIdoso } from '@/contexts/IdosoContext';
 import { useAuthRequest } from '@/hooks/useAuthRequest';
 import { toast } from '@/components/Toast';
@@ -62,6 +64,27 @@ export default function Rotinas() {
     setItems,
   } = useCrudOperations<Rotina>({
     endpoint: targetUserId ? `/api/rotinas?idoso_id=${encodeURIComponent(targetUserId)}` : '/api/rotinas',
+    actions: {
+      read: async () => {
+        if (!targetUserId && !user?.id) return [] as any;
+        const uid = (targetUserId || user!.id)!;
+        const data = await RotinasService.listarRotinas(uid);
+        // converter id number -> string
+        return (data as any).map((r: any) => ({ ...r, id: String(r.id) })) as any;
+      },
+      create: async (data) => {
+        const uid = (targetUserId || user!.id)!;
+        const created = await RotinasService.criarRotina({ ...(data as any), user_id: uid } as any);
+        return { ...(created as any), id: String((created as any).id) } as any;
+      },
+      update: async (itemId, data) => {
+        const updated = await RotinasService.atualizarRotina(Number(itemId), data as any);
+        return { ...(updated as any), id: String((updated as any).id) } as any;
+      },
+      delete: async (itemId) => {
+        await RotinasService.excluirRotina(Number(itemId));
+      },
+    },
     onError: {
       create: (error) => toast.error(`Erro ao criar rotina: ${error}`),
       update: (error) => toast.error(`Erro ao atualizar rotina: ${error}`),
@@ -99,16 +122,16 @@ export default function Rotinas() {
       if (!user) return;
       if (isFamiliar && !targetUserId) return;
       const today = new Date().toISOString().slice(0, 10);
-      const params = targetUserId ? `?idoso_id=${encodeURIComponent(targetUserId)}&data=${encodeURIComponent(today)}` : `?data=${encodeURIComponent(today)}`;
       try {
-        const data = await makeRequest<Array<any>>(`/api/agenda${params}`, { method: 'GET' });
-        setEventosDoDia((data || []).map(e => ({ id: e.id, tipo_evento: e.tipo_evento, evento_id: e.evento_id, status: e.status })));
+        const uid = targetUserId || user.id!;
+        const data = await HistoricoEventosService.listarEventosPorData(uid, today);
+        setEventosDoDia((data || []).map((e: any) => ({ id: String(e.id), tipo_evento: String(e.tipo_evento || '').toLowerCase(), evento_id: String(e.evento_id || ''), status: e.status })));
       } catch (e) {
         // ignora falha de agenda
       }
     };
     loadAgenda();
-  }, [user, isFamiliar, targetUserId, makeRequest]);
+  }, [user, isFamiliar, targetUserId]);
 
   // Handlers para formulários
   const handleSaveRotina = async (
@@ -153,10 +176,7 @@ export default function Rotinas() {
     const prevEventos = eventosDoDia;
     setEventosDoDia(prev => prev.map(e => e.id === ev.id ? { ...e, status: 'confirmado' } : e));
     try {
-      await makeRequest(`/api/historico_eventos/${ev.id}`, {
-        method: 'PATCH',
-        body: JSON.stringify({ status: 'confirmado' }),
-      });
+      await HistoricoEventosService.atualizarEvento(Number(ev.id), { status: 'confirmado', horario_confirmacao: new Date().toISOString() } as any);
     } catch (err) {
       setEventosDoDia(prevEventos);
       toast.error(err instanceof Error ? err.message : 'Falha ao atualizar evento');

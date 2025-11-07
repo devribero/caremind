@@ -7,10 +7,9 @@ import { useState, useEffect, useRef, useCallback, ChangeEvent } from 'react';
 import { useRouter } from 'next/navigation';
 import Image from 'next/image';
 import { useAuth } from '@/contexts/AuthContext';
-import { useAuthRequest } from '@/hooks/useAuthRequest';
+import { PerfisService } from '@/lib/supabase/services/perfis';
 import { EditProfileModal } from '@/components/EditProfileModal';
 import { toast } from '@/components/Toast';
-// Elders management moved to /familia
 
 // --- DEFINIÇÃO DE TIPOS ---
 interface PasswordData {
@@ -160,8 +159,6 @@ export default function Perfil() {
     const { user, signOut } = useAuth();
     const router = useRouter();
     const supabase = createClient();
-    const { makeRequest } = useAuthRequest();
-    
     
     const [uploadingPhoto, setUploadingPhoto] = useState(false); 
     const [successMessage, setSuccessMessage] = useState<string>('');
@@ -185,18 +182,25 @@ export default function Perfil() {
         const fetchProfileData = async () => {
             if (!user) return;
             try {
-                const profile = await makeRequest<any>('/api/perfil');
+                const profile = await PerfisService.buscarPerfilPorUserId(user.id);
                 if (profile) {
                     setProfileData({
                         fullName: profile.nome || user.user_metadata?.full_name || '',
                         email: user.email || '',
                         phone: profile.telefone || '',
-                        dob: profile.data_nascimento || '',
+                        dob: (profile as any).data_nascimento || '',
                         photoUrl: profile.foto_usuario || '/foto_padrao.png',
                     });
+                } else {
+                    setProfileData(prev => ({
+                        ...prev,
+                        fullName: user.user_metadata?.full_name || '',
+                        email: user.email || '',
+                        photoUrl: '/foto_padrao.png',
+                    }));
                 }
             } catch (error) {
-                console.error('Erro ao buscar perfil pela API:', error);
+                console.error('Erro ao buscar perfil:', error);
                 setProfileData(prev => ({
                     ...prev,
                     fullName: user.user_metadata?.full_name || 'Nome não encontrado',
@@ -206,7 +210,7 @@ export default function Perfil() {
             }
         };
         fetchProfileData();
-    }, [user, makeRequest]);
+    }, [user]);
 
     const handleLogout = async () => {
         await signOut();
@@ -220,15 +224,12 @@ export default function Perfil() {
         }
 
         try {
-            await makeRequest(`/api/perfil/${user.id}`, {
-                method: 'PUT',
-                body: JSON.stringify({
-                    fullName: data.fullName,
-                    phone: data.phone,
-                    dob: data.dob,
-                }),
-            });
-            
+            await PerfisService.atualizarPerfil(user.id, {
+                nome: data.fullName,
+                telefone: data.phone,
+                data_nascimento: data.dob,
+            } as any);
+
             // Atualiza o estado local
             setProfileData(prev => ({
                 ...prev,
@@ -236,7 +237,7 @@ export default function Perfil() {
                 phone: data.phone,
                 dob: data.dob,
             }));
-            
+
             // Dispara evento para atualizar outros componentes
             window.dispatchEvent(new CustomEvent('profileUpdated', { 
                 detail: { 
@@ -245,14 +246,14 @@ export default function Perfil() {
                     dob: data.dob,
                 } 
             }));
-            
+
             return true;
         } catch (error) {
             console.error('Erro ao salvar perfil:', error);
             const { normalizeError } = await import('@/utils/errors');
             throw normalizeError(error, 'Erro ao salvar perfil');
         }
-    }, [user, makeRequest]);
+    }, [user]);
 
     // Função refatorada para centralizar o upload de foto
     const handleUploadButtonClick = () => {
@@ -295,11 +296,8 @@ export default function Perfil() {
 
             const publicUrl = publicData.publicUrl;
 
-            // Atualiza via API de perfil
-            await makeRequest(`/api/perfil/${user.id}`, {
-                method: 'PUT',
-                body: JSON.stringify({ foto_usuario: publicUrl }),
-            });
+            // Atualiza via serviço de perfil
+            await PerfisService.atualizarFotoPerfil(user.id, publicUrl);
 
             // Atualiza UI
             setProfileData(prev => ({ ...prev, photoUrl: publicUrl }));
@@ -334,13 +332,8 @@ export default function Perfil() {
     const handleSavePassword = async (data: PasswordData) => {
         setPasswordLoading(true);
         try {
-            await makeRequest('/api/change-password', {
-                method: 'POST',
-                body: JSON.stringify({
-                    currentPassword: data.currentPassword,
-                    newPassword: data.newPassword,
-                }),
-            });
+            const { error } = await supabase.auth.updateUser({ password: data.newPassword });
+            if (error) throw error;
 
             alert("Senha alterada com sucesso! Por segurança, você será desconectado para reautenticar.");
             

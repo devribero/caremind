@@ -1,62 +1,38 @@
 import React from 'react';
 // Importa o objeto 'styles' do seu arquivo de módulo CSS
 import styles from './MedicamentoCard.module.css';
+import { Frequencia, Medicamento as MedicamentoType } from '@/lib/utils/medicamento';
 
 // Define o formato esperado para os dados de um medicamento
-type Medicamento = {
-  id: string;
-  nome: string;
-  dosagem?: string;
-  // Pode vir como string (já formatada pela API) ou como objeto (formas diferentes de frequência)
+type Medicamento = Omit<MedicamentoType, 'frequencia'> & {
+  // Pode vir como string (já formatada pela API) ou como objeto
   frequencia?: string | Frequencia;
+  dosagem?: string;
   quantidade?: number;
   created_at: string;
 };
-
-// Tipos possíveis de frequência quando vier como objeto
-type FrequenciaDiaria = {
-  tipo: 'diario';
-  horarios: string[];
-};
-
-type FrequenciaIntervalo = {
-  tipo: 'intervalo';
-  intervalo_horas: number;
-  inicio: string;
-};
-
-type FrequenciaDiasAlternados = {
-  tipo: 'dias_alternados';
-  intervalo_dias: number;
-  horario: string;
-};
-
-type FrequenciaSemanal = {
-  tipo: 'semanal';
-  dias_da_semana: number[];
-  horario: string;
-};
-
-type Frequencia = FrequenciaDiaria | FrequenciaIntervalo | FrequenciaDiasAlternados | FrequenciaSemanal;
 
 // Formata a frequência (string ou objeto) para exibição
 function formatarFrequencia(freq?: string | Frequencia): string | null {
   if (!freq) return null;
   if (typeof freq === 'string') return freq;
+  
   switch (freq.tipo) {
     case 'diario':
-      return `Diário - ${freq.horarios.join(', ')}`;
+      return 'Diário';
     case 'intervalo':
-      return `A cada ${freq.intervalo_horas}h (início: ${freq.inicio})`;
+      return `A cada ${freq.intervalo_horas}h`;
     case 'dias_alternados':
-      return `A cada ${freq.intervalo_dias} dias (${freq.horario})`;
-    case 'semanal': {
-      const diasSemana = ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb'];
-      const dias = freq.dias_da_semana.map(dia => diasSemana[dia - 1]).join(', ');
-      return `Toda ${dias} (${freq.horario})`;
-    }
+      return `A cada ${freq.intervalo_dias} dias`;
+    case 'semanal':
+      if (freq.dias_da_semana && freq.horario) {
+        const dias = ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb'];
+        const diasSelecionados = freq.dias_da_semana.map(d => dias[d]).join(', ');
+        return `Toda semana (${diasSelecionados})`;
+      }
+      return 'Semanal';
     default:
-      return 'Frequência personalizada';
+      return 'Frequência não especificada';
   }
 }
 

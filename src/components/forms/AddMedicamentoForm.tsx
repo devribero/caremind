@@ -2,32 +2,32 @@
 import React, { useState, useEffect } from 'react';
 import styles from './AddForm.module.css';
 
-type FrequenciaDiaria = {
+export type FrequenciaDiaria = {
   tipo: 'diario';
   horarios: string[];
 };
 
-type FrequenciaIntervalo = {
+export type FrequenciaIntervalo = {
   tipo: 'intervalo';
   intervalo_horas: number;
   inicio: string;
 };
     
-type FrequenciaDiasAlternados = {
+export type FrequenciaDiasAlternados = {
   tipo: 'dias_alternados';
   intervalo_dias: number;
   horario: string;
 };
 
-type FrequenciaSemanal = {
+export type FrequenciaSemanal = {
   tipo: 'semanal';
   dias_da_semana: number[];
   horario: string;
 };
 
-type Frequencia = FrequenciaDiaria | FrequenciaIntervalo | FrequenciaDiasAlternados | FrequenciaSemanal;
+export type Frequencia = FrequenciaDiaria | FrequenciaIntervalo | FrequenciaDiasAlternados | FrequenciaSemanal;
 
-interface MedicamentoBase {
+export interface MedicamentoBase {
   id?: string;
   nome: string;
   dosagem: string | null;

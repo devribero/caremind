@@ -242,3 +242,149 @@
   font-size: 2rem;
   margin-bottom: 0.5rem;
 }
+
+/* Estilos para o modal da câmera */
+.cameraModalContent {
+  width: 100%;
+  max-width: 600px;
+  margin: 0 auto;
+  padding: 1rem;
+}
+
+/* Estilos para o componente de câmera */
+.cameraContainer {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
+  width: 100%;
+}
+
+.cameraPreview {
+  width: 100%;
+  max-width: 500px;
+  height: 400px;
+  background: #000;
+  border-radius: 8px;
+  overflow: hidden;
+  position: relative;
+}
+
+.cameraPreview video,
+.cameraPreview img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.cameraButtons {
+  display: flex;
+  gap: 1rem;
+  margin-top: 1rem;
+}
+
+.captureButton {
+  background-color: #4CAF50;
+  color: white;
+  padding: 0.5rem 1rem;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-weight: 500;
+  transition: all 0.2s;
+}
+
+.retakeButton {
+  background-color: #f44336;
+  color: white;
+  padding: 0.5rem 1rem;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-weight: 500;
+  transition: all 0.2s;
+}
+
+.confirmButton {
+  background-color: #2196F3;
+  color: white;
+  padding: 0.5rem 1rem;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-weight: 500;
+  transition: all 0.2s;
+}
+
+.closeButton {
+  background-color: #9e9e9e;
+  color: white;
+  padding: 0.5rem 1rem;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-weight: 500;
+  transition: all 0.2s;
+}
+
+/* Estilos para o modal de confirmação */
+.photoModalContent {
+  padding: 1.5rem;
+  text-align: center;
+}
+
+.loadingIndicator {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
+  padding: 1rem 0;
+}
+
+.spinner {
+  width: 40px;
+  height: 40px;
+  border: 4px solid #f3f3f3;
+  border-top: 4px solid #3498db;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+.errorMessage {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  align-items: center;
+}
+
+.retryButton {
+  background-color: #2196F3;
+  color: white;
+  padding: 0.5rem 1rem;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-weight: 500;
+  transition: all 0.2s;
+}
+
+.retryButton:hover {
+  background-color: #1976D2;
+}
+
+/* Estilos para o botão de adicionar foto */
+.photoButton {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  background-color: #4CAF50 !important;
+}
+
+.photoButton:hover {
+  background-color: #45a049 !important;
+}
