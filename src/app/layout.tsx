@@ -22,6 +22,12 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="pt-BR">
+      <head>
+        <link rel="manifest" href="/manifest.json" />
+        <meta name="theme-color" content="#0400BA" />
+
+        <link rel="icon" href="/public/logo_coracao.png" />
+      </head>
       <body suppressHydrationWarning={true}>
         <AuthProvider>
           <LoadingProvider>
