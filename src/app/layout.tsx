@@ -24,10 +24,10 @@ export default function RootLayout({
     <html lang="pt-BR">
       <head>
         <link rel="manifest" href="/manifest.json" />
+        <link rel="icon" href="/logo_coracao.png" />
         <meta name="theme-color" content="#0400BA" />
-
-        <link rel="icon" href="/public/logo_coracao.png" />
       </head>
+
       <body suppressHydrationWarning={true}>
         <AuthProvider>
           <LoadingProvider>
