@@ -1,14 +1,10 @@
-/** @type {import('next').NextConfig} */
+import type { NextConfig } from "next";
+import withPWAInit from "@ducanh2912/next-pwa";
 const path = require('path');
-const withPWA = require('next-pwa')({
-  dest: 'public',
-  register: true,
-  skipWaiting: true,
-});
 
 // Lógica para extrair o hostname da URL do Supabase
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-let dynamicRemotePatterns = [];
+const dynamicRemotePatterns = [];
 
 try {
   if (supabaseUrl) {
@@ -23,22 +19,25 @@ try {
   // ignora erro se a URL do ENV for inválida
 }
 
-const baseConfig = {
+const nextConfig: NextConfig = {
+  env: {
+    NEXT_PUBLIC_API_URL: process.env.NEXT_PUBLIC_API_URL,
+  },
+  experimental: {
+    optimizePackageImports: ['@radix-ui/react-icons'],
+  },
   images: {
     remotePatterns: [
       ...dynamicRemotePatterns,
     ],
   },
   outputFileTracingRoot: path.resolve(__dirname),
-
   serverExternalPackages: [
     '@supabase/realtime-js',
     '@supabase/supabase-js',
   ],
-  
   eslint: { ignoreDuringBuilds: true },
   typescript: { ignoreBuildErrors: true },
-
   async headers() {
     const imgSrcHosts = [];
     if (Array.isArray(dynamicRemotePatterns)) {
@@ -47,16 +46,19 @@ const baseConfig = {
       }
     }
 
-    const cspParts = [
+  const cspParts = [
       "default-src 'self'",
       "base-uri 'self'",
-      `img-src 'self' data: blob: ${imgSrcHosts.join(' ')}`.trim(),
-      "script-src 'self'",
-      "script-src-attr 'none'",
-      "object-src 'none'",
-      "style-src 'self' https://fonts.googleapis.com",
-      "style-src-attr 'unsafe-inline'",
-      "font-src 'self' data: https://fonts.gstatic.com",
+  `img-src 'self' data: blob: ${imgSrcHosts.join(' ')}`.trim(),
+  "script-src 'self' https://cdn.jsdelivr.net",
+  "script-src-attr 'none'",
+  "object-src 'none'",
+  "style-src 'self' https://fonts.googleapis.com",
+  "style-src-elem 'self' https://fonts.googleapis.com",
+  "style-src-attr 'unsafe-inline'",
+  "font-src 'self' data: https://fonts.gstatic.com",
+  // permitir fetchs para CDN de ícones e assets (bootstrap icons via jsdelivr)
+  "connect-src 'self' https://cdn.jsdelivr.net",
       "media-src 'self'",
       (() => {
         const hosts = [];
@@ -68,7 +70,7 @@ const baseConfig = {
             }
           }
         }
-        return ["connect-src 'self'", ...hosts].join(' ');
+        return ["connect-src 'self' https://cdn.jsdelivr.net", ...hosts].join(' ');
       })(),
       "worker-src 'self' blob:",
       "frame-ancestors 'self'",
@@ -96,5 +98,18 @@ const baseConfig = {
   },
 };
 
-// 🔥 Exporta com o PWA habilitado
-module.exports = withPWA(baseConfig);
+const withPWA = withPWAInit({
+  dest: "public",
+  cacheOnFrontEndNav: true,
+  aggressiveFrontEndNavCaching: true,
+  reloadOnOnline: true,
+  disable: process.env.NODE_ENV === "development",
+  workboxOptions: {
+    disableDevLogs: true,
+  },
+  fallbacks: {
+    document: "/offline",
+  },
+});
+
+export default withPWA(nextConfig);

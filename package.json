@@ -9,12 +9,14 @@
     "lint": "next lint"
   },
   "dependencies": {
+    "@ducanh2912/next-pwa": "^10.2.9",
     "@radix-ui/react-slot": "^1.2.3",
     "@supabase/auth-helpers-nextjs": "^0.10.0",
     "@supabase/ssr": "^0.7.0",
     "@supabase/supabase-js": "^2.57.2",
     "chart.js": "^4.5.0",
     "class-variance-authority": "^0.7.1",
+    "framer-motion": "^12.23.24",
     "geist": "^1.4.2",
     "lucide-react": "^0.542.0",
     "next": "^15.5.4",

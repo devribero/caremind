@@ -5,6 +5,7 @@ import { ProfileProvider } from "@/contexts/ProfileContext";
 import { Waves } from "@/components/Waves";
 import { ToastContainer } from "@/components/Toast";
 import { DevUnhandledRejectionLogger } from "@/components/DevUnhandledRejectionLogger";
+import PWAInstallPrompt from '@/components/InstallPWA';
 import "./globals.css";
 
 export const metadata: Metadata = {
@@ -35,6 +36,7 @@ export default function RootLayout({
               <DevUnhandledRejectionLogger />
               <Waves />
               {children}
+              <PWAInstallPrompt />
               <ToastContainer />
             </ProfileProvider>
           </LoadingProvider>
