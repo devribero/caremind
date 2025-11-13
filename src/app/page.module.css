@@ -1,188 +1,102 @@
+/* ==========================================
+   1. RESET E CONFIGURAÇÕES GLOBAIS
+   ========================================== */
 .main {
     font-family: "League Spartan", sans-serif;
     min-height: 100vh;
     background: linear-gradient(135deg, #a8b8ff 0%, #9b7eff 100%);
-
-}
-.header {
-    background-color: white;
-    color: #0400BA;
-    font-weight: 700;
-    border-radius: 30px;
-    width: 100%;
-    max-width: 1300px;
-    margin: 20px auto 0;
-    padding: 15px 20px;
-    box-shadow: 0 0 13px rgb(147, 155, 238);
-    box-sizing: border-box;
     position: relative;
-}
-
-.header_list {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 30px;
-    list-style: none;
-    margin: 0;
-    padding: 0;
+    overflow-x: hidden;
     width: 100%;
-}
-
-.header_text {
-    display: flex;
-    gap: 30px;
-    list-style: none;
+    max-width: 100vw;
     margin: 0;
     padding: 0;
-    align-items: center;
-}
-
-.header_a {
-    font-size: 20px;
-    text-decoration: none;
-    color: inherit;
-    transition: opacity 0.3s ease;
-    white-space: nowrap;
-}
-
-.header_a:hover {
-    opacity: 0.7;
-}
-
-.header_btn {
-    background: linear-gradient(to right, #020054, #0400BA);
-    color: white;
-    padding: 15px 20px;
-    border-radius: 8px;
-    font-weight: bold;
-    text-decoration: none;
-    transition: all 0.3s ease;
-    font-size: 16px;
-    white-space: nowrap;
-    text-align: center;
-    display: inline-block;
-}
-
-.header_btn:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 4px 8px rgba(4, 0, 186, 0.3);
 }
 
 /* ==========================================
-   MENU HAMBÚRGUER
+   4. HERO SECTION (Landing Page)
    ========================================== */
-.hamburger {
-    display: none;
-    flex-direction: column;
-    cursor: pointer;
-    padding: 5px;
-    z-index: 1001;
-}
-
-.hamburger span {
-    width: 25px;
-    height: 3px;
-    background-color: #0400BA;
-    margin: 2px 0;
-    transition: 0.3s;
-    border-radius: 2px;
-}
-
-.hamburger.active span:nth-child(1) {
-    transform: rotate(-45deg) translate(-5px, 6px);
-}
-
-.hamburger.active span:nth-child(2) {
-    opacity: 0;
-}
-
-.hamburger.active span:nth-child(3) {
-    transform: rotate(45deg) translate(-5px, -6px);
-}
-
-.mobile_menu {
-    position: fixed;
-    top: 0;
-    left: -100%;
+.heroSection {
+    position: relative;
+    z-index: 2;
     width: 100%;
-    height: 100vh;
-    background-color: white;
-    z-index: 1000;
-    transition: left 0.3s ease;
-    padding-top: 80px;
-    box-shadow: 2px 0 10px rgba(0, 0, 0, 0.1);
+    box-sizing: border-box;
+    max-width: 100%;
+    margin: 0 auto;
+    padding: 40px 20px 20px;
 }
 
-.mobile_menu.active {
-    left: 0;
-}
-
-.mobile_menu_list {
-    display: flex;
-    flex-direction: column;
+.heroContainer {
+    max-width: 1200px;
+    margin: 0 auto;
+    display: grid;
+    grid-template-columns: 1.1fr 0.9fr;
+    gap: 40px;
     align-items: center;
-    gap: 30px;
-    list-style: none;
-    margin: 0;
-    padding: 0;
-    padding-top: 50px;
-}
-
-.mobile_menu_item {
-    font-size: 24px;
-    color: #0400BA;
-    text-decoration: none;
-    padding: 15px 0;
-    transition: opacity 0.3s ease;
-}
-
-.mobile_menu_item:hover {
-    opacity: 0.7;
-}
-
-.mobile_menu_btn {
-    background: linear-gradient(to right, #020054, #0400BA);
-    color: white;
-    padding: 15px 30px;
-    border-radius: 8px;
-    font-weight: bold;
-    text-decoration: none;
-    font-size: 18px;
-    margin-top: 20px;
-    transition: all 0.3s ease;
-}
-
-.mobile_menu_btn:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 4px 8px rgba(4, 0, 186, 0.3);
-}
-
-.menu_overlay {
-    position: fixed;
-    top: 0;
-    left: 0;
+    padding: 0 20px;
+    box-sizing: border-box;
     width: 100%;
-    height: 100vh;
-    background-color: rgba(0, 0, 0, 0.5);
-    z-index: 999;
-    opacity: 0;
-    visibility: hidden;
-    transition: all 0.3s ease;
 }
 
-.menu_overlay.active {
-    opacity: 1;
-    visibility: visible;
+.heroContent {
+    color: white;
+    width: 100%;
+    max-width: 100%;
+    box-sizing: border-box;
+}
+
+.heroTitle {
+    font-size: clamp(30px, 4.5vw, 50px);
+    font-weight: 800;
+    line-height: 1.15;
+    margin: 0 0 16px 0;
+    text-shadow: 0 2px 10px rgba(0,0,0,0.2);
+    display: block;
+    border-radius: 12px;
+    text-align: left;
+    width: 100%;
+    max-width: 100%;
+    box-sizing: border-box;
+}
+
+.heroDescription {
+    font-size: clamp(16px, 2vw, 20px);
+    color: #eef2ff;
+    line-height: 1.6;
+    margin: 0 0 28px 0;
+    max-width: 620px;
+}
+
+.heroButton {
+    display: flex;
+    gap: 16px;
+}
+
+.heroImage {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    width: 100%;
+    max-width: 100%;
+    box-sizing: border-box;
+}
+
+.heroImg {
+    filter: drop-shadow(0 12px 30px rgba(0,0,0,0.25));
+    border-radius: 16px;
 }
 
 /* ==========================================
-   SEÇÃO E CONTAINER
+   5. SEÇÕES E CONTAINERS
    ========================================== */
 .section {
     padding: 60px 20px;
     position: relative;
-    z-index: 2; /* acima das ondas */
+    z-index: 2;
+    width: 100%;
+    max-width: 100%;
+    box-sizing: border-box;
+    margin: 0 auto;
 }
 
 .section_3 {
@@ -194,14 +108,22 @@
     margin: 0 auto;
     text-align: center;
     padding: 0 20px;
+    width: 100%;
+    box-sizing: border-box;
 }
 
+/* ==========================================
+   6. LOGO
+   ========================================== */
 .logoWrapper {
     margin-bottom: 30px;
     margin-top: 40px;
     display: flex;
     justify-content: center;
     align-items: center;
+    width: 100%;
+    max-width: 100%;
+    box-sizing: border-box;
 }
 
 .logo {
@@ -210,6 +132,9 @@
     object-fit: contain;
 }
 
+/* ==========================================
+   7. TIPOGRAFIA
+   ========================================== */
 .title {
     font-size: 60px;
     font-weight: 700;
@@ -244,8 +169,17 @@
     margin-right: auto;
 }
 
+.sectionTitle {
+    color: white;
+    font-size: clamp(28px, 4vw, 42px);
+    font-weight: 700;
+    margin: 0 0 24px 0;
+    text-align: left;
+    text-shadow: 0 2px 10px rgba(0,0,0,0.2);
+}
+
 /* ==========================================
-   BOTÕES
+   8. BOTÕES
    ========================================== */
 .buttonGroup {
     display: flex;
@@ -299,8 +233,25 @@
     box-shadow: 0 4px 12px rgba(4, 0, 186, 0.2);
 }
 
+.ctaButton {
+    font-weight: 500;
+    font-family: 'League Spartan', sans-serif;
+    background: linear-gradient(135deg, #0400ba 0%, #020054 100%) !important;
+    color: white !important;
+    border-radius: 12px !important;
+    padding: 16px 20px !important;
+    box-shadow: 0 4px 15px rgba(4,0,186,0.3) !important;
+    border: 1px solid rgba(255,255,255,0.25) !important;
+    font-size: 18px;
+}
+
+.ctaButton:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(4,0,186,0.4) !important;
+}
+
 /* ==========================================
-   CARDS
+   9. CARDS
    ========================================== */
 .container_cards {
     display: grid;
@@ -351,7 +302,67 @@
 }
 
 /* ==========================================
-   LISTAS E CONTEÚDO
+   10. FEATURES SECTION
+   ========================================== */
+.featuresSection {
+    position: relative;
+    z-index: 2;
+    padding: 10px 20px 80px;
+}
+
+.featuresGrid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 28px;
+}
+
+.featureCard {
+    background: rgba(255,255,255,0.25);
+    backdrop-filter: blur(14px);
+    -webkit-backdrop-filter: blur(14px);
+    border: 1px solid rgba(255,255,255,0.25);
+    border-radius: 16px;
+    padding: 20px;
+    color: #1a202c;
+    box-shadow: 0 6px 24px rgba(31,38,135,0.25);
+    transition: transform .2s ease, box-shadow .2s ease;
+    text-align: left;
+}
+
+.featureCard:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 10px 28px rgba(31,38,135,0.3);
+}
+
+.featureIcon {
+    width: 56px;
+    height: 56px;
+    padding: 12px;
+    border-radius: 14px;
+    background: rgba(255, 255, 255, 0.6);
+    border: 1px solid rgba(4, 0, 186, 0.15);
+    box-shadow: 0 6px 18px rgba(31, 38, 135, 0.2);
+    margin-bottom: 10px;
+    display: inline-block;
+    object-fit: contain;
+}
+
+.featureCard h3 {
+    font-size: 20px;
+    font-weight: 700;
+    color: #1a202c;
+    margin: 0 0 8px 0;
+}
+
+.featureCard p {
+    font-size: 16px;
+    line-height: 1.6;
+    color: #2d3748;
+    margin: 0;
+}
+
+/* ==========================================
+   11. LISTAS E CONTEÚDO
    ========================================== */
 .container_itens {
     display: flex;
@@ -396,14 +407,24 @@
 
 .container_list p {
     font-size: 18px;
-    color: #ffffff; /* texto branco apenas nos parágrafos da lista à esquerda */
+    color: #ffffff;
     text-align: left;
     margin: 0;
     line-height: 1.6;
 }
 
+.container_list_ol {
+    border-radius: 12px;
+    background: rgba(255, 255, 255, 0.15);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    padding: 20px 24px;
+    box-shadow: 0 8px 32px rgba(31, 38, 135, 0.25);
+}
+
 /* ==========================================
-   IMPACTO SOCIAL
+   12. IMPACTO SOCIAL
    ========================================== */
 .impactContainer {
     background-color: #f7f9ff;
@@ -443,12 +464,17 @@
     margin: 0 auto 32px auto;
 }
 
+.impactContainer .heroButton {
+    justify-content: center;
+    margin-top: 24px;
+}
+
 .statsGrid {
     display: grid;
     grid-template-columns: repeat(3, 1fr);
     gap: 20px;
     justify-content: center;
-    align-items: stretch; /* todas as células com a mesma altura */
+    align-items: stretch;
 }
 
 .statCard {
@@ -460,26 +486,8 @@
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    min-height: 140px; /* altura mínima consistente */
-    gap: 6px; /* espaço entre número e label */
-}
-
-@media (max-width: 1024px) {
-  .statsGrid {
-    grid-template-columns: repeat(2, 1fr);
-  }
-}
-
-@media (max-width: 640px) {
-  .statsGrid {
-    grid-template-columns: 1fr;
-  }
-}
-
-/* Centraliza o botão dentro do card de impacto e adiciona respiro dos benefícios */
-.impactContainer .heroButton {
-  justify-content: center;
-  margin-top: 24px;
+    min-height: 140px;
+    gap: 6px;
 }
 
 .statNumber {
@@ -496,332 +504,16 @@
     font-weight: 500;
 }
 
-/* Ajustes específicos para o 3º benefício (check) */
 .statsGrid .statCard:nth-child(3) .statNumber {
-  margin-bottom: 6px;
+    margin-bottom: 6px;
 }
+
 .statsGrid .statCard:nth-child(3) .statLabel {
-  margin-top: 0;
+    margin-top: 0;
 }
 
 /* ==========================================
-   TABLET - 768px para baixo
-   ========================================== */
-@media (max-width: 768px) {
-    .header {
-        margin: 15px;
-        padding: 12px 15px;
-        border-radius: 20px;
-        font-size: 18px;
-    }
-    
-    .header_a {
-        font-size: 18px;
-    }
-    
-    .header_btn {
-        font-size: 14px;
-        padding: 12px 16px;
-    }
-    
-    .title,
-    .container_title {
-        font-size: 42px;
-    }
-    
-    .description {
-        font-size: 18px;
-    }
-    
-    .container_cards {
-        grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-        gap: 30px;
-        margin-top: 60px;
-    }
-    
-    .card {
-        padding: 25px;
-    }
-    
-    .container_itens {
-        flex-direction: column;
-        gap: 40px;
-        margin-top: 60px;
-    }
-    
-    .container_list h1 {
-        font-size: 28px;
-    }
-    
-    .container_list p {
-        font-size: 16px;
-    }
-    
-    .impactContainer {
-        margin: 40px 15px;
-        padding: 30px 20px;
-    }
-    
-    .impactContainer .title {
-        font-size: 32px;
-    }
-    
-    .impactContainer .description {
-        font-size: 16px;
-    }
-    
-    .statNumber {
-        font-size: 40px;
-    }
-}
-
-/* ==========================================
-   MOBILE PEQUENO - 640px para baixo
-   ========================================== */
-@media (max-width: 640px) {
-    .header_text {
-        display: none;
-    }
-    
-    .hamburger {
-        display: flex;
-    }
-    
-    .header_list {
-        justify-content: space-between;
-    }
-    
-    .title,
-    .container_title {
-        font-size: 32px;
-    }
-    
-    .description {
-        font-size: 16px;
-        margin-bottom: 30px;
-    }
-    
-    .buttonGroup {
-        flex-direction: column;
-        gap: 15px;
-        width: 100%;
-    }
-    
-    .primaryButton,
-    .outlineButton {
-        width: 100%;
-        max-width: 300px;
-        margin: 0 auto;
-    }
-    
-    .container_cards {
-        grid-template-columns: 1fr;
-        gap: 25px;
-        padding: 0 15px;
-    }
-    
-    .card {
-        padding: 20px;
-        text-align: center;
-        align-items: center;
-    }
-    
-    .container_itens {
-        padding: 0 15px;
-        gap: 30px;
-    }
-    
-    .container_list {
-        width: 100%;
-    }
-    
-    .container_list ol {
-        padding-left: 20px;
-    }
-    
-    .container_list h1 {
-        font-size: 24px;
-        text-align: center;
-    }
-    
-    .container_list p {
-        font-size: 14px;
-        text-align: center;
-    }
-    
-    .statsGrid {
-        grid-template-columns: 1fr;
-        gap: 15px;
-    }
-    
-    .statCard {
-        padding: 20px;
-    }
-    
-    .statNumber {
-        font-size: 36px;
-    }
-    
-    .statLabel {
-        font-size: 12px;
-    }
-}
-
-/* ==========================================
-   MOBILE EXTRA PEQUENO - 480px para baixo
-   ========================================== */
-@media (max-width: 480px) {
-    .header {
-        margin: 10px;
-        padding: 10px 12px;
-        border-radius: 15px;
-        font-size: 16px;
-    }
-    
-    .section {
-        padding: 40px 15px;
-    }
-    
-    .container {
-        padding: 0 15px;
-    }
-    
-    .title,
-    .container_title {
-        font-size: 28px;
-        margin-bottom: 15px;
-    }
-    
-    .description {
-        font-size: 15px;
-        margin-bottom: 25px;
-    }
-    
-    .primaryButton,
-    .outlineButton {
-        padding: 12px 20px;
-        font-size: 14px;
-        min-width: auto;
-    }
-    
-    .card {
-        padding: 18px;
-    }
-    
-    .card h1 {
-        font-size: 20px;
-    }
-    
-    .card p {
-        font-size: 14px;
-    }
-    
-    .container_list h1 {
-        font-size: 20px;
-    }
-    
-    .container_list p {
-        font-size: 13px;
-    }
-    
-    .impactContainer {
-        margin: 20px 10px;
-        padding: 25px 15px;
-    }
-    
-    .impactContainer .title {
-        font-size: 26px;
-    }
-    
-    .impactContainer .description {
-        font-size: 14px;
-    }
-    
-    .iconWrapper {
-        width: 60px;
-        height: 60px;
-    }
-    
-    .statNumber {
-        font-size: 32px;
-    }
-}
-
-/* ==========================================
-   DESKTOP GRANDE - 1200px para cima
-   ========================================== */
-@media (min-width: 1200px) {
-    .header_list {
-        justify-content: space-around;
-    }
-    
-    .header_text {
-        gap: 40px;
-    }
-    
-    .header_a {
-        font-size: 22px;
-    }
-    
-    .header_btn {
-        font-size: 18px;
-        padding: 16px 24px;
-    }
-    
-    .title,
-    .container_title {
-        font-size: 70px;
-    }
-    
-    .description {
-        font-size: 22px;
-    }
-}
-
-/* ==========================================
-   RESPONSIVIDADE ESPECÍFICA PARA LOGO
-   ========================================== */
-@media (max-width: 768px) {
-    .logoWrapper {
-        margin-bottom: 25px;
-        margin-top: 30px;
-    }
-    
-    .logo {
-        max-width: 280px;
-    }
-}
-
-@media (max-width: 480px) {
-    .logoWrapper {
-        margin-bottom: 20px;
-        margin-top: 20px;
-    }
-    
-    .logo {
-        max-width: 240px;
-    }
-}
-
-@media (max-width: 360px) {
-    .logo {
-        max-width: 200px;
-    }
-}
-
-/* ==========================================
-   AJUSTES ESPECIAIS
-   ========================================== */
-@media (max-width: 1350px) {
-    .header {
-        margin-left: 20px;
-        margin-right: 20px;
-        max-width: calc(100% - 40px);
-    }
-}
-
-/* ==========================================
-   ONDAS PERFEITAS (sem bugs)
+   13. ONDAS ANIMADAS (Background)
    ========================================== */
 .waves {
     position: fixed;
@@ -829,7 +521,7 @@
     left: 0;
     width: 100%;
     height: 400px;
-    z-index: 1;
+    z-index: 0;
     pointer-events: none;
     overflow: hidden;
 }
@@ -842,7 +534,7 @@
     height: 100%;
     background-repeat: repeat-x;
     background-size: 50% 100%;
-    will-change: transform; /* Improves animation performance */
+    will-change: transform;
 }
 
 .wave:nth-child(1) {
@@ -864,226 +556,361 @@
 }
 
 @keyframes wave-animation1 {
-    0% {
-        transform: translateX(0);
-    }
-    100% {
-        transform: translateX(-50%);
-    }
+    0% { transform: translateX(0); }
+    100% { transform: translateX(-50%); }
 }
 
 @keyframes wave-animation2 {
-    0% {
-        transform: translateX(0);
-    }
-    100% {
-        transform: translateX(-50%);
-    }
+    0% { transform: translateX(0); }
+    100% { transform: translateX(-50%); }
 }
 
 @keyframes wave-animation3 {
-    0% {
-        transform: translateX(0);
-    }
-    100% {
-        transform: translateX(-50%);
-    }
-}
-
-/* Responsive */
-@media (max-width: 768px) {
-    .waves {
-        height: 300px;
-    }
-}
-
-@media (max-width: 480px) {
-    .waves {
-        height: 200px;
-    }
+    0% { transform: translateX(0); }
+    100% { transform: translateX(-50%); }
 }
 
 /* ==========================================
-   HERO SECTION (landing)
+   14. FOOTER
    ========================================== */
-.heroSection {
-    position: relative;
-    z-index: 2; /* acima das ondas */
-    padding: 80px 20px 40px;
-}
-
-.heroContainer {
-    max-width: 1200px;
-    margin: 0 auto;
-    display: grid;
-    grid-template-columns: 1.1fr 0.9fr;
-    gap: 40px;
-    align-items: center;
-}
-
-.heroContent {
-    color: white;
-}
-
-.heroTitle {
-    font-size: clamp(30px, 4.5vw, 50px);
-    font-weight: 800;
-    line-height: 1.15;
-    margin: 0 0 16px 0;
-    text-shadow: 0 2px 10px rgba(0,0,0,0.2);
-    display: inline-block;
-    border-radius: 12px;
-    text-align: left;
-}
-
-.heroDescription {
-    font-size: clamp(16px, 2vw, 20px);
-    color: #eef2ff;
-    line-height: 1.6;
-    margin: 0 0 28px 0;
-    max-width: 620px;
-}
-
-.heroButton { display: flex; gap: 16px; }
-
-.ctaButton {
-    font-weight: 500;
-    font-family: 'League Spartan', sans-serif;
-    background: linear-gradient(135deg, #0400ba 0%, #020054 100%) !important;
-    color: white !important;
-    border-radius: 12px !important;
-    padding: 16px 20px !important;
-    box-shadow: 0 4px 15px rgba(4,0,186,0.3) !important;
-    border: 1px solid rgba(255,255,255,0.25) !important;
-    font-size: 18px;
-}
-
-.ctaButton:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(4,0,186,0.4) !important; }
-
-.heroImage { display: flex; justify-content: center; align-items: center; }
-.heroImg { filter: drop-shadow(0 12px 30px rgba(0,0,0,0.25)); border-radius: 16px; }
-
-/* ==========================================
-   FEATURES SECTION
-   ========================================== */
-.featuresSection {
-    position: relative;
-    z-index: 2;
-    padding: 10px 20px 80px; /* pequeno respiro ap�s o hero */
-}
-
-.sectionTitle {
-    color: white;
-    font-size: clamp(24px, 3.5vw, 36px);
-    font-weight: 700;
-    margin: 0 0 24px 0;
-    text-align: left;
-    text-shadow: 0 2px 10px rgba(0,0,0,0.2);
-}
-
-.featuresGrid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
-    gap: 24px;
-}
-
-.featureCard {
-    background: rgba(255,255,255,0.25);
-    backdrop-filter: blur(14px);
-    -webkit-backdrop-filter: blur(14px);
-    border: 1px solid rgba(255,255,255,0.25);
-    border-radius: 16px;
-    padding: 20px;
-    color: #1a202c;
-    box-shadow: 0 6px 24px rgba(31,38,135,0.25);
-    transition: transform .2s ease, box-shadow .2s ease;
-    text-align: left;
-}
-
-.featureCard:hover { transform: translateY(-4px); box-shadow: 0 10px 28px rgba(31,38,135,0.3); }
-
-.featureIcon {
-    width: 56px;
-    height: 56px;
-    padding: 12px;
-    border-radius: 14px;
-    background: rgba(255, 255, 255, 0.6);
-    border: 1px solid rgba(4, 0, 186, 0.15);
-    box-shadow: 0 6px 18px rgba(31, 38, 135, 0.2);
-    margin-bottom: 10px;
-    display: inline-block;
-    object-fit: contain;
-}
-
-/* ==========================================
-   RESPONSIVE (hero/waves)
-   ========================================== */
-@media (max-width: 900px) {
-    .heroContainer { grid-template-columns: 1fr; gap: 24px; }
-    .heroImage { order: -1; }
-}
-
-@media (max-width: 768px) {
-    .waves { height: 180px; }
-}
-
-@media (max-width: 480px) {
-    .waves { height: 120px; }
-}
-
-/* ===== Landing fixes: waves/footer layering, features grid, typography, header gap ===== */
-
-/* Footer acima das ondas */
 .footerWrapper {
-  position: relative;
-  z-index: 5;
+    position: relative;
+    z-index: 5;
 }
 
-/* Ondas atr�s de tudo */
-.waves { z-index: 0 !important; }
+/* ==========================================
+   15. MEDIA QUERIES - MOBILE (640px)
+   ========================================== */
+@media (max-width: 680px) {
+    /* Tipografia */
+    .title,
+    .container_title {
+        font-size: 36px;
+    }
 
-/* Permite full-bleed do footer; impede overflow vertical das ondas */
-.main { position: relative; overflow-x: hidden; overflow-y: hidden; width: 100%; min-height: 100vh; }
+    .heroTitle {
+        font-size: 10px;
+        text-align: justify;
+    }
 
-/* Remover linha branca acima do header */
-.header { margin-top: 0 !important; }
-
-/* Grade 3x3 no desktop, responsivo */
-.featuresGrid {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr) !important;
-  gap: 28px;
+    .heroDescription {
+        font-size: 16px;
+        text-align: justify;
+        text-justify: inter-word;
+        word-spacing: 0.02em;
+        line-height: 1.6;
+    }
+    
+    .description {
+        font-size: 16px;
+    }
+    
+    .sectionTitle {
+        font-size: 28px;
+    }
+    
+    /* Header */
+    .header {
+        margin-left: 15px;
+        margin-right: 15px;
+        max-width: calc(100% - 30px);
+        padding: 12px 15px;
+    }
+    
+    /* Cards */
+    .container_cards {
+        grid-template-columns: 1fr;
+        gap: 25px;
+        margin-top: 50px;
+    }
+    
+    .card {
+        padding: 20px;
+    }
+    
+    /* Features */
+    .featuresGrid {
+        grid-template-columns: 1fr;
+        gap: 20px;
+    }
+    
+    /* Container de itens */
+    .container_itens {
+        flex-direction: column;
+        gap: 30px;
+        margin-top: 50px;
+    }
+    
+    .container_list h1 {
+        font-size: 24px;
+    }
+    
+    .container_list p {
+        font-size: 15px;
+    }
+    
+    /* Impacto */
+    .impactContainer {
+        margin: 30px 10px;
+        padding: 25px 15px;
+    }
+    
+    .impactContainer .title {
+        font-size: 28px;
+    }
+    
+    .impactContainer .description {
+        font-size: 15px;
+    }
+    
+    .statsGrid {
+        grid-template-columns: 1fr;
+        gap: 15px;
+    }
+    
+    .statNumber {
+        font-size: 36px;
+    }
+    
+    .statCard {
+        min-height: 120px;
+    }
+    
+    /* Hero */
+    .heroSection {
+        padding: 0 20px 20px;
+    }
+    
+    .heroContainer {
+        grid-template-columns: 1fr;
+        gap: 30px;
+    }
+    
+    .heroImg {
+        display: none;
+    }
+    
+    .heroButton {
+        flex-direction: column;
+        width: 90%;
+        gap: 12px;
+    }
+    
+    /* Logo */
+    .logoWrapper {
+        margin-bottom: 20px;
+        margin-top: 25px;
+    }
+    
+    .logo {
+        max-width: 240px;
+    }
+    
+    /* Ondas */
+    .waves {
+        height: 150px;
+    }
+    
+    /* Botões */
+    .primaryButton,
+    .outlineButton,
+    .ctaButton {
+        width: 100%;
+        font-size: 16px;
+    }
 }
 
+/* ==========================================
+   16. MEDIA QUERIES - TABLET (641px - 1024px)
+   ========================================== */
 @media (max-width: 1024px) {
-  .featuresGrid { grid-template-columns: repeat(2, 1fr) !important; }
+    .heroSection {
+        padding: 0 20px 20px;
+    }
+    .heroContainer {
+        grid-template-columns: 1fr;
+        text-align: center;
+        gap: 30px;
+    }
+
+    .heroTitle {
+        font-size: 29px;
+        text-align: justify;
+    }
+
+    .heroDescription {
+        font-size: 16px;
+        text-align: justify;
+        text-justify: inter-word;
+        word-spacing: 0.02em;
+        line-height: 1.6;
+    }
+    
+    .heroButton {
+        justify-content: center;
+    }
+    
+    .heroImage {
+        order: -1;
+        margin-bottom: 20px;
+    }
+    .heroImg{
+        width: 50%;
+    }
 }
 
-@media (max-width: 640px) {
-  .featuresGrid { grid-template-columns: 1fr !important; }
+@media (min-width: 641px) and (max-width: 1024px) {
+    /* Tipografia */
+    .title,
+    .container_title {
+        font-size: 48px;
+    }
+    
+    .description {
+        font-size: 18px;
+    }
+    
+    /* Header */
+    .header {
+        margin-left: 20px;
+        margin-right: 20px;
+        max-width: calc(100% - 40px);
+    }
+    
+    /* Cards */
+    .container_cards {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 30px;
+        margin-top: 70px;
+    }
+    
+    .card {
+        padding: 25px;
+    }
+    
+    /* Features */
+    .featuresGrid {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 24px;
+    }
+    
+    /* Container de itens */
+    .container_itens {
+        flex-direction: column;
+        gap: 50px;
+        margin-top: 70px;
+    }
+    
+    .container_list h1 {
+        font-size: 30px;
+    }
+    
+    .container_list p {
+        font-size: 17px;
+    }
+    
+    /* Impacto */
+    .impactContainer {
+        margin: 50px 20px;
+        padding: 35px 25px;
+    }
+    
+    .impactContainer .title {
+        font-size: 34px;
+    }
+    
+    .impactContainer .description {
+        font-size: 17px;
+    }
+    
+    .statsGrid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+    
+    .statNumber {
+        font-size: 44px;
+    }
+    
+    /* Hero */
+    .heroSection {
+        padding: 0 20px 20px;
+    }
+    
+    .heroContainer {
+        grid-template-columns: 1fr;
+        gap: 35px;
+    }
+    
+    .heroImg {
+        max-width: 80%;
+        margin: 0 auto;
+    }
+    
+    /* Logo */
+    .logoWrapper {
+        margin-bottom: 28px;
+        margin-top: 35px;
+    }
+    
+    .logo {
+        max-width: 320px;
+    }
+    
+    /* Ondas */
+    .waves {
+        height: 250px;
+    }
 }
 
-/* Tipografia dos cards */
-.featureIcon {
-  width: 56px;
-  height: 56px;
-}
-
-.featureCard h3 {
-  font-size: 20px;
-  font-weight: 700;
-  color: #1a202c;
-  margin: 0 0 8px 0;
-}
-
-.featureCard p {
-  font-size: 16px;
-  line-height: 1.6;
-  color: #2d3748;
-  margin: 0;
-}
-
-/* T�tulo da se��o maior */
-.sectionTitle {
-  font-size: clamp(28px, 4vw, 42px) !important;
+/* ==========================================
+   17. MEDIA QUERIES - LAPTOP/PC (1025px+)
+   ========================================== */
+@media (min-width: 1025px) {
+    /* Header otimizado para desktop */
+    .header_list {
+        justify-content: space-around;
+    }
+    
+    .header_text {
+        gap: 40px;
+    }
+    
+    .header_a {
+        font-size: 22px;
+    }
+    
+    .header_btn {
+        font-size: 18px;
+        padding: 16px 24px;
+    }
+    
+    /* Tipografia desktop */
+    .title,
+    .container_title {
+        font-size: 70px;
+    }
+    
+    .description {
+        font-size: 22px;
+    }
+    
+    /* Cards em 3 colunas */
+    .container_cards {
+        grid-template-columns: repeat(3, 1fr);
+    }
+    
+    /* Features em 3 colunas */
+    .featuresGrid {
+        grid-template-columns: repeat(3, 1fr);
+    }
+    
+    /* Stats em 3 colunas */
+    .statsGrid {
+        grid-template-columns: repeat(3, 1fr);
+    }
+    
+    /* Hero com layout lado a lado */
+    .heroContainer {
+        grid-template-columns: 1.1fr 0.9fr;
+    }
 }

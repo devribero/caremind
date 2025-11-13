@@ -150,7 +150,7 @@
 }
 
 .card:hover {
-  transform: translateY(-8px) scale(1.02);
+  transform: translateY(-2px) scale(1.02);
   box-shadow: 
     0 20px 60px rgba(0, 0, 0, 0.12),
     0 8px 20px rgba(0, 0, 0, 0.08);
@@ -199,6 +199,13 @@
 .card p:first-of-type {
   color: #475569;
   font-weight: 600;
+}
+
+.alerts_summary{
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  color: black;
 }
 
 .card_content {

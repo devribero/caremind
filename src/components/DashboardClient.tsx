@@ -991,9 +991,9 @@ export default function DashboardClient({ readOnly = false, idosoId }: { readOnl
                                     <li key={m.id} className={`${styles.list_item} ${isDone ? styles.completed : ''}`}>
                                         <div className={styles.item_info}>
                                             <strong>{m.nome}</strong>
-                                            {m.dosagem && <span>{m.dosagem}</span>}
+                                            {m.dosagem && <span>Dosagem: {m.dosagem},  Quantidade: {m.quantidade}</span>}
                                             {m.frequencia && <span className={styles.frequencia}>{formatarFrequencia(m.frequencia)}</span>}
-                                            <span className={styles.quantidade}>Quantidade: {m.quantidade}</span>
+                                            <span className={styles.quantidade}></span>
                                         </div>
                                         {!readOnly && (
                                             <div className={styles.item_actions}>

@@ -15,10 +15,19 @@ export default function Home() {
   const router = useRouter();
 
   useEffect(() => {
-    if (!loading && user) {
-      const tipo = (user.user_metadata?.account_type as string | undefined)?.toLowerCase();
-      router.push(tipo === 'familiar' ? '/familiar-dashboard' : '/dashboard');
-    }
+    const handleAuthCheck = async () => {
+      try {
+        if (!loading && user) {
+          const tipo = (user.user_metadata?.account_type as string | undefined)?.toLowerCase();
+          await router.push(tipo === 'familiar' ? '/familiar-dashboard' : '/dashboard');
+        }
+      } catch (error) {
+        console.error('Navigation error:', error);
+        // You can add more sophisticated error handling here
+      }
+    };
+
+    handleAuthCheck();
   }, [user, loading, router]);
 
   if (loading) {
@@ -158,7 +167,7 @@ export default function Home() {
         <div className={styles.container_itens}>
           {/* Lista à esquerda */}
           <div className={styles.container_list}>
-            <ol>
+            <ol className={styles.container_list_ol}>
               <li>
                 <h1>Autonomia com segurança</h1>
                 <p>Permite que idosos mantenham suas rotinas com confiança e sem dependência constante.</p>
