@@ -24,10 +24,7 @@ export default function PWAInstallPrompt() {
   }, [isInstallable, isInstalled, hasShownPrompt]);
 
   const handleInstallClick = async () => {
-    const success = await installApp();
-    if (success) {
-      console.log("PWA instalado com sucesso");
-    }
+    await installApp();
     setShowInstallPrompt(false);
     setHasShownPrompt(true);
   };

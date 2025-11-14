@@ -86,8 +86,6 @@ export default function IntegracoesPage() {
           const userProvider = session.user.app_metadata.provider;
   
           if (userProvider === 'google') {
-            console.log('Detectado login com Google. Salvando tokens...');
-            
             // Prepara os dados para salvar na sua tabela
             const integrationData = {
               user_id: session.user.id,
@@ -111,7 +109,6 @@ export default function IntegracoesPage() {
               console.error('Erro ao salvar token do Google:', error);
               toast.error('Erro ao salvar integração com Google.');
             } else {
-              console.log('Integração com Google salva com sucesso!');
               toast.success('Conectado com o Google Home!');
               // (Opcional) Chame o fetchIntegrationStatus() para atualizar a UI
               // fetchIntegrationStatus(); 

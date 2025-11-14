@@ -174,9 +174,6 @@ export default function Rotinas() {
     const supabase = createClient();
 
     const fileName = `${user.id}/${Date.now()}_${file.name}`;
-
-    console.log('Tentando upload:', fileName);
-
     const { data, error } = await supabase.storage.from('receitas-medicas').upload(fileName, file);
 
     if (error) {
@@ -185,31 +182,20 @@ export default function Rotinas() {
       return;
     }
 
-    console.log('Upload sucesso, obtendo URL pública');
-
     const { data: publicUrlData } = supabase.storage.from('receitas-medicas').getPublicUrl(fileName);
     if (!publicUrlData) {
       toast.error('Erro ao obter URL pública');
       return;
     }
     const imageUrl = publicUrlData.publicUrl;
-
-    console.log('URL:', imageUrl);
-    console.log('User ID:', user.id);
-
     const { error: insertError } = await supabase.from('ocr_gerenciamento').insert({
       user_id: targetUserId || user.id,
       image_url: imageUrl,
       status: 'PENDENTE',
     });
 
-    if (insertError) {
-      toast.error(`Erro ao salvar no banco: ${insertError.message}`);
-      console.error('Insert error:', insertError);
-      return;
-    }
-
-    console.log('Insert sucesso');
+    if (insertError) throw insertError;
+    
     toast.success('Foto enviada! Processando receita...');
     photoModal.close();
   };

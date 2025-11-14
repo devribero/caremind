@@ -133,14 +133,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
       
       if (!supabaseUrl || !supabaseKey) {
-        console.error('❌ Variáveis de ambiente do Supabase não configuradas!');
-        console.error('URL:', supabaseUrl);
-        console.error('Key:', supabaseKey ? 'Configurada' : 'Não configurada');
         throw new Error('Configuração do Supabase não encontrada. Verifique o arquivo .env.local');
       }
-      
-      console.log('✅ Configuração do Supabase encontrada');
-      console.log('URL:', supabaseUrl);
       
       // Primeiro, registra o usuário na autenticação
       const authResponse = await supabase.auth.signUp({
@@ -153,8 +147,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           },
         },
       });
-      
-      console.log("Resposta de autenticação:", authResponse);
       
       // Tratamento: se usuário já existir, tentar realizar sign-in com a mesma credencial
       if (authResponse.error && typeof authResponse.error.message === 'string' && authResponse.error.message.toLowerCase().includes('already')) {
@@ -176,16 +168,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           tipo: accountType,
         } as const;
         
-        console.log("Tentando inserir Perfis com nome:", fullName);
-        
         // Upsert evita condição de corrida entre checar e inserir/atualizar
         const { error: upsertError } = await supabase
           .from('perfis')
           .upsert(profileData, { onConflict: 'user_id' });
         if (upsertError) {
           console.error('Erro ao upsert Perfis (não bloqueante):', upsertError);
-        } else {
-          console.log('Perfis upsert realizado com sucesso!');
         }
       } else if (authResponse.error) {
         console.error('Erro na autenticação:', authResponse.error);

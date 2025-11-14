@@ -46,23 +46,18 @@ export async function POST(request: NextRequest) {
             );
         }
 
-        console.log('Usuário autenticado para alteração de senha:', user.email);
-
         // Alterar a senha diretamente, pois o usuário já está autenticado via sessão
         try {
             const { data, error: updateError } = await supabase.auth.updateUser({ password: nextPwd });
 
             if (updateError) {
-                console.log('Erro ao alterar senha:', updateError);
                 // Erros de regra de senha costumam ser 400
                 const status = updateError.status ?? 500;
                 return NextResponse.json(
-                    { error: `Erro ao alterar senha: ${updateError.message}` },
-                    { status: status >= 400 && status < 500 ? status : 500 }
+                    { error: updateError.message || 'Erro ao alterar senha' },
+                    { status }
                 );
             }
-
-            console.log('Senha alterada com sucesso para usuário:', user.email);
 
             return NextResponse.json(
                 {
