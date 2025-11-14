@@ -16,7 +16,7 @@ export function Header() {
         {/* Logo */}
         <Link href="/" className={styles.header__logo}>
           <Image 
-            src="/logo_coracao.png" 
+            src="/icons/logo.png" 
             alt="CareMind Logo" 
             width={180} 
             height={57} 
