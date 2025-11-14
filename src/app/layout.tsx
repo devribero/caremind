@@ -6,6 +6,8 @@ import { Waves } from "@/components/Waves";
 import { ToastContainer } from "@/components/Toast";
 import { DevUnhandledRejectionLogger } from "@/components/DevUnhandledRejectionLogger";
 import PWAInstallPrompt from '@/components/InstallPWA';
+import { Analytics } from "@vercel/analytics/next"
+import { SpeedInsights } from "@vercel/speed-insights/next"
 import "./globals.css";
 
 export const metadata: Metadata = {
@@ -38,6 +40,8 @@ export default function RootLayout({
             <ProfileProvider>
               <DevUnhandledRejectionLogger />
               {children}
+              <SpeedInsights />
+              <Analytics />
               <Waves />
               <PWAInstallPrompt />
               <ToastContainer />
