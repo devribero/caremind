@@ -2,13 +2,11 @@ import type { Metadata } from "next";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { LoadingProvider } from "@/contexts/LoadingContext";
 import { ProfileProvider } from "@/contexts/ProfileContext";
-import { AccessibilityProvider } from "@/contexts/AccessibilityContext";
 import { Waves } from "@/components/Waves";
 import { ToastContainer } from "@/components/Toast";
 import { DevUnhandledRejectionLogger } from "@/components/DevUnhandledRejectionLogger";
 import PWAInstallPrompt from '@/components/InstallPWA';
 import "./globals.css";
-import "@/styles/accessibility.css";
 
 export const metadata: Metadata = {
   title: "CareMind",
@@ -38,13 +36,11 @@ export default function RootLayout({
         <AuthProvider>
           <LoadingProvider>
             <ProfileProvider>
-              <AccessibilityProvider>
-                <DevUnhandledRejectionLogger />
-                <Waves />
-                {children}
-                <PWAInstallPrompt />
-                <ToastContainer />
-              </AccessibilityProvider>
+              <DevUnhandledRejectionLogger />
+              {children}
+              <Waves />
+              <PWAInstallPrompt />
+              <ToastContainer />
             </ProfileProvider>
           </LoadingProvider>
         </AuthProvider>

@@ -1,0 +1,206 @@
+.container {
+  position: fixed;
+  width: 25%;
+  bottom: 16px;
+  right: 16px;
+  z-index: 50;
+  background-color: white;
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+  padding: 20px;
+  font-family: "League Spartan", sans-serif;
+  animation: slideUp 0.3s ease-out;
+}
+
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.content {
+  flex: 1;
+}
+
+.title {
+  font-size: 16px;
+  font-weight: 700;
+  color: #111827;
+  margin: 0;
+  margin-bottom: 4px;
+}
+
+.description {
+  font-size: 14px;
+  color: #6b7280;
+  margin: 0;
+  line-height: 1.5;
+}
+
+.closeButton {
+  background: none;
+  border: none;
+  padding: 4px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #9ca3af;
+  transition: color 0.2s ease;
+  flex-shrink: 0;
+}
+
+.closeButton:hover {
+  color: #6b7280;
+}
+
+.closeIcon {
+  width: 20px;
+  height: 20px;
+}
+
+.actions {
+  display: flex;
+  gap: 12px;
+}
+
+.primaryButton {
+  flex: 1;
+  padding: 10px 14px;
+  font-size: 14px;
+  font-weight: 600;
+  border-radius: 8px;
+  background-color: #0400BA;
+  color: white;
+  border: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  transition: background-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.primaryButton:hover {
+  background-color: #0300a0;
+  box-shadow: 0 4px 12px rgba(4, 0, 186, 0.3);
+}
+
+.primaryButton:active {
+  background-color: #020070;
+}
+
+.secondaryButton {
+  padding: 10px 14px;
+  font-size: 14px;
+  font-weight: 600;
+  border-radius: 8px;
+  background-color: transparent;
+  color: #0400BA;
+  border: 2px solid #0400BA;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  transition: background-color 0.2s ease, color 0.2s ease;
+}
+
+.secondaryButton:hover {
+  background-color: #f0f0ff;
+}
+
+.secondaryButton:active {
+  background-color: #e0e0ff;
+}
+
+.buttonIcon {
+  width: 16px;
+  height: 16px;
+}
+
+/* Responsividade */
+@media (max-width: 768px) {
+  .container {
+    bottom: 12px;
+    left: 12px;
+    right: 12px;
+    padding: 16px;
+  }
+
+  .title {
+    font-size: 15px;
+  }
+
+  .description {
+    font-size: 13px;
+  }
+
+  .actions {
+    gap: 10px;
+  }
+
+  .primaryButton,
+  .secondaryButton {
+    padding: 9px 12px;
+    font-size: 13px;
+  }
+}
+
+@media (max-width: 480px) {
+  .container {
+    bottom: 10px;
+    left: 10px;
+    right: 10px;
+    padding: 14px;
+  }
+
+  .header {
+    gap: 10px;
+    margin-bottom: 12px;
+  }
+
+  .title {
+    font-size: 14px;
+  }
+
+  .description {
+    font-size: 12px;
+  }
+
+  .actions {
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .primaryButton,
+  .secondaryButton {
+    padding: 8px 12px;
+    font-size: 12px;
+    width: 100%;
+  }
+
+  .closeIcon {
+    width: 18px;
+    height: 18px;
+  }
+
+  .buttonIcon {
+    width: 14px;
+    height: 14px;
+  }
+}

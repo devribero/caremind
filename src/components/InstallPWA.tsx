@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { X, Download } from "lucide-react";
 import { usePWA } from "@/hooks/use-pwa";
+import styles from "./InstallPWA.module.css";
 
 export default function PWAInstallPrompt() {
   const { isInstalled, isInstallable, installApp } = usePWA();
@@ -41,38 +42,36 @@ export default function PWAInstallPrompt() {
   }
 
   return (
-    <div className="fixed bottom-4 left-4 right-4 z-50 bg-background border rounded-lg shadow-lg p-4 md:left-auto md:right-4 md:max-w-sm">
-      <div className="flex items-start justify-between gap-3">
-        <div className="flex-1">
-          <h3 className="font-semibold text-sm">Instalar Lune Admin</h3>
-          <p className="text-xs text-muted-foreground mt-1">
+    <div className={styles.container}>
+      <div className={styles.header}>
+        <div className={styles.content}>
+          <h3 className={styles.title}>Instalar CareMind</h3>
+          <p className={styles.description}>
             Instale o app para acesso rápido e funcionalidades offline
           </p>
         </div>
         
-        <Button
-          variant="ghost"
-          size="sm"
+        <button
           onClick={handleDismiss}
-          className="h-6 w-6 p-0"
+          className={styles.closeButton}
+          aria-label="Fechar"
         >
-          <X className="h-4 w-4" />
-        </Button>
+          <X className={styles.closeIcon} />
+        </button>
       </div>
       
-      <div className="flex gap-2 mt-3">
+      <div className={styles.actions}>
         <Button
           onClick={handleInstallClick}
-          size="sm"
-          className="flex-1"
+          className={styles.primaryButton}
         >
-          <Download className="h-4 w-4 mr-2" />
+          <Download className={styles.buttonIcon} />
           Instalar
         </Button>
         <Button
           variant="outline"
-          size="sm"
           onClick={handleDismiss}
+          className={styles.secondaryButton}
         >
           Agora não
         </Button>
