@@ -25,7 +25,7 @@ export default function RootLayout({
     <html lang="pt-BR">
       <head>
         <link rel="manifest" href="/manifest.json" />
-        <link rel="icon" href="/logo_coracao.png" />
+        <link rel="icon" href="/favicon.ico" />
         <meta name="theme-color" content="#0400BA" />
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />

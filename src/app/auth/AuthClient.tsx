@@ -167,7 +167,7 @@ export default function AuthClient() {
 
       <div style={{ display: 'flex', justifyContent: 'center', marginTop: '16px', marginBottom: '8px' }}>
         <Image 
-          src="/logo.png" 
+          src="/logo_coracao.png" 
           alt="CareMind Logo" 
           width={180} 
           height={57} 

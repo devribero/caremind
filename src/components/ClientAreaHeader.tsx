@@ -37,7 +37,7 @@ export function ClientAreaHeader() {
     <header className={styles.header}>
       <div className={styles.left}>
         <Link href="/dashboard" className={styles.logoLink} aria-label="Voltar para o dashboard">
-          <Image src="/logo.png" alt="CareMind" width={140} height={44} priority />
+          <Image src="/logo_coracao.png" alt="CareMind" width={140} height={44} priority />
         </Link>
       </div>
       <div className={styles.right}>

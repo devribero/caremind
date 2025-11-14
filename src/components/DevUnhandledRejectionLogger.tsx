@@ -9,7 +9,7 @@ export function DevUnhandledRejectionLogger() {
 		const onUnhandled = (event: PromiseRejectionEvent) => {
 			// Ajuda a identificar objetos não-Error, ex.: [object Event]
 			const reason = event.reason;
-			// eslint-disable-next-line no-console
+			 
 			console.error("Unhandled rejection (dev logger):", reason);
 		};
 

@@ -6,7 +6,8 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "next lint",
+    "lint:fix": "eslint . --ext .ts,.tsx --fix"
   },
   "dependencies": {
     "@ducanh2912/next-pwa": "^10.2.9",
@@ -34,8 +35,11 @@
     "@types/node": "20.19.23",
     "@types/react": "18.3.26",
     "@types/react-dom": "^18.3.0",
+    "@typescript-eslint/eslint-plugin": "^8.46.4",
+    "@typescript-eslint/parser": "^8.46.4",
     "eslint": "^9",
     "eslint-config-next": "^15.4.6",
+    "eslint-plugin-react-hooks": "^7.0.1",
     "typescript": "5.9.3"
   }
 }

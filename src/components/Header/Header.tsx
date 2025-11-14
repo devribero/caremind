@@ -7,7 +7,7 @@ export default function Header() {
     <header className={styles.header}>
       <div className={styles.logoContainer}>
         <Image
-          src="/logo.png"
+          src="/logo_coracao.png"
           alt="CareMind Logo"
           width={150}
           height={40}

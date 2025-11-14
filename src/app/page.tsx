@@ -71,7 +71,7 @@ export default function Home() {
 
           <div className={styles.heroImage}>
             <Image
-              src="/hero-elderly.svg"
+              src="/images/hero-elderly.svg"
               alt="Idoso usando assistente virtual"
               width={500}
               height={400}
