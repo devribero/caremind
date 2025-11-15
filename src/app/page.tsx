@@ -5,8 +5,8 @@ import { useRouter } from 'next/navigation';
 import { useEffect } from 'react';
 import Link from 'next/link';
 import { Button } from "@/components/ui/button";
-import { Header } from '@/components/headers/HeaderHome';
-import { Footer } from '@/components/Footer';
+import { Header } from '@/components/shared/headers/HeaderHome';
+import { Footer } from '@/components/shared/Footer';
 import styles from './page.module.css';
 import Image from 'next/image';
 

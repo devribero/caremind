@@ -2,10 +2,10 @@ import type { Metadata } from "next";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { LoadingProvider } from "@/contexts/LoadingContext";
 import { ProfileProvider } from "@/contexts/ProfileContext";
-import { Waves } from "@/components/Waves";
-import { ToastContainer } from "@/components/Toast";
-import { DevUnhandledRejectionLogger } from "@/components/DevUnhandledRejectionLogger";
-import PWAInstallPrompt from '@/components/InstallPWA';
+import { Waves } from "@/components/shared/Waves";
+import { ToastContainer } from "@/components/features/Toast";
+import { DevUnhandledRejectionLogger } from "@/components/shared/DevUnhandledRejectionLogger";
+import PWAInstallPrompt from '@/components/features/InstallPWA';
 import { Analytics } from "@vercel/analytics/next"
 import { SpeedInsights } from "@vercel/speed-insights/next"
 import "./globals.css";

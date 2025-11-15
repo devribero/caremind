@@ -1,7 +1,7 @@
 "use client";
 
 import React, { createContext, useState, useContext, ReactNode, useEffect } from 'react';
-import { FullScreenLoader } from '@/components/FullScreenLoader';
+import { FullScreenLoader } from '@/components/features/FullScreenLoader';
 
 // Interface para definir o que o nosso contexto irá fornecer
 interface LoadingContextType {

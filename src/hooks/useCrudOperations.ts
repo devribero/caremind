@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useCallback, useEffect, useMemo } from 'react';
-import { toast } from '@/components/Toast';
+import { toast } from '@/components/features/Toast';
 import { useAuthRequest } from './useAuthRequest';
 import { useModalState } from './useModalState';
 import { useOptimisticUpdates } from './useOptimisticUpdates';
