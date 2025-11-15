@@ -1,7 +1,4 @@
-# 📁 CareMind - Estrutura de Pastas Reorganizada
-
-## Visão Geral
-A estrutura de pastas foi reorganizada seguindo o padrão arquitetural maduro para Next.js 15 com App Router.
+# 📁 CareMind - Estrutura de Pastas
 
 ```
 /
@@ -136,73 +133,3 @@ A estrutura de pastas foi reorganizada seguindo o padrão arquitetural maduro pa
 ├── tsconfig.json # Configuração TypeScript
 └── package.json # Dependências do projeto
 ```
-
-## 🎯 Benefícios da Reorganização
-
-### 1. **Separação Clara de Responsabilidades**
-- **`(public)`**: Rotas acessíveis para todos
-- **`(private)`**: Rotas protegidas por autenticação
-- **`(auth)`**: Rotas de autenticação exclusivas
-
-### 2. **Componentes Bem Organizados**
-- **`/ui/`**: Botões, inputs, cards - componentes agnósticos
-- **`/shared/`**: Headers, Footers, Layouts - componentes reutilizados em múltiplas seções
-- **`/features/`**: Componentes específicos da negócio (MedicamentoCard, RotinasCard, etc)
-
-### 3. **Escalabilidade**
-- Fácil adicionar novas rotas, layouts e componentes
-- Estrutura clara facilita onboarding de novos desenvolvedores
-- Evita chaos de componentes em um único diretório
-
-### 4. **Melhor Manutenibilidade**
-- Componentes relacionados ficam próximos
-- Imports mais previsíveis e organizados
-- Facilita refatoração futura
-
-## 📍 Onde Adicionar Novos Componentes?
-
-### Um novo componente de botão customizado?
-→ `/components/ui/`
-
-### Uma barra de navegação ou card compartilhado?
-→ `/components/shared/`
-
-### Um modal específico para gerenciar medicamentos?
-→ `/components/features/modals/`
-
-### Uma função utilitária para formatação?
-→ `/lib/utils/`
-
-## 🔄 Migração de Imports
-
-Todos os imports foram atualizados automaticamente. Exemplos:
-
-**Antes:**
-```typescript
-import { Footer } from "@/components/Footer";
-import { Modal } from "@/components/Modal";
-import AppLayout from "@/components/layout/AppLayout";
-```
-
-**Depois:**
-```typescript
-import { Footer } from "@/components/shared/Footer";
-import { Modal } from "@/components/features/Modal";
-import AppLayout from "@/components/shared/layout/AppLayout";
-```
-
-## ✅ Checklist de Conclusão
-
-- ✓ Reorganização de rotas públicas em `(public)`
-- ✓ Organização de rotas privadas em `(private)`
-- ✓ Separação de rotas de autenticação em `(auth)`
-- ✓ Reorganização de componentes em `/ui/`, `/shared/`, `/features/`
-- ✓ Reorganização de `/lib/` com sub-pastas
-- ✓ Atualização de todos os imports no projeto
-- ✓ Criação de layouts para grupos de rotas
-- ✓ Build compilado com sucesso ✓
-
----
-
-**Data da Reorganização:** 15 de Novembro de 2025  
-**Status:** ✓ Completo e testado
