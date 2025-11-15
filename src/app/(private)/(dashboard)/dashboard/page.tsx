@@ -4,7 +4,7 @@ import { useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useRouter } from 'next/navigation';
 import { FullScreenLoader } from '@/components/features/FullScreenLoader';
-import DashboardClient from '@/components/features/dashboardClient';
+import DashboardClient from '@/components/features/DashboardClient';
 
 export default function Dashboard() {
   const { user, loading } = useAuth(); 

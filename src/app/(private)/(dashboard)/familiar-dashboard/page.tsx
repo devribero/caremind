@@ -6,7 +6,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useProfile } from '@/contexts/ProfileContext';
 import { useIdoso } from '@/contexts/IdosoContext';
 import { FullScreenLoader } from '@/components/features/FullScreenLoader';
-import DashboardClient from '@/components/features/dashboardClient';
+import DashboardClient from '@/components/features/DashboardClient';
 
 export default function FamiliarDashboardPage() {
   const { user, loading } = useAuth();
