@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useMemo, useState } from 'react';
+import React, { useMemo, useState, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 
 // Componentes e hooks
@@ -249,7 +249,8 @@ export default function Remedios() {
   };
 
   const handleDeleteMedicamento = async (id: number) => {
-    if (!window.confirm('Tem certeza que deseja excluir este medicamento?')) return;
+    const confirmed = await toast.confirm('Tem certeza que deseja excluir este medicamento?');
+    if (!confirmed) return;
 
     try {
       await MedicamentosService.deletarMedicamento(id);
@@ -259,7 +260,6 @@ export default function Remedios() {
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Erro ao excluir medicamento';
       toast.error(errorMessage);
-      alert(`Erro ao excluir medicamento: ${errorMessage}`);
     }
   };
 
@@ -267,6 +267,18 @@ export default function Remedios() {
     setEditingMedicamento(medicamento);
     setEditModalOpen(true);
   };
+
+  // Memoiza o objeto medicamento para o formulário
+  const medicamentoFormData = useMemo(() => {
+    if (!editingMedicamento) return undefined;
+    return {
+      id: String(editingMedicamento.id),
+      nome: editingMedicamento.nome || '',
+      dosagem: editingMedicamento.dosagem || null,
+      quantidade: editingMedicamento.quantidade || 0,
+      frequencia: editingMedicamento.frequencia || null,
+    };
+  }, [editingMedicamento]);
 
   const hasPendingForMedicamento = (medId: number) =>
     eventosDoDia.some(e => e.tipo_evento === 'medicamento' && e.evento_id === medId && e.status === 'pendente');
@@ -493,21 +505,23 @@ export default function Remedios() {
         <AddMedicamentoForm onSave={handleSaveMedicamento} onCancel={() => setAddModalOpen(false)} />
       </Modal>
 
-      <Modal isOpen={editModalOpen} onClose={() => setEditModalOpen(false)} title="Editar medicamento">
-        {editingMedicamento && (
+      <Modal 
+        isOpen={editModalOpen} 
+        onClose={() => {
+          setEditModalOpen(false);
+          setEditingMedicamento(null);
+        }} 
+        title="Editar medicamento"
+      >
+        {editingMedicamento && medicamentoFormData && (
           <AddMedicamentoForm
+            key={`form-${editingMedicamento.id}`}
             onSave={handleUpdateMedicamento}
             onCancel={() => {
               setEditModalOpen(false);
               setEditingMedicamento(null);
             }}
-            medicamento={{
-              id: editingMedicamento.id.toString(),
-              nome: editingMedicamento.nome,
-              dosagem: editingMedicamento.dosagem ?? '',
-              quantidade: editingMedicamento.quantidade ?? 0,
-              frequencia: editingMedicamento.frequencia ?? null,
-            }}
+            medicamento={medicamentoFormData}
           />
         )}
       </Modal>

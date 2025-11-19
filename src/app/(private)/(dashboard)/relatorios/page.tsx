@@ -1,7 +1,3 @@
-
-
-
-
 "use client";
 
 import { useState, useEffect, useMemo, useCallback } from 'react';
@@ -16,6 +12,7 @@ import { createClient } from '@/lib/supabase/client';
 import { toast } from '@/components/features/Toast';
 import html2canvas from 'html2canvas';
 import jsPDF from 'jspdf';
+import autoTable from 'jspdf-autotable';
 import { Download } from 'lucide-react';
 import {
   Chart as ChartJS,
@@ -197,10 +194,10 @@ export default function Relatorios() {
           tipo: (evento.tipo_evento === 'medicamento' ? 'Medicamento' : 'Rotina') as 'Medicamento' | 'Rotina',
           nome: evento.titulo ?? 'Evento',
           data_prevista: evento.data_prevista,
-          status: evento.status === 'confirmado' ? 'Confirmado' : 
-                  evento.status === 'pendente' ? 'Pendente' :
-                  evento.status === 'cancelado' ? 'Cancelado' :
-                  evento.status === 'atrasado' ? 'Atrasado' : 'Pendente',
+          status: evento.status === 'confirmado' ? 'Confirmado' :
+            evento.status === 'pendente' ? 'Pendente' :
+              evento.status === 'cancelado' ? 'Cancelado' :
+                evento.status === 'atrasado' ? 'Atrasado' : 'Pendente',
           created_at: evento.data_prevista,
           horario_confirmacao: evento.horario_confirmacao,
         }));
@@ -224,15 +221,15 @@ export default function Relatorios() {
     const dataLimite = new Date();
     dataLimite.setDate(dataLimite.getDate() - dias);
 
-    const eventosRecentes = eventos.filter(evento => 
+    const eventosRecentes = eventos.filter(evento =>
       new Date(evento.data_prevista) >= dataLimite
     );
 
     const total = eventosRecentes.length;
-    const tomados = eventosRecentes.filter(e => 
+    const tomados = eventosRecentes.filter(e =>
       e.status === 'Tomado' || e.status === 'Realizado' || e.status === 'Confirmado'
     ).length;
-    const perdidos = eventosRecentes.filter(e => 
+    const perdidos = eventosRecentes.filter(e =>
       e.status === 'Não tomado' || e.status === 'Perdido' || e.status === 'Atrasado'
     ).length;
 
@@ -267,7 +264,7 @@ export default function Relatorios() {
       const data = new Date(evento.data_prevista);
       const dayIndex = data.getDay();
       dailyStats[dayIndex].total++;
-      
+
       if (evento.status === 'Tomado' || evento.status === 'Realizado' || evento.status === 'Confirmado') {
         dailyStats[dayIndex].realizados++;
       }
@@ -277,7 +274,7 @@ export default function Relatorios() {
       labels: daysOfWeek,
       datasets: [{
         label: 'Realizados (%)',
-        data: dailyStats.map(day => 
+        data: dailyStats.map(day =>
           day.total > 0 ? Math.round((day.realizados / day.total) * 100) : 0
         ),
         backgroundColor: '#0400BA',
@@ -310,7 +307,7 @@ export default function Relatorios() {
   const getStatusClassName = (status: string) => {
     const statusesPositivos = ['Tomado', 'Realizado', 'Confirmado'];
     const statusesNegativos = ['Não tomado', 'Perdido', 'Atrasado'];
-    
+
     if (statusesPositivos.includes(status)) {
       return styles.statusTomado;
     } else if (statusesNegativos.includes(status)) {
@@ -467,36 +464,163 @@ export default function Relatorios() {
   }), []);
 
   const handleExportPDF = useCallback(async () => {
-    const element = document.getElementById('relatorio-print-container');
-    if (!element || isExporting) return;
+    if (isExporting || !analytics) return;
 
     setIsExporting(true);
     try {
-      const canvas = await html2canvas(element, {
-        scale: 2,
-        useCORS: true,
-        logging: false,
+      const doc = new jsPDF();
+
+      // Configurações iniciais
+      const pageWidth = doc.internal.pageSize.getWidth();
+      const margin = 14;
+      let yPos = 20;
+
+      // Cabeçalho
+      doc.setFontSize(22);
+      doc.setTextColor(4, 0, 186); // #0400BA
+      doc.text('Relatório de Saúde - Caremind', margin, yPos);
+      yPos += 10;
+
+      // Informações do Relatório
+      doc.setFontSize(10);
+      doc.setTextColor(100);
+      doc.text(`Gerado em: ${new Date().toLocaleDateString('pt-BR')} às ${new Date().toLocaleTimeString('pt-BR')}`, margin, yPos);
+      yPos += 5;
+      if (selectedElderName) {
+        doc.text(`Idoso: ${selectedElderName}`, margin, yPos);
+        yPos += 5;
+      }
+      doc.text(`Período: ${formatarData(dataInicio)} a ${formatarData(dataFim)}`, margin, yPos);
+      yPos += 15;
+
+      // Resumo (KPIs)
+      doc.setFontSize(14);
+      doc.setTextColor(0);
+      doc.text('Resumo Geral', margin, yPos);
+      yPos += 8;
+
+      doc.setFontSize(11);
+      doc.setTextColor(50);
+
+      // Grid de KPIs simulado com texto
+      const kpiX1 = margin;
+      const kpiX2 = pageWidth / 2 + margin;
+
+      doc.text(`• Taxa de Adesão Total: ${analytics.kpis.taxa_adesao_total.toFixed(1)}%`, kpiX1, yPos);
+      doc.text(`• Total de Eventos: ${analytics.kpis.total_eventos}`, kpiX2, yPos);
+      yPos += 6;
+
+      doc.text(`• Confirmados: ${analytics.kpis.total_confirmados}`, kpiX1, yPos);
+      doc.text(`• Esquecidos/Pendentes: ${analytics.kpis.total_esquecidos}`, kpiX2, yPos);
+      yPos += 6;
+
+      doc.text(`• Índice de Esquecimento: ${analytics.kpis.indice_esquecimento}`, kpiX1, yPos);
+      doc.text(`• Pontualidade Média: ${analytics.kpis.pontualidade_media_minutos ? analytics.kpis.pontualidade_media_minutos + ' min' : '—'}`, kpiX2, yPos);
+
+      yPos += 15;
+
+      // Função auxiliar para adicionar gráficos
+      const addChartToPdf = async (elementId: string, title: string) => {
+        const element = document.getElementById(elementId);
+        if (element) {
+          // Verificar se cabe na página
+          if (yPos > 220) {
+            doc.addPage();
+            yPos = 20;
+          }
+
+          doc.setFontSize(12);
+          doc.setTextColor(0);
+          doc.text(title, margin, yPos);
+          yPos += 5;
+
+          try {
+            const canvas = await html2canvas(element, {
+              scale: 2,
+              logging: false,
+              useCORS: true,
+              backgroundColor: '#ffffff'
+            });
+            const imgData = canvas.toDataURL('image/png');
+
+            // Reduzir tamanho da imagem (max 140mm ou 70% da largura)
+            const maxWidth = 140;
+            const imgWidth = Math.min(maxWidth, pageWidth - (margin * 2));
+            const imgHeight = (canvas.height * imgWidth) / canvas.width;
+            const xPos = (pageWidth - imgWidth) / 2; // Centralizar
+
+            // Se a imagem for muito alta e não couber, nova página
+            if (yPos + imgHeight > 280) {
+              doc.addPage();
+              yPos = 20;
+              doc.text(title + ' (cont.)', margin, yPos);
+              yPos += 5;
+            }
+
+            doc.addImage(imgData, 'PNG', xPos, yPos, imgWidth, imgHeight);
+            yPos += imgHeight + 10;
+          } catch (e) {
+            console.warn(`Erro ao capturar gráfico ${elementId}`, e);
+          }
+        }
+      };
+
+      // Capturar Gráficos
+      await addChartToPdf('chart-adesao', 'Adesão Geral');
+      await addChartToPdf('chart-tendencia', 'Tendência de Adesão');
+      await addChartToPdf('chart-comparativo', 'Medicamentos vs Rotinas');
+      await addChartToPdf('chart-semanal', 'Acompanhamento Semanal');
+
+      // Tabela de Eventos
+      if (yPos > 240) {
+        doc.addPage();
+        yPos = 20;
+      }
+
+      doc.setFontSize(14);
+      doc.text('Detalhamento de Eventos', margin, yPos);
+      yPos += 5;
+
+      const tableData = eventos.map(e => [
+        formatarData(e.data_prevista),
+        formatarHora(e.data_prevista),
+        e.tipo,
+        e.nome,
+        e.status
+      ]);
+
+      autoTable(doc, {
+        startY: yPos,
+        head: [['Data', 'Horário', 'Tipo', 'Nome', 'Status']],
+        body: tableData,
+        styles: { fontSize: 9, cellPadding: 3 },
+        headStyles: { fillColor: [4, 0, 186], textColor: 255, fontStyle: 'bold' },
+        alternateRowStyles: { fillColor: [248, 248, 255] },
+        columnStyles: {
+          0: { cellWidth: 25 },
+          1: { cellWidth: 20 },
+          2: { cellWidth: 30 },
+          3: { cellWidth: 'auto' },
+          4: { cellWidth: 30 }
+        },
+        didDrawPage: (data) => {
+          // Adicionar rodapé em cada página da tabela
+          const pageCount = doc.internal.pages.length - 1;
+          doc.setFontSize(8);
+          doc.setTextColor(150);
+          doc.text(`Página ${pageCount}`, pageWidth - margin - 10, 290);
+        }
       });
 
-      const imgData = canvas.toDataURL('image/png');
-      const pdf = new jsPDF('p', 'mm', 'a4');
-      const pdfWidth = pdf.internal.pageSize.getWidth();
-      const pdfHeight = (canvas.height * pdfWidth) / canvas.width;
+      doc.save(`relatorio-caremind-${new Date().toISOString().split('T')[0]}.pdf`);
 
-      pdf.setFontSize(18);
-      pdf.text(`Relatório de Saúde - Caremind`, 10, 10);
-      pdf.setFontSize(12);
-      pdf.text(`Gerado em: ${new Date().toLocaleDateString('pt-BR')}`, 10, 16);
-
-      pdf.addImage(imgData, 'PNG', 0, 20, pdfWidth, pdfHeight);
-      pdf.save(`relatorio-caremind-${new Date().toISOString().split('T')[0]}.pdf`);
     } catch (err) {
       console.error('Erro ao gerar PDF', err);
       toast.error('Erro ao gerar o PDF. Tente novamente.');
     } finally {
       setIsExporting(false);
     }
-  }, [isExporting]);
+  }, [isExporting, analytics, eventos, selectedElderName, dataInicio, dataFim]);
 
   if (loading) {
     return (
@@ -564,7 +688,7 @@ export default function Relatorios() {
             </button>
           </div>
         </div>
-        
+
         <div id="relatorio-print-container" className={styles.printContainer}>
           {analytics && (
             <>
@@ -575,7 +699,7 @@ export default function Relatorios() {
                     <h2 className={styles.cardTitle}>Adesão Geral</h2>
                     <span className={styles.cardSubtitle}>Período selecionado</span>
                   </div>
-                  <div className={styles.donutWrapper}>
+                  <div className={styles.donutWrapper} id="chart-adesao">
                     {adesaoDoughnutData ? (
                       <Doughnut data={adesaoDoughnutData} options={doughnutOptions} />
                     ) : (
@@ -629,7 +753,7 @@ export default function Relatorios() {
                 <div className={styles.chartContainer}>
                   <h2 className={styles.chartTitle}>Tendência de Adesão</h2>
                   <h3 className={styles.chartSubtitle}>Acompanhe se o cuidado está melhorando</h3>
-                  <div className={styles.chartBody}>
+                  <div className={styles.chartBody} id="chart-tendencia">
                     {tendenciaChartData ? (
                       <Line options={tendenciaChartOptions} data={tendenciaChartData} />
                     ) : (
@@ -641,7 +765,7 @@ export default function Relatorios() {
                 <div className={styles.chartContainer}>
                   <h2 className={styles.chartTitle}>Performance por Turno</h2>
                   <h3 className={styles.chartSubtitle}>Identifique horários críticos</h3>
-                  <div className={styles.chartBody}>
+                  <div className={styles.chartBody} id="chart-turnos">
                     {turnosChartData ? (
                       <Bar options={turnosChartOptions} data={turnosChartData} />
                     ) : (
@@ -654,7 +778,7 @@ export default function Relatorios() {
               <div className={styles.chartContainer}>
                 <h2 className={styles.chartTitle}>Comparativo Medicamentos vs Rotinas</h2>
                 <h3 className={styles.chartSubtitle}>Onde o idoso precisa de mais suporte?</h3>
-                <div className={styles.chartBody}>
+                <div className={styles.chartBody} id="chart-comparativo">
                   {comparativoTipoData ? (
                     <Bar options={comparativoTipoOptions} data={comparativoTipoData} />
                   ) : (
@@ -668,7 +792,7 @@ export default function Relatorios() {
           <div className={styles.chartContainer}>
             <h2 className={styles.chartTitle}>Acompanhamento Semanal</h2>
             <h3 className={styles.chartSubtitle}>Porcentagem de eventos realizados por dia da semana</h3>
-            <div style={{ height: '300px' }}>
+            <div style={{ height: '300px' }} id="chart-semanal">
               <Bar options={chartOptions} data={chartData} />
             </div>
           </div>
@@ -689,23 +813,23 @@ export default function Relatorios() {
                 <tbody>
                   {eventos.length > 0
                     ? eventos.map((evento) => (
-                        <tr key={evento.id}>
-                          <td>{formatarData(evento.data_prevista)}</td>
-                          <td>{formatarHora(evento.data_prevista)}</td>
-                          <td>{evento.tipo}</td>
-                          <td>{evento.nome}</td>
-                          <td className={getStatusClassName(evento.status)}>
-                            {evento.status}
-                          </td>
-                        </tr>
-                      ))
+                      <tr key={evento.id}>
+                        <td>{formatarData(evento.data_prevista)}</td>
+                        <td>{formatarHora(evento.data_prevista)}</td>
+                        <td>{evento.tipo}</td>
+                        <td>{evento.nome}</td>
+                        <td className={getStatusClassName(evento.status)}>
+                          {evento.status}
+                        </td>
+                      </tr>
+                    ))
                     : (
-                        <tr>
-                          <td colSpan={5} style={{ textAlign: 'center', padding: '20px' }}>
-                            Nenhum evento encontrado. Os eventos serão registrados automaticamente quando você adicionar medicamentos ou rotinas.
-                          </td>
-                        </tr>
-                      )}
+                      <tr>
+                        <td colSpan={5} style={{ textAlign: 'center', padding: '20px' }}>
+                          Nenhum evento encontrado. Os eventos serão registrados automaticamente quando você adicionar medicamentos ou rotinas.
+                        </td>
+                      </tr>
+                    )}
                 </tbody>
               </table>
             </div>

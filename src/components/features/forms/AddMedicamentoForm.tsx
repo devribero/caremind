@@ -46,35 +46,20 @@ interface AddMedicamentoFormProps {
 }
 
 export function AddMedicamentoForm({ onSave, onCancel, medicamento }: AddMedicamentoFormProps) {
-  const [nome, setNome] = useState(medicamento?.nome || '');
-  const [dosagem, setDosagem] = useState<string | null>(medicamento?.dosagem ?? null);
-  const [quantidade, setQuantidade] = useState(medicamento?.quantidade || 30);
+  const [nome, setNome] = useState('');
+  const [dosagem, setDosagem] = useState<string | null>(null);
+  const [quantidade, setQuantidade] = useState(30);
 
-  const initTipoFrequencia = medicamento?.frequencia?.tipo || 'diario';
   const [tipoFrequencia, setTipoFrequencia] = useState<
     'diario' | 'intervalo' | 'dias_alternados' | 'semanal'
-  >(initTipoFrequencia as any);
+  >('diario');
 
-  const [horarios, setHorarios] = useState<string[]>(
-    (medicamento?.frequencia as FrequenciaDiaria)?.horarios || []
-  );
-
+  const [horarios, setHorarios] = useState<string[]>([]);
   const [novoHorario, setNovoHorario] = useState('');
-
-  const [intervaloHoras, setIntervaloHoras] = useState(
-    (medicamento?.frequencia as FrequenciaIntervalo)?.intervalo_horas || 8
-  );
-
-  // Inicializa sem valor padrão
+  const [intervaloHoras, setIntervaloHoras] = useState(8);
   const [horaInicio, setHoraInicio] = useState('');
-
-  const [intervaloDias, setIntervaloDias] = useState(
-    (medicamento?.frequencia as FrequenciaDiasAlternados)?.intervalo_dias || 2
-  );
-
-  const [diasSemana, setDiasSemana] = useState<number[]>(
-    (medicamento?.frequencia as FrequenciaSemanal)?.dias_da_semana || []
-  );
+  const [intervaloDias, setIntervaloDias] = useState(2);
+  const [diasSemana, setDiasSemana] = useState<number[]>([]);
 
   const [loading, setLoading] = useState(false);
   const [formErrors, setFormErrors] = useState<Record<string, string>>({});
@@ -236,40 +221,49 @@ export function AddMedicamentoForm({ onSave, onCancel, medicamento }: AddMedicam
 
   // Efeito para inicializar os estados quando o componente monta ou quando o medicamento muda
   useEffect(() => {
-    if (medicamento) {
-      // Garante que o TypeScript entenda que medicamento não é undefined aqui
+    if (medicamento && medicamento.id) {
+      // Modo de edição - preenche com os valores existentes
       const med = medicamento as MedicamentoBase;
       
-      setNome(med.nome);
+      setNome(med.nome || '');
       setDosagem(med.dosagem ?? null);
-      setQuantidade(med.quantidade);
+      setQuantidade(med.quantidade || 30);
 
       if (med.frequencia) {
         const freq = med.frequencia;
         setTipoFrequencia(freq.tipo as any);
 
+        // Limpa estados anteriores antes de preencher
+        setHorarios([]);
+        setHoraInicio('');
+        setIntervaloHoras(8);
+        setIntervaloDias(2);
+        setDiasSemana([]);
+
         // Inicializa os estados específicos do tipo de frequência
-        // Usando type guards para garantir que estamos acessando as propriedades corretas
         if (freq.tipo === 'diario' && 'horarios' in freq) {
-          setHorarios(freq.horarios);
+          setHorarios(Array.isArray(freq.horarios) ? [...freq.horarios] : []);
         } else if (freq.tipo === 'intervalo' && 'intervalo_horas' in freq) {
-          setIntervaloHoras(freq.intervalo_horas);
-          setHoraInicio('inicio' in freq ? freq.inicio : '08:00');
+          setIntervaloHoras(freq.intervalo_horas || 8);
+          setHoraInicio('inicio' in freq && freq.inicio ? freq.inicio : '');
         } else if (freq.tipo === 'dias_alternados' && 'intervalo_dias' in freq) {
-          setIntervaloDias(freq.intervalo_dias);
-          setHoraInicio('horario' in freq ? freq.horario : '08:00');
+          setIntervaloDias(freq.intervalo_dias || 2);
+          setHoraInicio('horario' in freq && freq.horario ? freq.horario : '');
         } else if (freq.tipo === 'semanal' && 'dias_da_semana' in freq) {
-          setDiasSemana(freq.dias_da_semana);
-          setHoraInicio('horario' in freq ? freq.horario : '08:00');
+          setDiasSemana(Array.isArray(freq.dias_da_semana) ? [...freq.dias_da_semana] : []);
+          setHoraInicio('horario' in freq && freq.horario ? freq.horario : '');
         }
       } else {
         // Se não houver frequência definida, define valores padrão
         setTipoFrequencia('diario');
         setHorarios([]);
         setHoraInicio('');
+        setIntervaloHoras(8);
+        setIntervaloDias(2);
+        setDiasSemana([]);
       }
     } else {
-      // Se não houver medicamento (criação), define valores padrão
+      // Modo de criação - valores padrão
       setNome('');
       setDosagem(null);
       setQuantidade(30);

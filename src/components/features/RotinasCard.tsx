@@ -1,5 +1,5 @@
 import React from 'react';
-// Importa o objeto 'styles' do seu arquivo de módulo CSS
+import { Pencil, Trash2, CheckCircle2 } from 'lucide-react';
 import styles from './RotinasCard.module.css';
 
 // Define o formato esperado para os dados de uma rotina
@@ -80,33 +80,37 @@ const RotinaCard: React.FC<RotinaCardProps> = ({ rotina, onEdit, onDelete, onMar
           {hasPendingToday && onMarkAsDone && (
             <button
               type="button"
-              className={`${styles.actionButton} ${styles.editButton}`}
+              className={styles.markDoneButton}
               onClick={onMarkAsDone}
               disabled={isMarking}
               aria-label="Marcar como concluído hoje"
+              title="Marcar como concluído hoje"
             >
-              {isMarking ? 'Concluindo...' : 'Concluir hoje'}
+              <CheckCircle2 className={styles.icon} size={18} />
+              {isMarking && <span className={styles.loadingText}>Concluindo...</span>}
             </button>
           )}
           {onEdit && (
             <button
               type="button"
-              className={`${styles.actionButton} ${styles.editButton}`}
+              className={styles.iconButton}
               onClick={() => onEdit(rotina)}
               aria-label="Editar rotina"
+              title="Editar rotina"
             >
-              Editar
+              <Pencil className={styles.icon} size={18} />
             </button>
           )}
           {onDelete && (
             <button
               type="button"
-              className={`${styles.actionButton} ${styles.deleteButton}`}
+              className={styles.iconButton}
               onClick={() => onDelete(rotina.id)}
               disabled={isDeleting}
               aria-label="Excluir rotina"
+              title="Excluir rotina"
             >
-              {isDeleting ? 'Excluindo...' : 'Excluir'}
+              <Trash2 className={styles.icon} size={18} />
             </button>
           )}
         </div>

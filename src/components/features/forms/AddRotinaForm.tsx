@@ -32,9 +32,10 @@ type Frequencia = FrequenciaDiaria | FrequenciaIntervalo | FrequenciaDiasAlterna
 
 // Tipo leve para edição/pré-preenchimento no formulário
 type RotinaFormData = {
-  id?: string;
+  id?: string | number;
   titulo?: string;
   descricao?: string;
+  frequencia?: Frequencia | null;
 };
 
 // Interface de Props atualizada
@@ -47,7 +48,7 @@ interface AddRotinaFormProps {
 export function AddRotinaForm({ onSave, onCancel, rotina }: AddRotinaFormProps) {
   // Estados para os campos da rotina
   const [titulo, setTitulo] = useState(rotina?.titulo || rotina?.descricao || '');
-  const [descricao, setDescricao] = useState('');
+  const [descricao, setDescricao] = useState(rotina?.descricao || '');
   
   // Estados para o controle da frequência
   const [tipoFrequencia, setTipoFrequencia] = useState<'diario' | 'intervalo' | 'dias_alternados' | 'semanal'>('diario');
@@ -60,6 +61,49 @@ export function AddRotinaForm({ onSave, onCancel, rotina }: AddRotinaFormProps) 
   const [loading, setLoading] = useState(false);
   const [formErrors, setFormErrors] = useState<Record<string, string>>({});
   const [horarioError, setHorarioError] = useState('');
+
+  // Efeito para inicializar os estados quando o componente monta ou quando a rotina muda
+  useEffect(() => {
+    if (rotina) {
+      setTitulo(rotina.titulo || rotina.descricao || '');
+      setDescricao(rotina.descricao || '');
+
+      // Inicializa a frequência se existir
+      if (rotina.frequencia && typeof rotina.frequencia === 'object') {
+        const freq = rotina.frequencia as Frequencia;
+        setTipoFrequencia(freq.tipo);
+
+        // Inicializa os estados específicos do tipo de frequência
+        if (freq.tipo === 'diario' && 'horarios' in freq) {
+          setHorarios(freq.horarios);
+        } else if (freq.tipo === 'intervalo' && 'intervalo_horas' in freq) {
+          setIntervaloHoras(freq.intervalo_horas);
+          setHoraInicio('inicio' in freq ? freq.inicio : '');
+        } else if (freq.tipo === 'dias_alternados' && 'intervalo_dias' in freq) {
+          setIntervaloDias(freq.intervalo_dias);
+          setHoraInicio('horario' in freq ? freq.horario : '');
+        } else if (freq.tipo === 'semanal' && 'dias_da_semana' in freq) {
+          setDiasSemana(freq.dias_da_semana);
+          setHoraInicio('horario' in freq ? freq.horario : '');
+        }
+      } else {
+        // Se não houver frequência definida, define valores padrão
+        setTipoFrequencia('diario');
+        setHorarios([]);
+        setHoraInicio('');
+      }
+    } else {
+      // Se não houver rotina (criação), define valores padrão
+      setTitulo('');
+      setDescricao('');
+      setTipoFrequencia('diario');
+      setHorarios([]);
+      setHoraInicio('');
+      setIntervaloHoras(8);
+      setIntervaloDias(2);
+      setDiasSemana([]);
+    }
+  }, [rotina]);
 
   const diasDaSemana = [
     { id: 1, label: 'Seg' },

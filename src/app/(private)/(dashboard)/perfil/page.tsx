@@ -152,6 +152,8 @@ export default function Perfil() {
                       className={pageStyles.uploadPhotoButton} 
                       onClick={handleUploadClick}
                       disabled={uploadingPhoto}
+                      aria-label="Alterar foto de perfil"
+                      title="Alterar foto de perfil"
                     >
                       {uploadingPhoto ? (
                         <svg className={pageStyles.spinner} viewBox="0 0 50 50">

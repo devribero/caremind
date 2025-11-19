@@ -6,8 +6,9 @@ import { useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { Button } from "@/components/ui/button";
 import styles from './page.module.css';
-import { useRouter } from 'next/navigation';  
+import { useRouter } from 'next/navigation';
 import Image from 'next/image';
+import { Waves } from '@/components/shared/Waves';
 
 export default function AuthClient() {
   const searchParams = useSearchParams();
@@ -44,10 +45,10 @@ export default function AuthClient() {
   if (authLoading) {
     return (
       <main className={styles.main}>
-        <div style={{ 
-          display: 'flex', 
-          justifyContent: 'center', 
-          alignItems: 'center', 
+        <div style={{
+          display: 'flex',
+          justifyContent: 'center',
+          alignItems: 'center',
           height: '100vh',
           fontSize: '18px',
           color: 'white'
@@ -159,23 +160,20 @@ export default function AuthClient() {
   return (
     <main className={styles.main}>
       {/* Efeito de ondas animadas */}
-      <div className={styles.waves}>
-        <div className={styles.wave}></div>
-        <div className={styles.wave}></div>
-        <div className={styles.wave}></div>
-      </div>
+      {/* Efeito de ondas animadas no fundo */}
+      <Waves />
 
       <div style={{ display: 'flex', justifyContent: 'center', marginTop: '16px', marginBottom: '8px' }}>
-        <Image 
-          src="/icons/logo.png" 
-          alt="CareMind Logo" 
-          width={180} 
-          height={57} 
-          priority 
+        <Image
+          src="/icons/logo.png"
+          alt="CareMind Logo"
+          width={180}
+          height={57}
+          priority
           style={{ maxWidth: '100%', height: 'auto' }}
         />
       </div>
-      
+
       <section className={styles.section}>
         <div className={styles.container}>
           <div className={`${styles.formContainer} ${!isLogin ? styles.registerMode : ''}`}>
@@ -192,93 +190,93 @@ export default function AuthClient() {
               {!isLogin && (
                 <div className={styles.stepWrapper}>
                   <div key={step} className={leaving ? styles.stepContentExit : styles.stepContent}>
-                  {step === 1 && (
-                    <div className={styles.registerColumns}>
-                      <div className={styles.registerColumn}>
-                        <div className={styles.inputGroup}>
-                          <label htmlFor="fullName">Nome Completo</label>
-                          <input
-                            id="fullName"
-                            type="text"
-                            value={fullName}
-                            onChange={(e) => setFullName(e.target.value)}
-                            className={styles.input}
-                            placeholder="Seu nome"
-                            required
-                          />
-                        </div>
+                    {step === 1 && (
+                      <div className={styles.registerColumns}>
+                        <div className={styles.registerColumn}>
+                          <div className={styles.inputGroup}>
+                            <label htmlFor="fullName">Nome Completo</label>
+                            <input
+                              id="fullName"
+                              type="text"
+                              value={fullName}
+                              onChange={(e) => setFullName(e.target.value)}
+                              className={styles.input}
+                              placeholder="Seu nome"
+                              required
+                            />
+                          </div>
 
-                        <div className={styles.inputGroup}>
-                          <label htmlFor="email">Email</label>
-                          <input
-                            id="email"
-                            type="email"
-                            value={email}
-                            onChange={(e) => setEmail(e.target.value)}
-                            className={styles.input}
-                            placeholder="seu@email.com"
-                            required
-                          />
-                        </div>
-                      </div>
-                    </div>
-                  )}
-
-                  {step === 2 && (
-                    <div className={styles.registerColumns}>
-                      <div className={styles.registerColumn}>
-                        <div className={styles.inputGroup}>
-                          <label htmlFor="password">Crie sua senha</label>
-                          <input
-                            id="password"
-                            type="password"
-                            value={password}
-                            onChange={(e) => setPassword(e.target.value)}
-                            className={styles.input}
-                            placeholder='Password'
-                            required
-                          />
-                        </div>
-                        <div className={styles.inputGroup}>
-                          <label htmlFor="confirmPassword">Confirme sua senha</label>
-                          <input
-                            id="confirmPassword"
-                            type="password"
-                            value={confirmPassword}
-                            onChange={(e) => setConfirmPassword(e.target.value)}
-                            className={styles.input}
-                            placeholder='Password'
-                            required
-                          />
-                        </div>
-                      </div>
-                    </div>
-                  )}
-
-                  {step === 3 && (
-                    <div className={styles.registerColumns}>
-                      <div className={styles.registerColumn}>
-                        <div className={styles.inputGroup}>
-                          <label htmlFor="accountType">Tipo de conta</label>
-                          <select
-                            id="accountType"
-                            value={accountType}
-                            onChange={(e) => setAccountType(e.target.value as 'individual' | 'familiar')}
-                            className={styles.input}
-                            required
-                          >
-                            <option value="individual">Individual</option>
-                            <option value="familiar">Familiar</option>
-                          </select>
-                          <div className={styles.accountTypeInfo}>
-                            {accountType === 'individual'
-                              ? 'Conta para uso pessoal, ideal para cuidadores ou usuários que desejam gerenciar seu próprio acompanhamento.'
-                              : 'Conta para familiares acompanharem e colaborarem no cuidado de um ente querido, com recursos de compartilhamento.'}
+                          <div className={styles.inputGroup}>
+                            <label htmlFor="email">Email</label>
+                            <input
+                              id="email"
+                              type="email"
+                              value={email}
+                              onChange={(e) => setEmail(e.target.value)}
+                              className={styles.input}
+                              placeholder="seu@email.com"
+                              required
+                            />
                           </div>
                         </div>
                       </div>
-                    </div>
-                  )}
+                    )}
+
+                    {step === 2 && (
+                      <div className={styles.registerColumns}>
+                        <div className={styles.registerColumn}>
+                          <div className={styles.inputGroup}>
+                            <label htmlFor="password">Crie sua senha</label>
+                            <input
+                              id="password"
+                              type="password"
+                              value={password}
+                              onChange={(e) => setPassword(e.target.value)}
+                              className={styles.input}
+                              placeholder='Password'
+                              required
+                            />
+                          </div>
+                          <div className={styles.inputGroup}>
+                            <label htmlFor="confirmPassword">Confirme sua senha</label>
+                            <input
+                              id="confirmPassword"
+                              type="password"
+                              value={confirmPassword}
+                              onChange={(e) => setConfirmPassword(e.target.value)}
+                              className={styles.input}
+                              placeholder='Password'
+                              required
+                            />
+                          </div>
+                        </div>
+                      </div>
+                    )}
+
+                    {step === 3 && (
+                      <div className={styles.registerColumns}>
+                        <div className={styles.registerColumn}>
+                          <div className={styles.inputGroup}>
+                            <label htmlFor="accountType">Tipo de conta</label>
+                            <select
+                              id="accountType"
+                              value={accountType}
+                              onChange={(e) => setAccountType(e.target.value as 'individual' | 'familiar')}
+                              className={styles.input}
+                              required
+                            >
+                              <option value="individual">Individual</option>
+                              <option value="familiar">Familiar</option>
+                            </select>
+                            <div className={styles.accountTypeInfo}>
+                              {accountType === 'individual'
+                                ? 'Conta para uso pessoal, ideal para cuidadores ou usuários que desejam gerenciar seu próprio acompanhamento.'
+                                : 'Conta para familiares acompanharem e colaborarem no cuidado de um ente querido, com recursos de compartilhamento.'}
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    )}
                   </div>
                 </div>
               )}

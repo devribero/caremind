@@ -1,8 +1,5 @@
 import React from 'react';
-import { Button } from '@/components/ui/button';
-import { Pencil, Trash2, CheckCircle } from 'lucide-react';
-import { format } from 'date-fns';
-import { ptBR } from 'date-fns/locale';
+import { Pencil, Trash2, CheckCircle2 } from 'lucide-react';
 import { Medicamento } from '@/lib/supabase/services/medicamentosService';
 import styles from './MedicamentoCard.module.css';
 
@@ -11,7 +8,8 @@ interface MedicamentoCardProps {
   medicamento: Medicamento;
   onEdit: () => void;
   onDelete: () => void;
-  onMarkAsTaken: () => void;
+  onMarkAsDone?: () => void;
+  hasPendingToday?: boolean;
   isDeleting?: boolean;
   isMarking?: boolean;
 }
@@ -20,7 +18,8 @@ const MedicamentoCard: React.FC<MedicamentoCardProps> = ({
   medicamento,
   onEdit,
   onDelete,
-  onMarkAsTaken,
+  onMarkAsDone,
+  hasPendingToday = false,
   isDeleting = false,
   isMarking = false,
 }) => {
@@ -48,22 +47,39 @@ const MedicamentoCard: React.FC<MedicamentoCardProps> = ({
       <div className={styles.card_header}>
         <h3 className={styles.card_title}>{medicamento.nome}</h3>
         <div className={styles.card_actions}>
-          <Button
-            variant="outline"
-            size="icon"
+          {hasPendingToday && onMarkAsDone && (
+            <button
+              type="button"
+              className={styles.markDoneButton}
+              onClick={onMarkAsDone}
+              disabled={isMarking}
+              aria-label="Marcar como tomado"
+              title="Marcar como tomado"
+            >
+              <CheckCircle2 className={styles.icon} size={18} />
+              {isMarking && <span className={styles.loadingText}>Marcando...</span>}
+            </button>
+          )}
+          <button
+            type="button"
             onClick={onEdit}
             disabled={isDeleting || isMarking}
+            className={styles.iconButton}
+            aria-label="Editar medicamento"
+            title="Editar medicamento"
           >
-            <Pencil className="h-4 w-4" />
-          </Button>
-          <Button
-            variant="outline"
-            size="icon"
+            <Pencil className={styles.icon} size={18} />
+          </button>
+          <button
+            type="button"
             onClick={onDelete}
             disabled={isDeleting || isMarking}
+            className={styles.iconButton}
+            aria-label="Excluir medicamento"
+            title="Excluir medicamento"
           >
-            <Trash2 className="h-4 w-4 text-destructive" />
-          </Button>
+            <Trash2 className={styles.icon} size={18} />
+          </button>
         </div>
       </div>
       <div className={styles.card_info}>

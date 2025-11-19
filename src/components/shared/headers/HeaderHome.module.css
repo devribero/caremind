@@ -3,18 +3,29 @@
 /* ============================================= */
 .header {
   font-family: var(--font-family);
-  background-color: white;
+  background-color: rgba(255, 255, 255, 0.8);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
   color: var(--primary-color);
-  font-weight: 700;
-  border-radius: 30px;
+  font-weight: 600;
+  border-radius: 24px;
   width: 100%;
-  max-width: 1300px;
-  margin: 20px auto 0 auto;
-  padding: 15px 25px;
-  box-shadow: 0 0 13px rgb(147, 155, 238);
+  max-width: 1200px;
+  margin: 20px auto;
+  padding: 12px 32px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.3);
   box-sizing: border-box;
-  position: relative;
-  z-index: 100;
+  position: sticky;
+  top: 20px;
+  z-index: 1000;
+  transition: all 0.3s ease;
+}
+
+.header:hover {
+  background-color: rgba(255, 255, 255, 0.95);
+  box-shadow: 0 12px 40px rgba(4, 0, 186, 0.1);
+  transform: translateY(-2px);
 }
 
 .header__container {
@@ -59,8 +70,19 @@
 }
 
 /* ============================================= */
-/* 3. Responsividade corrigida                   */
+/* 3. Responsividade e Menu Mobile               */
 /* ============================================= */
+
+/* Esconde menu mobile em desktop */
+@media (min-width: 769px) {
+  .mobile_menu {
+    display: none !important;
+  }
+
+  .hamburger {
+    display: none !important;
+  }
+}
 
 @media (max-width: 1350px) {
   .header {
@@ -87,7 +109,7 @@
     border-radius: 25px;
     padding: 12px 15px;
     max-width: 90%;
-    box-shadow: none; 
+    box-shadow: none;
   }
 
   .header__container {
@@ -123,40 +145,9 @@
   }
 }
 
-
 /* ============================================= */
-/* 4. Menu Hambúrguer e Mobile                   */
+/* 4. Estilos do Menu Mobile                     */
 /* ============================================= */
-.hamburger {
-  display: none;
-  flex-direction: column;
-  gap: 4px;
-  cursor: pointer;
-  z-index: 1002;
-  background: none;
-  border: none;
-  padding: 8px;
-  position: relative;
-}
-
-.hamburger span {
-  width: 28px;
-  height: 3px;
-  background-color: var(--primary-color);
-  transition: all 0.3s ease-in-out;
-  border-radius: 2px;
-}
-
-.hamburger.active span:nth-child(1) {
-  transform: rotate(45deg) translate(6px, 6px);
-}
-.hamburger.active span:nth-child(2) {
-  opacity: 0;
-}
-.hamburger.active span:nth-child(3) {
-  transform: rotate(-45deg) translate(6px, -6px);
-}
-
 .mobile_menu {
   position: fixed;
   top: 0;
@@ -167,10 +158,16 @@
   background-color: white;
   z-index: 1000;
   transform: translateX(-100%);
-  transition: transform 0.3s ease-in-out;
+  transition: transform 0.3s ease-in-out, visibility 0.3s;
   padding: 60px 20px 20px;
-  box-shadow: 2px 0 10px rgba(0,0,0,0.1);
+  box-shadow: 2px 0 10px rgba(0, 0, 0, 0.1);
   border-right: 1px solid #e2e8f0;
+  visibility: hidden;
+}
+
+.mobile_menu.active {
+  transform: translateX(0);
+  visibility: visible;
 }
 
 .close_button {
@@ -197,10 +194,6 @@
   background-color: #f1f5ff;
   color: #020054;
   transform: scale(1.1);
-}
-
-.mobile_menu.active {
-  transform: translateX(0);
 }
 
 .mobile_menu__nav {
@@ -234,7 +227,7 @@
   left: 0;
   width: 100%;
   height: 100%;
-  background-color: rgba(0,0,0,0.5);
+  background-color: rgba(0, 0, 0, 0.5);
   z-index: 999;
   opacity: 0;
   visibility: hidden;
@@ -250,30 +243,34 @@
 /* 5. Botões                                     */
 /* ============================================= */
 .btn {
-  padding: 15px 30px;
-  border-radius: 8px;
-  font-weight: bold;
+  padding: 10px 24px;
+  border-radius: 50px;
+  font-weight: 600;
   text-decoration: none;
   transition: all 0.3s ease;
-  font-size: 18px;
+  font-size: 15px;
   cursor: pointer;
   text-align: center;
   border: 2px solid transparent;
   display: inline-block;
+  letter-spacing: 0.5px;
 }
 
 .btn_primary {
-  background: #0400BA;
+  background-color: #0400BA;
   color: white !important;
-  border: 2px solid #0400BA;
+  border: none;
+  box-shadow: 0 4px 15px rgba(4, 0, 186, 0.3);
+  font-weight: 700;
+  letter-spacing: 0.5px;
 }
 
 .btn_primary:hover {
-  background: #020054;
-  border-color: #020054;
+  background-color: #020054;
+  box-shadow: 0 6px 25px rgba(4, 0, 186, 0.5);
+  transform: translateY(-2px) scale(1.02);
   color: white !important;
-  transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(4, 0, 186, 0.3);
+  filter: brightness(1.1);
 }
 
 .btn_outline {

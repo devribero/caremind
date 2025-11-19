@@ -206,7 +206,8 @@ export default function Rotinas() {
   };
 
   const handleDeleteRotina = async (id: number) => {
-    if (!window.confirm('Tem certeza que deseja excluir esta rotina?')) {
+    const confirmed = await toast.confirm('Tem certeza que deseja excluir esta rotina?');
+    if (!confirmed) {
       return;
     }
 
@@ -226,6 +227,7 @@ export default function Rotinas() {
 
   const handleEditRotina = (rotina: Rotina) => {
     setEditingRotina(rotina);
+    setIsAddModalOpen(true);
   };
 
   const hasPendingForRotina = (rotinaId: number) =>

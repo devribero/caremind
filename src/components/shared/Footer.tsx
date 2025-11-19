@@ -11,7 +11,13 @@ export function Footer() {
                     {/* Coluna 1: Sobre a Empresa e Social */}
                     <div className={styles.footerColumnAbout}>
                         <Link href="/" className={styles.footerLogo}>
-                            <Image src="/icons/logo_coracao.png" alt="Logo CareMind" width={300} height={90} />
+                            <Image
+                                src="/icons/logo_coracao.png"
+                                alt="Logo CareMind"
+                                width={150}
+                                height={45}
+                                style={{ objectFit: 'contain', width: 'auto', height: 'auto', maxWidth: '100%' }}
+                            />
                         </Link>
                         <p className={styles.footerDescription}>
                             CareMind - tecnologia que aproxima, cuida e protege.

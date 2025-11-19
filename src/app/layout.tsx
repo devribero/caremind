@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { LoadingProvider } from "@/contexts/LoadingContext";
+import { AccessibilityProvider } from "@/contexts/AccessibilityContext";
 import { ToastContainer } from "@/components/features/Toast";
 import { DevUnhandledRejectionLogger } from "@/components/shared/DevUnhandledRejectionLogger";
 import PWAInstallPrompt from '@/components/features/InstallPWA';
@@ -35,11 +36,13 @@ export default function RootLayout({
       <body suppressHydrationWarning={true}>
         <AuthProvider>
           <LoadingProvider>
-            <DevUnhandledRejectionLogger />
-            {children}
-            <SpeedInsights />
-            <Analytics />
-            <PWAInstallPrompt />
+            <AccessibilityProvider>
+              <DevUnhandledRejectionLogger />
+              {children}
+              <SpeedInsights />
+              <Analytics />
+              <PWAInstallPrompt />
+            </AccessibilityProvider>
           </LoadingProvider>
         </AuthProvider>
       </body>

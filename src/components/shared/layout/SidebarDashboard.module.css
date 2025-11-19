@@ -6,7 +6,7 @@
   color: #ffffff;
   display: flex;
   flex-direction: column;
-  border-right: 1px solid rgba(255,255,255,0.1);
+  border-right: 1px solid rgba(255, 255, 255, 0.1);
   z-index: 30;
   transition: width 0.25s ease;
 }
@@ -48,7 +48,7 @@
   display: flex;
   gap: 10px;
   align-items: center;
-  background: rgba(255,255,255,0.08);
+  background: rgba(255, 255, 255, 0.08);
   padding: 10px;
   border-radius: 10px;
 }
@@ -58,12 +58,13 @@
   height: 36px;
 }
 
-.avatarImg, .avatarFallback {
+.avatarImg,
+.avatarFallback {
   width: 36px;
   height: 36px;
   border-radius: 50%;
   object-fit: cover;
-  background: rgba(255,255,255,0.2);
+  background: rgba(255, 255, 255, 0.2);
   display: grid;
   place-items: center;
 }
@@ -104,11 +105,11 @@
 }
 
 .navItem:hover {
-  background: rgba(255,255,255,0.12);
+  background: rgba(255, 255, 255, 0.12);
 }
 
 .active {
-  background: rgba(255,255,255,0.18);
+  background: rgba(255, 255, 255, 0.18);
 }
 
 .icon {
@@ -136,11 +137,11 @@
   padding: 10px 12px;
   border-radius: 8px;
   border: none;
-  background: rgba(255,255,255,0.12);
+  background: rgba(255, 255, 255, 0.12);
   color: #ffffff;
   cursor: pointer;
 }
 
 .logoutBtn:hover {
-  background: rgba(255,255,255,0.18);
+  background: rgba(255, 255, 255, 0.18);
 }

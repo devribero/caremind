@@ -6,6 +6,7 @@ import { useProfile } from '@/hooks/useProfile';
 import { CompromissosService } from '@/lib/supabase/services';
 import { Modal } from '@/components/features/Modal';
 import { AddEditCompromissoForm, type Compromisso } from '@/components/features/modals/AddEditCompromissoModal';
+import CompromissoCard from '@/components/features/CompromissoCard';
 import { toast } from '@/components/features/Toast';
 import styles from '../rotinas/page.module.css';
 import { Tables } from '@/types/supabase';
@@ -24,6 +25,7 @@ export default function CompromissosPage() {
   const [addModalOpen, setAddModalOpen] = useState(false);
   const [editModalOpen, setEditModalOpen] = useState(false);
   const [editingItem, setEditingItem] = useState<CompItem | null>(null);
+  const [deleting, setDeleting] = useState<Record<string, boolean>>({});
 
   const selectedElderName = useMemo(() => {
     const elderList = listaIdososVinculados ?? [];
@@ -127,14 +129,18 @@ export default function CompromissosPage() {
   };
 
   const handleDelete = async (id: string) => {
-    if (!window.confirm('Tem certeza que deseja excluir este compromisso?')) return;
+    const confirmed = await toast.confirm('Tem certeza que deseja excluir este compromisso?');
+    if (!confirmed) return;
 
+    setDeleting(prev => ({ ...prev, [id]: true }));
     try {
       await CompromissosService.deletarCompromisso(id);
       setItems(prev => prev.filter(item => item.id !== id));
       toast.success('Compromisso excluído com sucesso');
     } catch (err: any) {
       toast.error(`Erro ao excluir compromisso: ${err.message}`);
+    } finally {
+      setDeleting(prev => ({ ...prev, [id]: false }));
     }
   };
   
@@ -168,21 +174,13 @@ export default function CompromissosPage() {
           .slice()
           .sort((a, b) => (a.data_hora ? new Date(a.data_hora).getTime() : 0) - (b.data_hora ? new Date(b.data_hora).getTime() : 0))
           .map((c) => (
-            <div key={c.id} style={{ border: '1px solid #e5e7eb', borderRadius: 12, padding: 14, background: 'white' }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                <h3 style={{ margin: 0, fontSize: 18, color: 'black', }}>{c.titulo}</h3>
-                <div style={{ display: 'flex', gap: 8 }}>
-                  <button onClick={() => openEditModal(c)} style={{ padding: '6px 10px', borderRadius: 8, border: '1px solid #e5e7eb', background: '#f3f4f6', color: 'black' }}>Editar</button>
-                  <button onClick={() => handleDelete(c.id)} style={{ padding: '6px 10px', borderRadius: 8, border: '1px solid #fecaca', background: '#fef2f2', color: '#b91c1c' }}>Excluir</button>
-                </div>
-              </div>
-              <div style={{ marginTop: 8, color: '#6b7280', fontSize: 14 }}>
-                <div><strong>Tipo:</strong> {c.tipo || 'outros'}</div>
-                {c.data_hora && <div><strong>Data/Hora:</strong> {new Date(c.data_hora).toLocaleString()}</div>}
-                {c.local && <div><strong>Local:</strong> {c.local}</div>}
-                {c.descricao && <div style={{ marginTop: 6 }}>{c.descricao}</div>}
-              </div>
-            </div>
+            <CompromissoCard
+              key={c.id}
+              compromisso={c}
+              onEdit={() => openEditModal(c)}
+              onDelete={() => handleDelete(c.id)}
+              isDeleting={deleting[c.id]}
+            />
           ))}
       </div>
     );

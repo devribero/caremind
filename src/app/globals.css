@@ -220,3 +220,140 @@ body::-webkit-scrollbar-corner { background: transparent; }
 /* Garantir que nenhum canto/trilha pinte de branco */
 ::-webkit-scrollbar-corner { background: transparent; }
 ::-webkit-scrollbar-track-piece { background: transparent; }
+
+/* ==========================================
+   Acessibilidade: Tamanhos de Fonte
+   ========================================== */
+/* Apenas mudar o font-size do html - elementos que usam rem vão escalar automaticamente */
+/* Isso é a forma correta: mudar apenas o root, sem aplicar em cascata */
+html {
+  font-size: 16px;
+}
+
+html.font-size-normal {
+  font-size: 16px;
+}
+
+html.font-size-large {
+  font-size: 20px; /* 1.25x - aumenta o rem base, tudo que usa rem escala proporcionalmente */
+}
+
+html.font-size-extra-large {
+  font-size: 24px; /* 1.5x - aumenta o rem base, tudo que usa rem escala proporcionalmente */
+}
+
+/* Garantir que a seleção de texto funcione normalmente */
+html.font-size-normal *,
+html.font-size-large *,
+html.font-size-extra-large * {
+  user-select: text;
+  -webkit-user-select: text;
+  -moz-user-select: text;
+  -ms-user-select: text;
+}
+
+/* Elementos que não devem ter seleção de texto (botões, etc) mantêm seu comportamento */
+html.font-size-normal button,
+html.font-size-normal [role="button"],
+html.font-size-normal input,
+html.font-size-large button,
+html.font-size-large [role="button"],
+html.font-size-large input,
+html.font-size-extra-large button,
+html.font-size-extra-large [role="button"],
+html.font-size-extra-large input {
+  user-select: none;
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+}
+
+/* ==========================================
+   Acessibilidade: Alto Contraste
+   ========================================== */
+html.high-contrast {
+  --background: #ffffff;
+  --foreground: #000000;
+  --primary-color: #0000ff;
+}
+
+html.high-contrast body {
+  background: #ffffff !important;
+  color: #000000 !important;
+}
+
+/* Aplicar alto contraste de forma mais seletiva */
+html.high-contrast .card,
+html.high-contrast [class*="card"],
+html.high-contrast [class*="Card"] {
+  background-color: #ffffff !important;
+  color: #000000 !important;
+  border: 2px solid #000000 !important;
+  box-shadow: none !important;
+}
+
+html.high-contrast button:not([class*="bg-"]):not([class*="text-"]),
+html.high-contrast a:not([class*="bg-"]):not([class*="text-"]),
+html.high-contrast [role="button"]:not([class*="bg-"]):not([class*="text-"]) {
+  border: 2px solid #000000 !important;
+  background-color: #ffffff !important;
+  color: #000000 !important;
+}
+
+html.high-contrast button:hover:not([class*="bg-"]):not([class*="text-"]),
+html.high-contrast a:hover:not([class*="bg-"]):not([class*="text-"]),
+html.high-contrast [role="button"]:hover:not([class*="bg-"]):not([class*="text-"]) {
+  background-color: #000000 !important;
+  color: #ffffff !important;
+}
+
+html.high-contrast button:focus,
+html.high-contrast a:focus,
+html.high-contrast [role="button"]:focus,
+html.high-contrast input:focus,
+html.high-contrast textarea:focus,
+html.high-contrast select:focus {
+  outline: 3px solid #0000ff !important;
+  outline-offset: 2px !important;
+}
+
+html.high-contrast input:not([class*="bg-"]):not([class*="text-"]),
+html.high-contrast textarea:not([class*="bg-"]):not([class*="text-"]),
+html.high-contrast select:not([class*="bg-"]):not([class*="text-"]) {
+  border: 2px solid #000000 !important;
+  background-color: #ffffff !important;
+  color: #000000 !important;
+}
+
+html.high-contrast input:focus:not([class*="bg-"]):not([class*="text-"]),
+html.high-contrast textarea:focus:not([class*="bg-"]):not([class*="text-"]),
+html.high-contrast select:focus:not([class*="bg-"]):not([class*="text-"]) {
+  border-color: #0000ff !important;
+}
+
+/* Manter cores específicas do Caremind quando necessário, mas aumentar contraste */
+html.high-contrast [class*="bg-\[#0400b9\]"],
+html.high-contrast [class*="bg-\[#0400BA\]"] {
+  background-color: #0000ff !important;
+}
+
+html.high-contrast [class*="text-\[#0400b9\]"],
+html.high-contrast [class*="text-\[#0400BA\]"] {
+  color: #0000ff !important;
+}
+
+/* ==========================================
+   Acessibilidade: Reduzir Movimento
+   ========================================== */
+html.reduced-motion *,
+html.reduced-motion *::before,
+html.reduced-motion *::after {
+  animation-duration: 0.01ms !important;
+  animation-iteration-count: 1 !important;
+  transition-duration: 0.01ms !important;
+  scroll-behavior: auto !important;
+}
+
+html.reduced-motion .global-wave {
+  animation: none !important;
+}

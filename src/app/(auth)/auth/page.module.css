@@ -4,24 +4,12 @@
     font-family: "League Spartan", sans-serif;
     min-height: 100vh;
     height: auto;
-    background: linear-gradient(135deg, #a8b8ff 0%, #9b7eff 100%); /* Gradiente mais claro */
+    background: linear-gradient(135deg, #a8b8ff 0%, #9b7eff 100%);
     position: relative;
     overflow: auto;
     display: flex;
     flex-direction: column;
-}
-
-/* Efeito de ondas animadas no fundo */
-.main::before {
-    content: "";
-    position: fixed;
-    bottom: 0;
-    left: 0;
-    width: 100%;
-    height: 300px;
-    background: linear-gradient(180deg, transparent, rgba(4, 0, 186, 0.15));
-    z-index: 0;
-    pointer-events: none;
+    z-index: 1;
 }
 
 .section {
@@ -31,7 +19,7 @@
     flex: 1;
     display: flex;
     flex-direction: column;
-    justify-content: center; /* Centralizado verticalmente */
+    justify-content: center;
     align-items: center;
     width: 100%;
     min-height: auto;
@@ -46,12 +34,12 @@
     display: flex;
     flex-direction: column;
     align-items: center;
-    justify-content: center; /* Centralizado verticalmente */
+    justify-content: center;
     gap: 1rem;
 }
 
 .logoWrapper {
-    margin: 1rem 0 1.5rem 0; /* Margem superior bem reduzida */
+    margin: 1rem 0 1.5rem 0;
     position: relative;
     z-index: 15;
 }
@@ -59,10 +47,10 @@
 .logo {
     display: block;
     margin: 0 auto;
-    height: clamp(3rem, 8vw, 5rem); /* Logo um pouco menor */
+    height: clamp(3rem, 8vw, 5rem);
     max-width: 100%;
     object-fit: contain;
-    filter: drop-shadow(0 4px 8px rgba(255, 255, 255, 0.3)); /* Destaque na logo */
+    filter: drop-shadow(0 4px 8px rgba(255, 255, 255, 0.3));
 }
 
 .title {
@@ -75,7 +63,7 @@
 
 /* Efeito de vidro (Glassmorphism) */
 .formContainer {
-    max-width: 380px; /* Largura padrão para login */
+    max-width: 380px;
     width: 85%;
     margin: 0 auto;
     background: rgba(255, 255, 255, 0.25);
@@ -88,17 +76,15 @@
         inset 0 1px 1px 0 rgba(255, 255, 255, 0.3);
     border: 1px solid rgba(255, 255, 255, 0.18);
     position: relative;
-    transition: max-width 0.3s ease; /* Transição suave */
-    min-height: auto; /* Remove altura mínima fixa */
+    transition: max-width 0.3s ease;
+    min-height: auto;
 }
 
-/* Quando estiver no modo de registro, mantém largura padrão */
 .formContainer:has(.register-mode) {
     max-width: 380px;
     padding: clamp(1rem, 2.5vw, 1.75rem);
 }
 
-/* Layout de coluna única para registro */
 .registerColumns {
     display: flex;
     flex-direction: column;
@@ -115,12 +101,10 @@
     width: 100%;
 }
 
-/* Campos específicos para registro em coluna */
 .registerColumn .inputGroup {
     margin-bottom: 0;
 }
 
-/* Brilho sutil no topo do card */
 .formContainer::before {
     content: "";
     position: absolute;
@@ -136,16 +120,18 @@
     gap: 0.75rem;
     margin-bottom: 1rem;
 }
+
 .inputGroup label {
     font-size: 16px;
     font-weight: 600;
     color: white;
-    margin-bottom: 0.25rem; /* Margem muito pequena */
+    margin-bottom: 0.25rem;
     text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
     text-align: left;
     width: 100%;
     order: -1;
 }
+
 .input {
     padding: 12px 16px;
     border: 2px solid rgba(255, 255, 255, 0.2);
@@ -193,8 +179,8 @@
     align-items: flex-start;
     gap: 0.75rem;
     text-align: left;
-    margin: 0.5rem 0; /* Margem reduzida */
-    padding: 0.5rem 0; /* Padding interno */
+    margin: 0.5rem 0;
+    padding: 0.5rem 0;
 }
 
 .checkboxGroup input[type="checkbox"] {
@@ -202,7 +188,7 @@
     flex-shrink: 0;
     margin-top: 2px;
     accent-color: #0400ba;
-    transform: scale(1.1); /* Checkbox ligeiramente maior */
+    transform: scale(1.1);
 }
 
 .checkboxGroup label {
@@ -242,7 +228,6 @@
     border: 1px solid rgba(254, 178, 178, 0.5);
 }
 
-/* Explicação do tipo de conta no passo 2 */
 .accountTypeInfo {
     margin-top: 0.5rem;
     color: #ffffff;
@@ -251,7 +236,6 @@
     opacity: 0.9;
 }
 
-/* Transição entre passos */
 .stepWrapper {
     position: relative;
 }
@@ -263,21 +247,33 @@
 }
 
 @keyframes authStepFadeUp {
-    from { opacity: 0; transform: translateY(8px); }
-    to { opacity: 1; transform: translateY(0); }
+    from {
+        opacity: 0;
+        transform: translateY(8px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
 }
 
-/* Saída do passo atual */
 .stepContentExit {
     animation: authStepFadeOut 160ms ease forwards;
 }
 
 @keyframes authStepFadeOut {
-    from { opacity: 1; transform: translateY(0); }
-    to { opacity: 0; transform: translateY(-6px); }
+    from {
+        opacity: 1;
+        transform: translateY(0);
+    }
+
+    to {
+        opacity: 0;
+        transform: translateY(-6px);
+    }
 }
 
-/* Estilo para o botão do shadcn/ui */
 .form button[type="submit"] {
     background: linear-gradient(135deg, #0400ba 0%, #020054 100%) !important;
     border: 2px solid rgba(255, 255, 255, 0.2) !important;
@@ -364,41 +360,40 @@
 }
 
 .switchMode {
-    margin-top: 1rem; /* Pequena margem do botão de entrar */
+    margin-top: 1rem;
     padding-top: 0;
     border-top: none;
-    text-align: left; /* Alinhado à direita */
+    text-align: left;
 }
 
 .switchText {
     color: white;
     font-size: 14px;
     text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
-    display: inline; /* Para ficar na mesma linha */
+    display: inline;
 }
 
 .switchButton {
     background: none;
     border: none;
     color: white;
-    font-size: 14px; /* Mesmo tamanho do texto */
+    font-size: 14px;
     font-weight: 600;
     cursor: pointer;
     text-decoration: underline;
     font-family: inherit;
     transition: opacity 0.3s ease;
     text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
-    display: inline; /* Para ficar na mesma linha */
-    margin-left: 0.25rem; /* Pequeno espaço entre o ? e o botão */
+    display: inline;
+    margin-left: 0.25rem;
 }
 
 .switchButton:hover {
     opacity: 0.8;
 }
 
-/* Botão Voltar ao Início (substituto do Criar Conta) */
 .backButtonContainer {
-    margin: 0.5rem 0 0 0; /* Margem superior reduzida */
+    margin: 0.5rem 0 0 0;
     text-align: center;
 }
 
@@ -450,7 +445,6 @@
     transform: translateY(-1px);
 }
 
-/* Responsive design */
 @media (max-width: 768px) {
     .backButton {
         padding: 10px 20px;
@@ -460,7 +454,7 @@
 
 @media (max-width: 768px) {
     .formContainer {
-        max-width: 85vw; /* Card ainda menor em tablets */
+        max-width: 85vw;
         width: 85%;
         padding: clamp(0.875rem, 2vw, 1.5rem);
     }
@@ -473,7 +467,7 @@
 
 @media (max-width: 640px) {
     .formContainer {
-        max-width: 95vw; /* Usa quase toda a largura em dispositivos menores */
+        max-width: 95vw;
         width: 95%;
         margin: 0 0.5rem;
         padding: clamp(0.75rem, 2vw, 1.25rem);

@@ -1,0 +1,493 @@
+.main {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  font-family: "League Spartan", sans-serif;
+  background-color: transparent;
+}
+
+.content {
+  flex: 1;
+  max-width: 1200px;
+  width: 100%;
+  margin: 0 auto;
+  padding: 0 20px;
+}
+
+.content_title {
+  font-size: 40px;
+  font-weight: 700;
+  color: #0400BA;
+  text-align: left;
+  margin-top: 0;
+  margin-bottom: 24px;
+  position: relative;
+}
+
+.content_title::after {
+  content: "";
+  position: absolute;
+  bottom: -8px;
+  left: 0;
+  width: 100px;
+  height: 4px;
+  background-color: #0400BA;
+  border-radius: 2px;
+}
+
+.content_info {
+  background-color: white;
+  border-radius: 20px;
+  margin-top: 1rem;
+  padding: 1.5rem;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+}
+
+.mainContent {
+  transition: margin-left 0.3s ease-in-out;
+  padding: 16px 24px;
+  width: 100%;
+}
+
+.pageHeader {
+  margin-bottom: 1rem;
+}
+
+.sectionsContainer {
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+}
+
+.sectionsContainer {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.section {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.sectionHeader {
+  display: flex;
+  align-items: flex-start;
+  gap: 1rem;
+}
+
+.sectionIconWrapper {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.5rem;
+  height: 2.5rem;
+  background: #f1f5f9;
+  border-radius: 0.5rem;
+  flex-shrink: 0;
+}
+
+.sectionIcon {
+  color: #0400b9;
+}
+
+.sectionTitle {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: #171717;
+  margin: 0 0 0.25rem 0;
+}
+
+.sectionDescription {
+  font-size: 0.875rem;
+  color: #64748b;
+  margin: 0;
+}
+
+.card {
+  background: #ffffff;
+  border-radius: 16px;
+  padding: 28px 32px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+  border: none;
+}
+
+.settingItem {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1.5rem;
+}
+
+.settingInfo {
+  flex: 1;
+  min-width: 0;
+}
+
+.settingLabel {
+  display: block;
+  font-size: 1rem;
+  font-weight: 600;
+  color: #171717;
+  margin-bottom: 0.25rem;
+}
+
+.settingLabelWithIcon {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 0.25rem;
+}
+
+.settingIcon {
+  color: #64748b;
+}
+
+.settingDescription {
+  font-size: 0.875rem;
+  color: #64748b;
+  margin: 0;
+  line-height: 1.5;
+}
+
+.divider {
+  height: 1px;
+  background: #e2e8f0;
+  margin: 1.5rem 0;
+}
+
+/* Font Size Selector */
+.fontSizeSelector {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+}
+
+.fontSizeButton {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 3.5rem;
+  height: 3.5rem;
+  border: 2px solid #e2e8f0;
+  border-radius: 0.5rem;
+  background: #ffffff;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-weight: 700;
+  color: #64748b;
+}
+
+.fontSizeButton:hover {
+  border-color: #0400b9;
+  background: #f8fafc;
+}
+
+.fontSizeButton:focus {
+  outline: 2px solid #0400b9;
+  outline-offset: 2px;
+}
+
+.fontSizeButtonActive {
+  border-color: #0400b9;
+  background: #0400b9;
+  color: #ffffff;
+}
+
+.fontSizeButtonText {
+  font-size: 1.25rem;
+  font-weight: 700;
+}
+
+/* Integration Status */
+.integrationStatus {
+  display: flex;
+  align-items: center;
+}
+
+.connectedStatus {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 1rem;
+  background: #f0fdf4;
+  border: 1px solid #86efac;
+  border-radius: 0.5rem;
+  color: #166534;
+}
+
+.statusIcon {
+  color: #16a34a;
+}
+
+.statusText {
+  font-size: 0.875rem;
+  font-weight: 600;
+}
+
+.connectButton {
+  padding: 0.625rem 1.25rem;
+  background: #0400b9;
+  color: #ffffff;
+  border: none;
+  border-radius: 0.5rem;
+  font-size: 0.875rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s ease;
+}
+
+.connectButton:hover {
+  background: #0300a0;
+}
+
+.connectButton:focus {
+  outline: 2px solid #0400b9;
+  outline-offset: 2px;
+}
+
+/* Action Buttons */
+.actionButton {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  width: 100%;
+  padding: 0.875rem 1rem;
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 0.5rem;
+  font-size: 0.9375rem;
+  font-weight: 600;
+  color: #171717;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  text-align: left;
+}
+
+.actionButton:hover {
+  background: #f8fafc;
+  border-color: #cbd5e1;
+}
+
+.actionButton:focus {
+  outline: 2px solid #0400b9;
+  outline-offset: 2px;
+}
+
+.actionIcon {
+  color: #64748b;
+}
+
+/* Danger Zone */
+.dangerZone {
+  padding: 1.5rem;
+  background: #fef2f2;
+  border: 1px solid #fecaca;
+  border-radius: 0.5rem;
+}
+
+.dangerZoneHeader {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 0.75rem;
+}
+
+.dangerIcon {
+  color: #dc2626;
+}
+
+.dangerZoneTitle {
+  font-size: 1rem;
+  font-weight: 700;
+  color: #991b1b;
+  margin: 0;
+}
+
+.dangerZoneDescription {
+  font-size: 0.875rem;
+  color: #7f1d1d;
+  margin: 0 0 1rem 0;
+}
+
+.dangerButton {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.875rem 1rem;
+  background: #dc2626;
+  color: #ffffff;
+  border: none;
+  border-radius: 0.5rem;
+  font-size: 0.9375rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s ease;
+  width: 100%;
+  justify-content: center;
+}
+
+.dangerButton:hover {
+  background: #b91c1c;
+}
+
+.dangerButton:focus {
+  outline: 2px solid #dc2626;
+  outline-offset: 2px;
+}
+
+.dangerButtonIcon {
+  color: #ffffff;
+}
+
+/* Screen Reader Only */
+.srOnly {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border-width: 0;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .mainContent {
+    padding: 12px 16px;
+  }
+
+  .content {
+    padding: 0 15px;
+  }
+
+  .content_title {
+    font-size: 32px;
+    margin-bottom: 20px;
+  }
+
+  .content_info {
+    padding: 1.25rem;
+    margin-top: 0.75rem;
+  }
+
+  .sectionsContainer {
+    gap: 1.25rem;
+  }
+
+  .card {
+    padding: 1.25rem;
+  }
+
+  .settingItem {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 1rem;
+  }
+
+  .settingInfo {
+    width: 100%;
+  }
+
+  .fontSizeSelector {
+    width: 100%;
+    justify-content: space-between;
+    gap: 0.5rem;
+  }
+
+  .fontSizeButton {
+    flex: 1;
+    min-width: 0;
+  }
+
+  .sectionHeader {
+    flex-direction: row;
+    gap: 0.75rem;
+  }
+
+  .sectionIconWrapper {
+    width: 2rem;
+    height: 2rem;
+  }
+
+  .sectionIcon {
+    width: 16px;
+    height: 16px;
+  }
+
+  .sectionTitle {
+    font-size: 1.125rem;
+  }
+
+  .sectionDescription {
+    font-size: 0.8125rem;
+  }
+
+  .settingLabel {
+    font-size: 0.9375rem;
+  }
+
+  .settingDescription {
+    font-size: 0.8125rem;
+  }
+
+  .integrationStatus {
+    width: 100%;
+    justify-content: flex-start;
+  }
+
+  .connectButton {
+    width: 100%;
+  }
+
+  .actionButton {
+    font-size: 0.9375rem;
+    padding: 0.75rem;
+  }
+
+  .dangerZone {
+    padding: 1.25rem;
+  }
+
+  .dangerButton {
+    font-size: 0.9375rem;
+    padding: 0.875rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .mainContent {
+    padding: 8px 12px;
+  }
+
+  .content {
+    padding: 0 12px;
+  }
+
+  .content_title {
+    font-size: 28px;
+    margin-bottom: 16px;
+  }
+
+  .content_info {
+    padding: 1rem;
+    border-radius: 16px;
+  }
+
+  .card {
+    padding: 1.25rem;
+  }
+
+  .fontSizeButton {
+    width: 3rem;
+    height: 3rem;
+  }
+
+  .fontSizeButtonText {
+    font-size: 1rem;
+  }
+}
+

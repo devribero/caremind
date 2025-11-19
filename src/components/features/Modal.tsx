@@ -19,32 +19,40 @@ export function Modal({ isOpen, onClose, title, children }: ModalProps) {
 
   // Efeito para controlar a rolagem do body quando o modal está aberto
   useEffect(() => {
-    if (isOpen) {
-      // Salva a posição atual do scroll
-      scrollPosition.current = window.scrollY;
-      
-      // Bloqueia a rolagem do body
+    if (!isOpen) return;
+    
+    // Salva a posição atual do scroll
+    scrollPosition.current = window.scrollY;
+    
+    // Bloqueia a rolagem do body
+    if (document.body) {
       document.body.style.overflow = 'hidden';
       document.body.style.position = 'fixed';
       document.body.style.top = `-${scrollPosition.current}px`;
       document.body.style.width = '100%';
-      
-      // Foca no modal quando ele é aberto para acessibilidade
+    }
+    
+    // Foca no modal quando ele é aberto para acessibilidade
+    const timer = setTimeout(() => {
       if (modalRef.current) {
         modalRef.current.focus();
       }
-    }
+    }, 0);
     
     // Limpa o efeito quando o componente é desmontado ou quando o modal é fechado
     return () => {
-      // Restaura a rolagem do body
-      document.body.style.overflow = '';
-      document.body.style.position = '';
-      document.body.style.top = '';
-      document.body.style.width = '';
+      clearTimeout(timer);
+      
+      // Restaura a rolagem do body apenas se o body ainda existir
+      if (document.body) {
+        document.body.style.overflow = '';
+        document.body.style.position = '';
+        document.body.style.top = '';
+        document.body.style.width = '';
+      }
       
       // Restaura a posição de rolagem
-      if (isOpen) {
+      if (isOpen && typeof window !== 'undefined') {
         window.scrollTo(0, scrollPosition.current);
       }
     };
@@ -64,6 +72,11 @@ export function Modal({ isOpen, onClose, title, children }: ModalProps) {
 
   // Não renderiza nada se o modal não estiver aberto
   if (!isOpen) {
+    return null;
+  }
+
+  // Verifica se estamos no cliente e se document.body existe
+  if (typeof window === 'undefined' || !document.body) {
     return null;
   }
 

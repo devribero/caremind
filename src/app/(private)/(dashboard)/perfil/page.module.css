@@ -68,17 +68,17 @@
   align-items: flex-start;
   border-radius: 16px;
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
-  padding: 24px 30px;
-  margin-bottom: 25px;
+  padding: 28px 32px;
+  margin-bottom: 28px;
   flex-wrap: wrap;
-  gap: 20px;
+  gap: 24px;
   background-color: #ffffff;
 }
 
 .profileInfo {
   display: flex;
   align-items: center;
-  gap: 20px;
+  gap: 24px;
   flex: 1;
   min-width: 0;
 }
@@ -103,8 +103,8 @@
 
 .uploadPhotoButton {
   position: absolute;
-  bottom: 0;
-  right: 0;
+  bottom: -2px;
+  right: -2px;
   border: 3px solid #ffffff;
   background-color: #0400BA;
   border-radius: 50%;
@@ -117,16 +117,23 @@
   box-shadow: 0 2px 8px rgba(4, 0, 186, 0.3);
   transition: transform 0.2s, box-shadow 0.2s;
   z-index: 10;
+  outline: none;
 }
 
-.uploadPhotoButton:hover {
+.uploadPhotoButton:hover:not(:disabled) {
   transform: scale(1.1);
   box-shadow: 0 4px 12px rgba(4, 0, 186, 0.4);
+}
+
+.uploadPhotoButton:focus-visible {
+  outline: 2px solid #0400BA;
+  outline-offset: 2px;
 }
 
 .uploadPhotoButton:disabled {
   opacity: 0.6;
   cursor: not-allowed;
+  transform: none;
 }
 
 .uploadPhotoButton svg {
@@ -171,13 +178,13 @@
 .profileText {
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  gap: 6px;
   min-width: 0;
   flex: 1;
 }
 
 .profileText h2 {
-  font-size: 24px;
+  font-size: 26px;
   font-weight: 700;
   color: #1a1a1a;
   margin: 0;
@@ -186,10 +193,10 @@
 }
 
 .profileText p {
-  font-size: 14px;
+  font-size: 15px;
   color: #4a5568;
   margin: 0;
-  line-height: 1.5;
+  line-height: 1.6;
   word-wrap: break-word;
 }
 
@@ -242,7 +249,7 @@
   background-color: #ffffff;
   border-radius: 16px;
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
-  padding: 30px;
+  padding: 32px;
 }
 
 .cardTitle {
@@ -537,6 +544,8 @@
   .uploadPhotoButton {
     width: 32px;
     height: 32px;
+    bottom: -2px;
+    right: -2px;
   }
 
   .uploadPhotoButton svg {
@@ -625,6 +634,8 @@
   .uploadPhotoButton {
     width: 28px;
     height: 28px;
+    bottom: -2px;
+    right: -2px;
   }
 
   .uploadPhotoButton svg {
@@ -712,6 +723,18 @@
   .profilePhotoContainer {
     width: 70px;
     height: 70px;
+  }
+
+  .uploadPhotoButton {
+    width: 24px;
+    height: 24px;
+    bottom: -2px;
+    right: -2px;
+  }
+
+  .uploadPhotoButton svg {
+    width: 14px;
+    height: 14px;
   }
 
   .profileText h2 {

@@ -72,42 +72,6 @@
   color: inherit;
 }
 
-.markDoneButton {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 0.5rem;
-  padding: 0.5rem 0.75rem;
-  background: #f0f4ff;
-  border: 1px solid #0400b9;
-  border-radius: 0.375rem;
-  cursor: pointer;
-  transition: all 0.2s ease;
-  color: #0400b9;
-  font-size: 0.875rem;
-  font-weight: 500;
-}
-
-.markDoneButton:hover:not(:disabled) {
-  background: #e0eaff;
-  border-color: #0300a0;
-  color: #0300a0;
-}
-
-.markDoneButton:focus {
-  outline: 2px solid #0400b9;
-  outline-offset: 2px;
-}
-
-.markDoneButton:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
-}
-
-.loadingText {
-  font-size: 0.875rem;
-}
-
 .card_info {
   display: flex;
   flex-direction: column;
@@ -160,3 +124,4 @@
     justify-content: flex-end;
   }
 }
+
