@@ -1,6 +1,7 @@
 'use client';
 import React, { useState, useEffect } from 'react';
 import styles from './AddForm.module.css';
+import { TimePicker } from './TimePicker';
 
 type FrequenciaDiaria = {
   tipo: 'diario';
@@ -55,7 +56,7 @@ export function AddMedicamentoForm({ onSave, onCancel, medicamento }: AddMedicam
   >(initTipoFrequencia as any);
 
   const [horarios, setHorarios] = useState<string[]>(
-    (medicamento?.frequencia as FrequenciaDiaria)?.horarios || ['08:00']
+    (medicamento?.frequencia as FrequenciaDiaria)?.horarios || []
   );
 
   const [novoHorario, setNovoHorario] = useState('');
@@ -64,8 +65,8 @@ export function AddMedicamentoForm({ onSave, onCancel, medicamento }: AddMedicam
     (medicamento?.frequencia as FrequenciaIntervalo)?.intervalo_horas || 8
   );
 
-  // Inicializa com um valor padrão
-  const [horaInicio, setHoraInicio] = useState('08:00');
+  // Inicializa sem valor padrão
+  const [horaInicio, setHoraInicio] = useState('');
 
   const [intervaloDias, setIntervaloDias] = useState(
     (medicamento?.frequencia as FrequenciaDiasAlternados)?.intervalo_dias || 2
@@ -264,8 +265,8 @@ export function AddMedicamentoForm({ onSave, onCancel, medicamento }: AddMedicam
       } else {
         // Se não houver frequência definida, define valores padrão
         setTipoFrequencia('diario');
-        setHorarios(['08:00']);
-        setHoraInicio('08:00');
+        setHorarios([]);
+        setHoraInicio('');
       }
     } else {
       // Se não houver medicamento (criação), define valores padrão
@@ -273,8 +274,8 @@ export function AddMedicamentoForm({ onSave, onCancel, medicamento }: AddMedicam
       setDosagem(null);
       setQuantidade(30);
       setTipoFrequencia('diario');
-      setHorarios(['08:00']);
-      setHoraInicio('08:00');
+      setHorarios([]);
+      setHoraInicio('');
       setIntervaloHoras(8);
       setIntervaloDias(2);
       setDiasSemana([]);
@@ -380,54 +381,66 @@ export function AddMedicamentoForm({ onSave, onCancel, medicamento }: AddMedicam
       {tipoFrequencia === 'diario' && (
         <div className={`${styles.formGroup} ${formErrors.horarios ? styles.hasError : ''}`} data-field="horarios">
           <label>
-            Horários
+            Horários de Administração
             {formErrors.horarios && <span className={styles.errorText}> - {formErrors.horarios}</span>}
           </label>
-          <div className={styles.horariosContainer}>
-            {horarios.length > 0 ? (
-              horarios.map((horario, index) => (
-                <div key={index} className={styles.horarioItem}>
-                  <span>{horario}</span>
-                  <button
-                    type="button"
-                    className={styles.removeButton}
-                    onClick={() => {
-                      removerHorario(horario);
-                      if (formErrors.horarios && horarios.length === 1) {
-                        setFormErrors(prev => ({ ...prev, horarios: '' }));
-                      }
-                    }}
-                    aria-label={`Remover horário ${horario}`}
-                  >
-                    ×
-                  </button>
-                </div>
-              ))
-            ) : (
-              <div className={styles.placeholderText}>Nenhum horário adicionado</div>
-            )}
-          </div>
+          
+          {/* Lista de horários adicionados */}
+          {horarios.length > 0 && (
+            <div className={styles.horariosContainer}>
+              <div className={styles.horariosHeader}>
+                <span className={styles.horariosCount}>{horarios.length} horário{horarios.length > 1 ? 's' : ''} adicionado{horarios.length > 1 ? 's' : ''}</span>
+              </div>
+              <div className={styles.horariosList}>
+                {horarios.map((horario, index) => (
+                  <div key={index} className={styles.horarioItem}>
+                    <span className={styles.horarioTime}>{horario}</span>
+                    <button
+                      type="button"
+                      className={styles.removeButton}
+                      onClick={() => {
+                        removerHorario(horario);
+                        if (formErrors.horarios && horarios.length === 1) {
+                          setFormErrors(prev => ({ ...prev, horarios: '' }));
+                        }
+                      }}
+                      aria-label={`Remover horário ${horario}`}
+                      title={`Remover ${horario}`}
+                    >
+                      ×
+                    </button>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Input para adicionar horário personalizado */}
           <div className={styles.addHorarioContainer}>
-            <div className={styles.horarioInputContainer}>
-              <input
-                type="time"
-                value={novoHorario}
-                onChange={(e) => {
-                  setNovoHorario(e.target.value);
-                  if (horarioError) setHorarioError('');
-                  if (formErrors.horarios) setFormErrors(prev => ({ ...prev, horarios: '' }));
-                }}
-                onKeyDown={(e) => e.key === 'Enter' && (e.preventDefault(), adicionarHorario())}
-                className={`${styles.timeInput} ${horarioError || formErrors.horarios ? styles.inputError : ''}`}
-                aria-invalid={!!horarioError || !!formErrors.horarios}
-                aria-describedby={horarioError || formErrors.horarios ? 'horario-error' : undefined}
-                placeholder="HH:MM"
-              />
-              {horarioError && (
-                <div id="horario-error" className={styles.errorMessage}>
-                  {horarioError}
-                </div>
-              )}
+            <div className={styles.horarioInputWrapper}>
+              <label htmlFor="novoHorario" className={styles.horarioInputLabel}>
+                Ou adicione um horário personalizado:
+              </label>
+              <div className={styles.horarioInputContainer}>
+                <TimePicker
+                  id="novoHorario"
+                  value={novoHorario}
+                  onChange={(value) => {
+                    setNovoHorario(value);
+                    if (horarioError) setHorarioError('');
+                    if (formErrors.horarios) setFormErrors(prev => ({ ...prev, horarios: '' }));
+                  }}
+                  onKeyDown={(e) => e.key === 'Enter' && (e.preventDefault(), adicionarHorario())}
+                  className={horarioError || formErrors.horarios ? styles.inputError : ''}
+                  ariaInvalid={!!horarioError || !!formErrors.horarios}
+                  ariaDescribedBy={horarioError || formErrors.horarios ? 'horario-error' : undefined}
+                />
+                {horarioError && (
+                  <div id="horario-error" className={styles.errorMessage}>
+                    {horarioError}
+                  </div>
+                )}
+              </div>
             </div>
             <button
               type="button"
@@ -435,9 +448,15 @@ export function AddMedicamentoForm({ onSave, onCancel, medicamento }: AddMedicam
               onClick={adicionarHorario}
               disabled={!novoHorario.trim()}
             >
-              <span className={styles.plusIcon}>+</span> Adicionar Horário
+              <span className={styles.plusIcon}>+</span> Adicionar
             </button>
           </div>
+
+          {horarios.length === 0 && !formErrors.horarios && (
+            <div className={styles.hintText}>
+              💡 Adicione pelo menos um horário usando os botões rápidos acima ou o campo personalizado
+            </div>
+          )}
         </div>
       )}
 

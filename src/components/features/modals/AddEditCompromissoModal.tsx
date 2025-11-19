@@ -2,6 +2,7 @@
 
 import React, { useMemo, useState, useEffect } from 'react';
 import styles from '@/components/features/forms/AddForm.module.css';
+import { TimePicker } from '@/components/features/forms/TimePicker';
 
 export type Compromisso = {
   id?: string;
@@ -13,6 +14,19 @@ export type Compromisso = {
   lembrete_minutos?: number | null;
 };
 
+const extractDateAndTime = (value?: string | null) => {
+  if (!value) {
+    return { date: '', time: '' };
+  }
+
+  const [datePart, timePartRaw = ''] = value.split('T');
+  const timePart = timePartRaw.slice(0, 5);
+  return {
+    date: datePart ?? '',
+    time: timePart ?? '',
+  };
+};
+
 export function AddEditCompromissoForm({
   compromisso,
   onSave,
@@ -22,16 +36,50 @@ export function AddEditCompromissoForm({
   onSave: (data: Compromisso) => Promise<void> | void;
   onCancel: () => void;
 }) {
+  const initialDateTime = compromisso?.data_hora ?? '';
+  const initialSegments = extractDateAndTime(initialDateTime);
+
   const [form, setForm] = useState<Compromisso>(() => ({
     titulo: compromisso?.titulo || '',
     descricao: compromisso?.descricao ?? '',
-    data_hora: compromisso?.data_hora ?? new Date().toISOString().slice(0, 16),
+    data_hora: initialSegments.date && initialSegments.time ? `${initialSegments.date}T${initialSegments.time}` : '',
     local: compromisso?.local ?? '',
     tipo: (compromisso?.tipo as any) || 'consulta',
     lembrete_minutos: compromisso?.lembrete_minutos ?? 60,
   }));
   const [submitting, setSubmitting] = useState(false);
   const [formErrors, setFormErrors] = useState<Record<string, string>>({});
+  const [dateValue, setDateValue] = useState(initialSegments.date);
+  const [timeValue, setTimeValue] = useState(initialSegments.time);
+
+  const syncDateTime = (newDate: string, newTime: string) => {
+    setDateValue(newDate);
+    setTimeValue(newTime);
+
+    const combined = newDate && newTime ? `${newDate}T${newTime}` : '';
+    setForm(prev => ({
+      ...prev,
+      data_hora: combined,
+    }));
+
+    if (combined && formErrors.data_hora) {
+      setFormErrors(prev => ({ ...prev, data_hora: '' }));
+    }
+  };
+
+  useEffect(() => {
+    const updatedSegments = extractDateAndTime(compromisso?.data_hora ?? '');
+    setForm({
+      titulo: compromisso?.titulo || '',
+      descricao: compromisso?.descricao ?? '',
+      data_hora: updatedSegments.date && updatedSegments.time ? `${updatedSegments.date}T${updatedSegments.time}` : '',
+      local: compromisso?.local ?? '',
+      tipo: (compromisso?.tipo as any) || 'consulta',
+      lembrete_minutos: compromisso?.lembrete_minutos ?? 60,
+    });
+    setDateValue(updatedSegments.date);
+    setTimeValue(updatedSegments.time);
+  }, [compromisso]);
 
   const title = useMemo(() => (compromisso ? 'Editar Compromisso' : 'Adicionar Compromisso'), [compromisso]);
 
@@ -65,9 +113,24 @@ export function AddEditCompromissoForm({
       return;
     }
     
+    // Garantir que data_hora seja uma string ISO válida
+    if (!dateValue || !timeValue) {
+      setFormErrors(prev => ({ ...prev, data_hora: 'A data e hora são obrigatórias' }));
+      return;
+    }
+    
+    // Combinar data e hora e converter para ISO
+    const dataHoraCombinada = `${dateValue}T${timeValue}`;
+    const dataHoraISO = new Date(dataHoraCombinada).toISOString();
+    
+    if (isNaN(new Date(dataHoraCombinada).getTime())) {
+      setFormErrors(prev => ({ ...prev, data_hora: 'Data ou hora inválida' }));
+      return;
+    }
+    
     setSubmitting(true);
     try {
-      await onSave({ ...form });
+      await onSave({ ...form, data_hora: dataHoraISO });
     } finally {
       setSubmitting(false);
     }
@@ -120,25 +183,43 @@ export function AddEditCompromissoForm({
       </div>
 
       <div className={`${styles.formGroup} ${formErrors.data_hora ? styles.hasError : ''}`} data-field="data_hora">
-        <label htmlFor="data_hora">
+        <label>
           Data e Hora
           {formErrors.data_hora && <span className={styles.errorText}> - {formErrors.data_hora}</span>}
         </label>
-        <input
-          id="data_hora"
-          name="data_hora"
-          type="datetime-local"
-          value={form.data_hora || ''}
-          onChange={(e) => {
-            setForm(prev => ({ ...prev, data_hora: e.target.value }));
-            if (formErrors.data_hora) {
-              setFormErrors(prev => ({ ...prev, data_hora: '' }));
-            }
-          }}
-          className={formErrors.data_hora ? styles.inputError : ''}
-          aria-invalid={!!formErrors.data_hora}
-          aria-describedby={formErrors.data_hora ? 'data_hora-error' : undefined}
-        />
+        <div className={styles.dateTimeWrapper}>
+          <div className={styles.dateField}>
+            <label htmlFor="data_compromisso" className={styles.subLabel}>Data</label>
+            <input
+              id="data_compromisso"
+              type="date"
+              value={dateValue}
+              onChange={(e) => {
+                syncDateTime(e.target.value, timeValue);
+                if (formErrors.data_hora) {
+                  setFormErrors(prev => ({ ...prev, data_hora: '' }));
+                }
+              }}
+              className={formErrors.data_hora ? styles.inputError : ''}
+            />
+          </div>
+          <div className={styles.timeField}>
+            <label htmlFor="hora_compromisso" className={styles.subLabel}>Horário</label>
+            <TimePicker
+              id="hora_compromisso"
+              value={timeValue}
+              onChange={(value) => syncDateTime(dateValue, value)}
+              className={styles.timePickerField}
+              ariaInvalid={!!formErrors.data_hora}
+              ariaDescribedBy={formErrors.data_hora ? 'data_hora-error' : undefined}
+            />
+          </div>
+        </div>
+        {formErrors.data_hora && (
+          <div id="data_hora-error" className={styles.errorMessage}>
+            {formErrors.data_hora}
+          </div>
+        )}
       </div>
 
       <div className={styles.formGroup}>

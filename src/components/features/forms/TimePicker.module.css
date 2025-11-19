@@ -1,0 +1,252 @@
+.timePickerContainer {
+  position: relative;
+  width: 100%;
+}
+
+.timePickerButton {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  padding: 14px 16px;
+  font-size: 1rem;
+  border: 2px solid #cbd5e1;
+  border-radius: 10px;
+  background-color: #ffffff;
+  color: #374151;
+  transition: all 0.2s ease;
+  font-weight: 500;
+  font-variant-numeric: tabular-nums;
+  font-family: inherit;
+  cursor: pointer;
+  text-align: left;
+}
+
+.timePickerButton:hover {
+  border-color: #94a3b8;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
+}
+
+.timePickerButton:focus {
+  border-color: #0400BA;
+  box-shadow: 0 0 0 4px rgba(4, 0, 186, 0.2);
+  outline: none;
+}
+
+.timePickerButton.open {
+  border-color: #0400BA;
+  box-shadow: 0 0 0 4px rgba(4, 0, 186, 0.2);
+}
+
+.timePickerButton.error {
+  border-color: #ef4444;
+  background-color: #fff5f5;
+}
+
+.timePickerButton.error:focus {
+  box-shadow: 0 0 0 4px rgba(239, 68, 68, 0.2);
+}
+
+.clockIcon {
+  width: 20px;
+  height: 20px;
+  color: #64748b;
+  flex-shrink: 0;
+}
+
+.timeDisplay {
+  flex: 1;
+  font-size: 1rem;
+  font-weight: 600;
+  color: #111827;
+  font-variant-numeric: tabular-nums;
+  font-family: inherit;
+}
+
+.timeDisplay.placeholder {
+  color: #9ca3af;
+  font-weight: 500;
+  font-style: italic;
+}
+
+.timePickerDropdown {
+  position: absolute;
+  top: calc(100% + 8px);
+  left: 0;
+  right: 0;
+  background: white;
+  border: 2px solid #e2e8f0;
+  border-radius: 12px;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.15);
+  z-index: 1000;
+  animation: slideDown 0.2s ease-out;
+  overflow: hidden;
+}
+
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.timePickerContent {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  padding: 24px;
+  background: linear-gradient(135deg, #f8fafc 0%, #ffffff 100%);
+}
+
+.timeSection {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+}
+
+.timeLabel {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: #475569;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  font-family: inherit;
+}
+
+.timeControls {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+}
+
+.timeButton {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 36px;
+  background: white;
+  border: 2px solid #e2e8f0;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  color: #64748b;
+  font-family: inherit;
+}
+
+.timeButton:hover {
+  background: #f0f4ff;
+  border-color: #0400BA;
+  color: #0400BA;
+  transform: scale(1.05);
+}
+
+.timeButton:active {
+  transform: scale(0.95);
+}
+
+.timeInput {
+  width: 70px;
+  padding: 12px;
+  text-align: center;
+  font-size: 1.5rem;
+  font-weight: 700;
+  border: 2px solid #cbd5e1;
+  border-radius: 10px;
+  background: white;
+  color: #111827;
+  font-variant-numeric: tabular-nums;
+  font-family: inherit;
+  transition: all 0.2s ease;
+}
+
+.timeInput:focus {
+  outline: none;
+  border-color: #0400BA;
+  box-shadow: 0 0 0 3px rgba(4, 0, 186, 0.15);
+}
+
+.timeInput::-webkit-inner-spin-button,
+.timeInput::-webkit-outer-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+.timeInput[type='number'] {
+  -moz-appearance: textfield;
+}
+
+.timeSeparator {
+  font-size: 2rem;
+  font-weight: 700;
+  color: #0400BA;
+  margin-top: 24px;
+  font-family: inherit;
+}
+
+.timePickerFooter {
+  padding: 16px;
+  border-top: 1px solid #e2e8f0;
+  background: white;
+  display: flex;
+  justify-content: flex-end;
+}
+
+.confirmButton {
+  padding: 10px 20px;
+  background: linear-gradient(135deg, #0400BA 0%, #03008f 100%);
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-size: 0.9375rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-family: inherit;
+}
+
+.confirmButton:hover {
+  background: linear-gradient(135deg, #03008f 0%, #020070 100%);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(4, 0, 186, 0.3);
+}
+
+.confirmButton:active {
+  transform: translateY(0);
+}
+
+/* Responsivo */
+@media (max-width: 480px) {
+  .timePickerContent {
+    padding: 20px 16px;
+    gap: 12px;
+  }
+
+  .timeInput {
+    width: 60px;
+    font-size: 1.25rem;
+    padding: 10px;
+  }
+
+  .timeButton {
+    width: 36px;
+    height: 32px;
+  }
+
+  .timeSeparator {
+    font-size: 1.5rem;
+    margin-top: 20px;
+  }
+
+  .timeLabel {
+    font-size: 0.8125rem;
+  }
+}
+

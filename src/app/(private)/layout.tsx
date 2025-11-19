@@ -5,7 +5,7 @@ import AppLayout from "@/components/shared/layout/AppLayout";
 import { useAuth } from "@/contexts/AuthContext";
 import { FullScreenLoader } from "@/components/features/FullScreenLoader";
 import { IdosoProvider } from "@/contexts/IdosoContext";
-import { useProfile } from "@/contexts/ProfileContext";
+import { useProfile } from "@/hooks/useProfile";
 import { Waves } from "@/components/shared/Waves";
 
 export default function PrivateLayout({

@@ -2,7 +2,7 @@
 
 import { useState, FormEvent } from "react";
 import { Modal } from "@/components/features/Modal";
-import { useAuthRequest } from "@/hooks/useAuthRequest";
+import { createClient } from "@/lib/supabase/client";
 import { toast } from "@/components/features/Toast";
 import styles from "./AddIdosoModal.module.css";
 
@@ -13,7 +13,7 @@ interface AddIdosoModalProps {
 }
 
 export default function AddIdosoModal({ isOpen, onClose, onSuccess }: AddIdosoModalProps) {
-  const { makeRequest } = useAuthRequest();
+  const supabase = createClient();
   const [nome, setNome] = useState("");
   const [email, setEmail] = useState("");
   const [senha, setSenha] = useState("");
@@ -39,14 +39,23 @@ export default function AddIdosoModal({ isOpen, onClose, onSuccess }: AddIdosoMo
     setError(null);
     setIsLoading(true);
     try {
-      await makeRequest("/api/criar-idoso", {
-        method: "POST",
-        body: JSON.stringify({
+      // Chamar a Edge Function criar-idoso
+      const { data, error: functionError } = await supabase.functions.invoke('criar-idoso', {
+        body: {
           nome_idoso: nome.trim(),
           email_idoso: email.trim(),
           senha_idoso: senha,
-        }),
+        },
       });
+
+      if (functionError) {
+        throw new Error(functionError.message || 'Erro ao criar idoso');
+      }
+
+      if (!data || !data.success) {
+        throw new Error(data?.error || 'Não foi possível criar e vincular o idoso.');
+      }
+
       toast.success("Idoso adicionado e vinculado com sucesso!");
       onClose();
       setNome("");
@@ -54,8 +63,9 @@ export default function AddIdosoModal({ isOpen, onClose, onSuccess }: AddIdosoMo
       setSenha("");
       onSuccess?.();
     } catch (err: any) {
-      setError(err?.message || "Não foi possível criar e vincular o idoso.");
-      toast.error(err?.message || "Não foi possível criar e vincular o idoso.");
+      const errorMessage = err?.message || "Não foi possível criar e vincular o idoso.";
+      setError(errorMessage);
+      toast.error(errorMessage);
     } finally {
       setIsLoading(false);
     }

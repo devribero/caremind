@@ -2,7 +2,7 @@
 import Link from "next/link";
 import Image from "next/image";
 import { useAuth } from "@/contexts/AuthContext";
-import { useProfile } from "@/contexts/ProfileContext";
+import { useProfile } from "@/hooks/useProfile";
 import { usePathname } from "next/navigation";
 import { IoHomeOutline, IoBarChartOutline, IoClipboardOutline, IoMedkitOutline, IoPersonOutline, IoSettingsOutline, IoLogOutOutline, IoPeopleOutline, IoCalendarOutline } from "react-icons/io5";
 import { Plug } from "lucide-react";
@@ -10,7 +10,7 @@ import styles from "./SidebarDashboard.module.css";
 
 export default function SidebarDashboard({ collapsed }: { collapsed: boolean }) {
   const { user, signOut } = useAuth();
-  const { photoUrl } = useProfile();
+  const { profile } = useProfile();
   const pathname = usePathname();
 
   const displayName = user?.user_metadata?.full_name || "";
@@ -41,11 +41,11 @@ export default function SidebarDashboard({ collapsed }: { collapsed: boolean }) 
       </div>
       <nav className={styles.nav}>
         <NavItem href={isFamiliar ? "/familiar-dashboard" : "/dashboard"} label="Dashboard" icon={IoHomeOutline} />
+        <NavItem href="/remedios" label="Medicamentos" icon={IoMedkitOutline} />
+        <NavItem href="/compromissos" label="Compromissos" icon={IoCalendarOutline} />
+        <NavItem href="/rotinas" label="Rotina" icon={IoClipboardOutline} />
         <NavItem href="/relatorios" label="Relatórios" icon={IoBarChartOutline} />
         <NavItem href="/integracoes" label="Integrações" icon={Plug} />
-        <NavItem href="/rotinas" label="Rotinas" icon={IoClipboardOutline} />
-        <NavItem href="/compromissos" label="Compromissos" icon={IoCalendarOutline} />
-        <NavItem href="/remedios" label="Medicamentos" icon={IoMedkitOutline} />
         {user?.user_metadata?.account_type === 'familiar' && (
           <NavItem href="/familia" label="Família" icon={IoPeopleOutline} />
         )}
@@ -55,21 +55,21 @@ export default function SidebarDashboard({ collapsed }: { collapsed: boolean }) 
       <div className={styles.bottomArea}>
         <div className={styles.userBox}>
           <div className={styles.avatar}>
-            {photoUrl ? (
-              <Image 
-                src={photoUrl} 
-                alt="Foto de perfil" 
-                width={36} 
-                height={36} 
+            {profile?.foto_usuario ? (
+              <Image
+                src={profile.foto_usuario}
+                alt="Foto de perfil"
+                width={36}
+                height={36}
                 className={styles.avatarImg}
-                key={photoUrl}
+                key={profile.foto_usuario}
                 priority
                 loading="eager"
                 onError={() => {
-                  // força um re-render em caso de cache quebrado
-                  const bust = `${photoUrl}${photoUrl.includes('?') ? '&' : '?'}v=${Date.now()}`;
+                  // Força um re-render em caso de cache quebrado
+                  const bust = `${profile.foto_usuario}${profile.foto_usuario.includes('?') ? '&' : '?'}v=${Date.now()}`;
                   (window as any).requestAnimationFrame?.(() => {
-                    // simples fallback local: recarrega a imagem ajustando a querystring
+                    // Fallback simples: recarrega a imagem ajustando a querystring
                   });
                 }}
               />

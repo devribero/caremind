@@ -3,6 +3,7 @@
   flex-direction: column;
   min-height: 100vh;
   font-family: "League Spartan", sans-serif;
+  background-color: transparent;
 }
 
 .content {
@@ -18,8 +19,8 @@
   font-weight: 700;
   color: #0400BA;
   text-align: left;
-  margin-top: 40px;
-  margin-bottom: 40px;
+  margin-top: 0;
+  margin-bottom: 24px;
   position: relative;
 }
 
@@ -37,13 +38,14 @@
 .content_info {
   background-color: white;
   border-radius: 20px;
-  margin-top: 2rem;
+  margin-top: 1rem;
   padding: 1.5rem;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
 }
 
 .mainContent {
   transition: margin-left 0.3s ease-in-out;
-  padding: 24px;
+  padding: 16px 24px;
   width: 100%;
 }
 
@@ -52,24 +54,7 @@
 }
 
 .pageHeader {
-  margin-bottom: 1.5rem;
-}
-
-/* Responsive design to match other pages */
-@media (max-width: 768px) {
-  .content { padding: 0 15px; }
-}
-
-@media (max-width: 480px) {
-  .content_title { font-size: 1.75rem; }
-}
-
-.pageContainer {
-  min-height: 100vh;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  padding: 30px;
+  margin-bottom: 1rem;
 }
 
 .profileSection {
@@ -80,25 +65,29 @@
 .profileHeader {
   display: flex;
   justify-content: space-between;
-  align-items: center;
+  align-items: flex-start;
   border-radius: 16px;
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
-  padding: 20px 30px;
+  padding: 24px 30px;
   margin-bottom: 25px;
   flex-wrap: wrap;
   gap: 20px;
+  background-color: #ffffff;
 }
 
 .profileInfo {
   display: flex;
   align-items: center;
   gap: 20px;
+  flex: 1;
+  min-width: 0;
 }
 
 .profilePhotoContainer {
   position: relative;
-  width: 80px;
-  height: 80px;
+  width: 100px;
+  height: 100px;
+  flex-shrink: 0;
 }
 
 .profilePhoto {
@@ -106,53 +95,109 @@
   height: 100%;
   border-radius: 50%;
   object-fit: cover;
-  border: 3px solid;
+  object-position: center;
+  border: 3px solid #0400BA;
+  background-color: #f0f0f0;
+  display: block;
 }
 
 .uploadPhotoButton {
   position: absolute;
   bottom: 0;
   right: 0;
-  border: #0400BA;
+  border: 3px solid #ffffff;
   background-color: #0400BA;
   border-radius: 50%;
-  width: 30px;
-  height: 30px;
+  width: 36px;
+  height: 36px;
   display: flex;
   justify-content: center;
   align-items: center;
   cursor: pointer;
-  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+  box-shadow: 0 2px 8px rgba(4, 0, 186, 0.3);
+  transition: transform 0.2s, box-shadow 0.2s;
+  z-index: 10;
+}
+
+.uploadPhotoButton:hover {
+  transform: scale(1.1);
+  box-shadow: 0 4px 12px rgba(4, 0, 186, 0.4);
+}
+
+.uploadPhotoButton:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
 }
 
 .uploadPhotoButton svg {
-  width: 18px;
-  height: 18px;
+  width: 20px;
+  height: 20px;
   fill: #fff;
+}
+
+.spinner {
+  animation: spin 1s linear infinite;
+  width: 20px;
+  height: 20px;
+}
+
+.path {
+  stroke: #fff;
+  stroke-linecap: round;
+  animation: dash 1.5s ease-in-out infinite;
+}
+
+@keyframes spin {
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes dash {
+  0% {
+    stroke-dasharray: 1, 150;
+    stroke-dashoffset: 0;
+  }
+  50% {
+    stroke-dasharray: 90, 150;
+    stroke-dashoffset: -35;
+  }
+  100% {
+    stroke-dasharray: 90, 150;
+    stroke-dashoffset: -124;
+  }
 }
 
 .profileText {
   display: flex;
   flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+  flex: 1;
 }
 
-.profileName {
+.profileText h2 {
   font-size: 24px;
-  font-weight: bold;
-  color: rgb(36, 36, 36);
+  font-weight: 700;
+  color: #1a1a1a;
   margin: 0;
+  line-height: 1.3;
+  word-wrap: break-word;
 }
 
-.profileEmail {
+.profileText p {
   font-size: 14px;
-  color: black;
+  color: #4a5568;
+  margin: 0;
+  line-height: 1.5;
+  word-wrap: break-word;
 }
 
 .profileActions {
   display: flex;
-  gap: 15px;
+  gap: 12px;
   flex-wrap: wrap;
-  justify-content: center;
+  align-items: center;
 }
 
 .actionButton, .logoutButton {
@@ -160,30 +205,41 @@
   border-radius: 8px;
   font-weight: 600;
   cursor: pointer;
-  transition: background-color 0.3s, color 0.3s;
+  transition: all 0.3s;
   border: none;
+  font-size: 14px;
+  white-space: nowrap;
 }
 
 .actionButton {
-  background-color: var(--primary-color);
+  background-color: #0400BA;
   color: #fff;
 }
 
-.actionButton:hover {
-  background-color: #4a54c9;
+.actionButton:hover:not(:disabled) {
+  background-color: #0300a0;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 8px rgba(4, 0, 186, 0.3);
+}
+
+.actionButton:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
 }
 
 .logoutButton {
-  background-color: #f44336;
+  background-color: #dc2626;
   color: #fff;
 }
 
 .logoutButton:hover {
-  background-color: #d32f2f;
+  background-color: #b91c1c;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 8px rgba(220, 38, 38, 0.3);
 }
 
 .infoCard {
-  background-color: var(--card-background);
+  background-color: #ffffff;
   border-radius: 16px;
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
   padding: 30px;
@@ -191,8 +247,8 @@
 
 .cardTitle {
   font-size: 20px;
-  font-weight: bold;
-  color: black;
+  font-weight: 700;
+  color: #1a1a1a;
   margin-bottom: 25px;
 }
 
@@ -215,29 +271,32 @@
 
 .fieldLabel {
   font-size: 14px;
-  color: black;
+  color: #374151;
   margin-bottom: 8px;
-  font-weight: 500;
+  font-weight: 600;
 }
 
 .fieldInput {
-  background-color: var(--secondary-color);
-  border: 1px solid var(--border-color);
+  background-color: #f9fafb;
+  border: 1px solid #e5e7eb;
   border-radius: 8px;
   padding: 12px 15px;
   font-size: 16px;
-  color: black;
+  color: #1a1a1a;
   transition: border-color 0.3s, background-color 0.3s;
+  font-family: inherit;
 }
 
 .fieldInput:focus {
   outline: none;
-  border-color: var(--primary-color);
-  box-shadow: 0 0 0 3px rgba(91, 101, 243, 0.2);
+  border-color: #0400BA;
+  background-color: #ffffff;
+  box-shadow: 0 0 0 3px rgba(4, 0, 186, 0.1);
 }
 
 .fieldInput:disabled {
-  background-color: #e9ecef;
+  background-color: #f3f4f6;
+  color: #6b7280;
   cursor: not-allowed;
 }
 
@@ -248,7 +307,7 @@
 }
 
 .editProfileButton {
-  background-color: var(--primary-color);
+  background-color: #0400BA;
   color: #fff;
   border: none;
   padding: 12px 30px;
@@ -256,11 +315,18 @@
   font-size: 16px;
   font-weight: 600;
   cursor: pointer;
-  transition: background-color 0.3s, transform 0.2s;
+  transition: all 0.3s;
 }
 
-.editProfileButton:hover {
-  background-color: #4a54c9;
+.editProfileButton:hover:not(:disabled) {
+  background-color: #0300a0;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(4, 0, 186, 0.3);
+}
+
+.editProfileButton:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
 }
 
 /* Modal Styling */
@@ -270,7 +336,7 @@
   left: 0;
   width: 100%;
   height: 100%;
-  background-color: rgb(255, 255, 255);
+  background-color: rgba(0, 0, 0, 0.8);
   display: flex;
   justify-content: center;
   align-items: center;
@@ -278,19 +344,19 @@
 }
 
 .modalContent {
-  background-color: var(--card-background);
+  background-color: #ffffff;
   padding: 30px;
   border-radius: 12px;
   width: 90%;
   max-width: 500px;
   position: relative;
-  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
 }
 
 .modalTitle {
   font-size: 24px;
-  font-weight: bold;
-  color: black;
+  font-weight: 700;
+  color: #1a1a1a;
   margin: 0 0 20px;
 }
 
@@ -301,7 +367,12 @@
   font-size: 28px;
   font-weight: bold;
   cursor: pointer;
-  color: black;
+  color: #6b7280;
+  transition: color 0.2s;
+}
+
+.modalClose:hover {
+  color: #1a1a1a;
 }
 
 .formGroup {
@@ -310,26 +381,28 @@
 
 .modalLabel {
   font-size: 14px;
-  color: black;
+  color: #374151;
   margin-bottom: 8px;
-  font-weight: 500;
+  font-weight: 600;
   display: block;
 }
 
 .modalInput {
   width: 100%;
   padding: 12px 15px;
-  border: 1px solid var(--border-color);
+  border: 1px solid #e5e7eb;
   border-radius: 8px;
-  background-color: var(--secondary-color);
-  color: black;
+  background-color: #f9fafb;
+  color: #1a1a1a;
   font-size: 16px;
+  font-family: inherit;
 }
 
 .modalInput:focus {
   outline: none;
-  border-color: var(--primary-color);
-  box-shadow: 0 0 0 3px rgba(91, 101, 243, 0.2);
+  border-color: #0400BA;
+  background-color: #ffffff;
+  box-shadow: 0 0 0 3px rgba(4, 0, 186, 0.1);
 }
 
 .modalActions {
@@ -341,21 +414,23 @@
 
 .cancelButton {
   background-color: transparent;
-  color: black;
-  border: 1px solid var(--border-color);
+  color: #374151;
+  border: 1px solid #e5e7eb;
   padding: 12px 25px;
   border-radius: 8px;
   font-size: 16px;
   cursor: pointer;
-  transition: background-color 0.3s;
+  transition: all 0.3s;
+  font-weight: 500;
 }
 
 .cancelButton:hover {
-  background-color: #f0f0f0;
+  background-color: #f3f4f6;
+  border-color: #d1d5db;
 }
 
 .saveButton {
-  background-color: var(--primary-color);
+  background-color: #0400BA;
   color: #fff;
   border: none;
   padding: 12px 25px;
@@ -363,90 +438,153 @@
   font-size: 16px;
   font-weight: 600;
   cursor: pointer;
-  transition: background-color 0.3s;
+  transition: all 0.3s;
 }
 
 .saveButton:hover {
-  background-color: #4a54c9;
+  background-color: #0300a0;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 8px rgba(4, 0, 186, 0.3);
+}
+
+.loading, .error {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 200px;
+  font-size: 16px;
+  color: #374151;
+  padding: 20px;
+}
+
+.error {
+  color: #dc2626;
+  background-color: #fef2f2;
+  border-radius: 8px;
+  border: 1px solid #fecaca;
+}
+
+.errorMessage {
+  background-color: #fef2f2;
+  color: #dc2626;
+  padding: 12px 16px;
+  border-radius: 8px;
+  margin-bottom: 15px;
+  border: 1px solid #fecaca;
+  font-size: 14px;
+  font-weight: 500;
 }
 
 /* Responsividade para tablets */
 @media (max-width: 1024px) {
-  .pageContainer {
-    padding: 25px;
+  .mainContent {
+    padding: 16px 20px;
   }
   
   .profileHeader {
-    padding: 18px 25px;
-    flex-direction: column;
-    align-items: center;
-    text-align: center;
-    gap: 15px;
+    padding: 20px 24px;
   }
   
   .profileInfo {
-    flex-direction: column;
-    align-items: center;
-    gap: 15px;
+    width: 100%;
   }
   
   .profileActions {
     width: 100%;
-    justify-content: center;
+    justify-content: flex-start;
   }
 }
 
 /* Responsividade para dispositivos móveis */
 @media (max-width: 768px) {
-  .pageContainer {
-    padding: 20px 15px;
+  .content {
+    padding: 0 15px;
+  }
+
+  .mainContent {
+    padding: 12px 16px;
+  }
+
+  .content_title {
+    font-size: 32px;
+    margin-bottom: 20px;
+  }
+
+  .content_info {
+    padding: 1.25rem;
+    margin-top: 0.75rem;
   }
   
   .profileHeader {
-    padding: 15px 20px;
+    padding: 16px 20px;
     margin-bottom: 20px;
+    flex-direction: column;
+    align-items: stretch;
+  }
+  
+  .profileInfo {
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    gap: 16px;
   }
   
   .profilePhotoContainer {
-    width: 70px;
-    height: 70px;
+    width: 90px;
+    height: 90px;
   }
-  
+
   .uploadPhotoButton {
-    width: 25px;
-    height: 25px;
+    width: 32px;
+    height: 32px;
   }
-  
+
   .uploadPhotoButton svg {
-    width: 15px;
-    height: 15px;
+    width: 18px;
+    height: 18px;
+  }
+
+  .profileText {
+    align-items: center;
+    text-align: center;
+  }
+
+  .profileText h2 {
+    font-size: 22px;
   }
   
-  .profileName {
-    font-size: 20px;
-  }
-  
-  .profileEmail {
+  .profileText p {
     font-size: 13px;
   }
   
+  .profileActions {
+    width: 100%;
+    justify-content: stretch;
+    flex-direction: column;
+  }
+  
   .actionButton, .logoutButton {
-    padding: 8px 16px;
+    width: 100%;
+    padding: 12px 20px;
     font-size: 14px;
   }
   
   .infoCard {
-    padding: 25px 20px;
+    padding: 20px;
   }
   
   .cardTitle {
     font-size: 18px;
     margin-bottom: 20px;
   }
+
+  .infoGrid {
+    gap: 16px;
+  }
   
   .modalContent {
     width: 95%;
-    padding: 25px 20px;
+    padding: 24px 20px;
   }
   
   .modalTitle {
@@ -456,61 +594,63 @@
 
 /* Responsividade para telas pequenas */
 @media (max-width: 480px) {
-  .pageContainer {
-    padding: 15px 10px;
+  .content {
+    padding: 0 12px;
+  }
+
+  .mainContent {
+    padding: 8px 12px;
+  }
+
+  .content_title {
+    font-size: 28px;
+    margin-bottom: 16px;
+  }
+
+  .content_info {
+    padding: 1rem;
+    border-radius: 16px;
   }
   
   .profileHeader {
-    padding: 12px 15px;
-    margin-bottom: 15px;
+    padding: 14px 16px;
+    margin-bottom: 16px;
   }
   
   .profilePhotoContainer {
-    width: 60px;
-    height: 60px;
+    width: 80px;
+    height: 80px;
   }
-  
+
   .uploadPhotoButton {
-    width: 22px;
-    height: 22px;
+    width: 28px;
+    height: 28px;
   }
-  
+
   .uploadPhotoButton svg {
-    width: 12px;
-    height: 12px;
+    width: 16px;
+    height: 16px;
+  }
+
+  .profileText h2 {
+    font-size: 20px;
   }
   
-  .profileName {
-    font-size: 18px;
-  }
-  
-  .profileEmail {
+  .profileText p {
     font-size: 12px;
   }
   
-  .profileActions {
-    flex-direction: column;
-    width: 100%;
-    gap: 10px;
-  }
-  
-  .actionButton, .logoutButton {
-    width: 100%;
-    padding: 10px 16px;
-    font-size: 14px;
-  }
-  
   .infoCard {
-    padding: 20px 15px;
+    padding: 16px;
   }
   
   .cardTitle {
     font-size: 16px;
-    margin-bottom: 18px;
+    margin-bottom: 16px;
   }
   
   .infoGrid {
-    gap: 15px;
+    gap: 14px;
   }
   
   .fieldInput {
@@ -526,7 +666,7 @@
   
   .modalContent {
     width: 98%;
-    padding: 20px 15px;
+    padding: 20px 16px;
     margin: 10px;
   }
   
@@ -553,25 +693,33 @@
 
 /* Responsividade para telas muito pequenas */
 @media (max-width: 360px) {
-  .pageContainer {
-    padding: 12px 8px;
+  .content {
+    padding: 0 10px;
+  }
+
+  .mainContent {
+    padding: 8px 10px;
+  }
+
+  .content_title {
+    font-size: 24px;
   }
   
   .profileHeader {
-    padding: 10px 12px;
+    padding: 12px 14px;
   }
   
   .profilePhotoContainer {
-    width: 55px;
-    height: 55px;
+    width: 70px;
+    height: 70px;
   }
-  
-  .profileName {
-    font-size: 16px;
+
+  .profileText h2 {
+    font-size: 18px;
   }
   
   .infoCard {
-    padding: 15px 12px;
+    padding: 14px;
   }
   
   .cardTitle {
@@ -579,18 +727,7 @@
   }
   
   .modalContent {
-    padding: 15px 12px;
-    margin: 5px;
+    padding: 16px 12px;
+    margin: 8px;
   }
-}
-
-
-.errorMessage {
-    background-color: #fee;
-    color: #c33;
-    padding: 10px;
-    border-radius: 4px;
-    margin-bottom: 15px;
-    border: 1px solid #fcc;
-    font-size: 14px;
 }

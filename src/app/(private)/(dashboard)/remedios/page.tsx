@@ -6,25 +6,27 @@ import { useRouter } from 'next/navigation';
 // Componentes e hooks
 import { useAuth } from '@/contexts/AuthContext';
 import { useIdoso } from '@/contexts/IdosoContext';
+import { useProfile } from '@/hooks/useProfile';
 import { FullScreenLoader } from '@/components/features/FullScreenLoader';
 import { AddMedicamentoForm } from '@/components/features/forms/AddMedicamentoForm';
 import { Modal } from '@/components/features/Modal';
 import MedicamentoCard from '@/components/features/MedicamentoCard';
-import { useCrudOperations } from '@/hooks/useCrudOperations';
 import { createClient } from '@/lib/supabase/client';
-import { useAuthRequest } from '@/hooks/useAuthRequest';
 import { toast } from '@/components/features/Toast';
+import { MedicamentosService } from '@/lib/supabase/services';
+import { listarEventosDoDia, atualizarStatusEvento } from '@/lib/supabase/services/historicoEventos';
 
 // Estilos
 import styles from './page.module.css';
 
 type Medicamento = {
-  id: string;
+  id: number;
   nome: string;
-  dosagem?: string;
+  dosagem?: string | null;
   frequencia?: any;
-  quantidade?: number;
+  quantidade?: number | null;
   created_at: string;
+  user_id?: string | null;
 };
 
 // Assinatura de dados de atualização sem 'id' e 'created_at'
@@ -35,11 +37,21 @@ export default function Remedios() {
   const { user } = useAuth();
   const router = useRouter();
   const { idosoSelecionadoId, listaIdososVinculados } = useIdoso();
+  const { profile } = useProfile();
   const isFamiliar = user?.user_metadata?.account_type === 'familiar';
   const targetUserId = isFamiliar ? idosoSelecionadoId : user?.id;
+  const targetProfileId = isFamiliar ? idosoSelecionadoId : profile?.id;
   const selectedElderName = useMemo(() => (
     listaIdososVinculados.find((i) => i.id === idosoSelecionadoId)?.nome || null
   ), [listaIdososVinculados, idosoSelecionadoId]);
+  
+  const [medicamentos, setMedicamentos] = useState<Medicamento[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [addModalOpen, setAddModalOpen] = useState(false);
+  const [editModalOpen, setEditModalOpen] = useState(false);
+  const [editingMedicamento, setEditingMedicamento] = useState<Medicamento | null>(null);
+  
   const [photoModal, setPhotoModal] = useState({
     isOpen: false,
     open: () => setPhotoModal(prev => ({ ...prev, isOpen: true })),
@@ -50,47 +62,40 @@ export default function Remedios() {
   const [photoStatus, setPhotoStatus] = useState<string | null>(null);
   const [photoError, setPhotoError] = useState<string | null>(null);
 
-  const { makeRequest } = useAuthRequest();
-  const [eventosDoDia, setEventosDoDia] = useState<Array<{ id: string; tipo_evento: string; evento_id: string; status: string }>>([]);
-  const [marking, setMarking] = useState<Record<string, boolean>>({});
+  const [eventosDoDia, setEventosDoDia] = useState<Array<{ id: number; tipo_evento: string; evento_id: number; status: string }>>([]);
+  const [marking, setMarking] = useState<Record<number, boolean>>({});
 
-  // Usar o hook CRUD personalizado
-  const {
-    items: medicamentos,
-    loading,
-    error,
-    addModal,
-    editModal,
-    createItem,
-    updateItem,
-    editItem,
-    deleteItem,
-    fetchItems,
-    setItems,
-  } = useCrudOperations<Medicamento>({
-    endpoint: targetUserId ? `/api/medicamentos?idoso_id=${encodeURIComponent(targetUserId)}` : '/api/medicamentos',
-    onError: {
-      create: (error) => alert(`Erro ao criar medicamento: ${error}`),
-      update: (error) => alert(`Erro ao atualizar medicamento: ${error}`),
-      delete: (error) => alert(`Erro ao excluir medicamento: ${error}`),
-    },
-  });
+  // Carregar medicamentos
+  const fetchMedicamentos = React.useCallback(async () => {
+    if (!targetUserId) {
+      if (isFamiliar) {
+        setMedicamentos([]);
+        setLoading(false);
+      }
+      return;
+    }
+
+    setLoading(true);
+    setError(null);
+    try {
+      const data = await MedicamentosService.listarMedicamentos(targetUserId);
+      setMedicamentos(data || []);
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : 'Erro ao carregar medicamentos';
+      setError(errorMessage);
+      toast.error(errorMessage);
+    } finally {
+      setLoading(false);
+    }
+  }, [targetUserId, isFamiliar]);
 
   React.useEffect(() => {
-    if (isFamiliar) {
-      if (targetUserId) {
-        fetchItems();
-      } else {
-        setItems([] as any);
-      }
-    } else {
-      fetchItems();
-    }
-  }, [isFamiliar, targetUserId, fetchItems, setItems]);
+    fetchMedicamentos();
+  }, [fetchMedicamentos]);
 
   // Ouve botões do Header
   React.useEffect(() => {
-    const onAddMedicamento = () => addModal.open();
+    const onAddMedicamento = () => setAddModalOpen(true);
     const onAddMedicamentoFoto = () => photoModal.open();
     window.addEventListener('caremind:add-medicamento', onAddMedicamento as EventListener);
     window.addEventListener('caremind:add-medicamento-foto', onAddMedicamentoFoto as EventListener);
@@ -98,23 +103,32 @@ export default function Remedios() {
       window.removeEventListener('caremind:add-medicamento', onAddMedicamento as EventListener);
       window.removeEventListener('caremind:add-medicamento-foto', onAddMedicamentoFoto as EventListener);
     };
-  }, [addModal, photoModal]);
+  }, [photoModal]);
 
+  // Carregar eventos do dia
   React.useEffect(() => {
     const loadAgenda = async () => {
-      if (!user) return;
-      if (isFamiliar && !targetUserId) return;
-      const today = new Date().toISOString().slice(0, 10);
-      const params = targetUserId ? `?idoso_id=${encodeURIComponent(targetUserId)}&data=${encodeURIComponent(today)}` : `?data=${encodeURIComponent(today)}`;
+      if (!targetProfileId) return;
+      if (isFamiliar && !targetProfileId) return;
+      
       try {
-        const data = await makeRequest<Array<any>>(`/api/agenda${params}`, { method: 'GET' });
-        setEventosDoDia((data || []).map(e => ({ id: e.id, tipo_evento: e.tipo_evento, evento_id: e.evento_id, status: e.status })));
+        const hoje = new Date();
+        const eventos = await listarEventosDoDia(targetProfileId, hoje);
+        setEventosDoDia(
+          eventos.map(e => ({
+            id: e.id,
+            tipo_evento: e.tipo_evento,
+            evento_id: e.evento_id,
+            status: e.status
+          }))
+        );
       } catch (e) {
-        // ignora
+        // ignora erros silenciosamente
+        console.error('Erro ao carregar agenda:', e);
       }
     };
     loadAgenda();
-  }, [user, isFamiliar, targetUserId, makeRequest]);
+  }, [targetProfileId, isFamiliar]);
 
   const handleSaveMedicamento = async (
     nome: string,
@@ -123,17 +137,58 @@ export default function Remedios() {
     quantidade: number
   ) => {
     if (isFamiliar && !targetUserId) {
-      alert('Selecione um idoso no menu superior antes de adicionar medicamentos.');
+      toast.error('Selecione um idoso no menu superior antes de adicionar medicamentos.');
       return;
     }
-    await createItem({
-      nome,
-      dosagem,
-      frequencia,
-      quantidade,
-      created_at: new Date().toISOString(),
-      ...(targetUserId ? { user_id: targetUserId } : {}),
-    } as unknown as Omit<Medicamento, 'id'>);
+    if (!targetUserId) {
+      toast.error('Usuário não identificado.');
+      return;
+    }
+
+    try {
+      // Garantir que frequencia seja um objeto válido
+      // Criar um novo objeto limpo sem propriedades undefined
+      let frequenciaLimpa: any = null;
+      if (frequencia) {
+        frequenciaLimpa = {};
+        if (frequencia.tipo) frequenciaLimpa.tipo = frequencia.tipo;
+        if ('horarios' in frequencia && Array.isArray(frequencia.horarios)) {
+          frequenciaLimpa.horarios = frequencia.horarios;
+        }
+        if ('intervalo_horas' in frequencia && frequencia.intervalo_horas !== undefined) {
+          frequenciaLimpa.intervalo_horas = frequencia.intervalo_horas;
+        }
+        if ('inicio' in frequencia && frequencia.inicio) {
+          frequenciaLimpa.inicio = frequencia.inicio;
+        }
+        if ('intervalo_dias' in frequencia && frequencia.intervalo_dias !== undefined) {
+          frequenciaLimpa.intervalo_dias = frequencia.intervalo_dias;
+        }
+        if ('horario' in frequencia && frequencia.horario) {
+          frequenciaLimpa.horario = frequencia.horario;
+        }
+        if ('dias_da_semana' in frequencia && Array.isArray(frequencia.dias_da_semana)) {
+          frequenciaLimpa.dias_da_semana = frequencia.dias_da_semana;
+        }
+      }
+      
+      // Garantir que strings vazias sejam null
+      const novoMedicamento = await MedicamentosService.criarMedicamento({
+        nome: nome?.trim() || null,
+        dosagem: dosagem?.trim() || null,
+        frequencia: frequenciaLimpa,
+        quantidade: quantidade || null,
+        user_id: targetUserId,
+      });
+      setMedicamentos(prev => [novoMedicamento, ...prev]);
+      toast.success('Medicamento criado com sucesso');
+      setAddModalOpen(false);
+      await fetchMedicamentos(); // Recarrega para garantir sincronização
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : 'Erro ao criar medicamento';
+      toast.error(errorMessage);
+      alert(`Erro ao criar medicamento: ${errorMessage}`);
+    }
   };
 
   const handleUpdateMedicamento = async (
@@ -142,37 +197,96 @@ export default function Remedios() {
     frequencia: any,
     quantidade: number
   ) => {
-    if (!editModal.item) return;
+    if (!editingMedicamento) return;
 
-    // CORREÇÃO CRÍTICA: Chamada do updateItem.
-    // Presumindo que 'updateItem' espera o ID E os dados.
-    // Se o hook 'useCrudOperations' estiver definido corretamente, esta chamada
-    // deve estar em conformidade com 'updateItem(id, data)'.
-    await updateItem(editModal.item.id, {
-      nome,
-      dosagem,
-      frequencia,
-      quantidade,
-    } as UpdateMedicamentoData); // Tipagem mais clara para o payload
+    try {
+      // Garantir que frequencia seja um objeto válido
+      // Criar um novo objeto limpo sem propriedades undefined
+      let frequenciaLimpa: any = null;
+      if (frequencia) {
+        frequenciaLimpa = {};
+        if (frequencia.tipo) frequenciaLimpa.tipo = frequencia.tipo;
+        if ('horarios' in frequencia && Array.isArray(frequencia.horarios)) {
+          frequenciaLimpa.horarios = frequencia.horarios;
+        }
+        if ('intervalo_horas' in frequencia && frequencia.intervalo_horas !== undefined) {
+          frequenciaLimpa.intervalo_horas = frequencia.intervalo_horas;
+        }
+        if ('inicio' in frequencia && frequencia.inicio) {
+          frequenciaLimpa.inicio = frequencia.inicio;
+        }
+        if ('intervalo_dias' in frequencia && frequencia.intervalo_dias !== undefined) {
+          frequenciaLimpa.intervalo_dias = frequencia.intervalo_dias;
+        }
+        if ('horario' in frequencia && frequencia.horario) {
+          frequenciaLimpa.horario = frequencia.horario;
+        }
+        if ('dias_da_semana' in frequencia && Array.isArray(frequencia.dias_da_semana)) {
+          frequenciaLimpa.dias_da_semana = frequencia.dias_da_semana;
+        }
+      }
+      
+      // Garantir que strings vazias sejam null
+      const medicamentoAtualizado = await MedicamentosService.atualizarMedicamento(
+        editingMedicamento.id,
+        {
+          nome: nome?.trim() || null,
+          dosagem: dosagem?.trim() || null,
+          frequencia: frequenciaLimpa,
+          quantidade: quantidade || null,
+        }
+      );
+      setMedicamentos(prev => prev.map(m => m.id === editingMedicamento.id ? medicamentoAtualizado : m));
+      toast.success('Medicamento atualizado com sucesso');
+      setEditModalOpen(false);
+      setEditingMedicamento(null);
+      await fetchMedicamentos(); // Recarrega para garantir sincronização
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : 'Erro ao atualizar medicamento';
+      toast.error(errorMessage);
+      alert(`Erro ao atualizar medicamento: ${errorMessage}`);
+    }
   };
 
-  const hasPendingForMedicamento = (medId: string) =>
+  const handleDeleteMedicamento = async (id: number) => {
+    if (!window.confirm('Tem certeza que deseja excluir este medicamento?')) return;
+
+    try {
+      await MedicamentosService.deletarMedicamento(id);
+      setMedicamentos(prev => prev.filter(m => m.id !== id));
+      toast.success('Medicamento excluído com sucesso');
+      await fetchMedicamentos(); // Recarrega para garantir sincronização
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : 'Erro ao excluir medicamento';
+      toast.error(errorMessage);
+      alert(`Erro ao excluir medicamento: ${errorMessage}`);
+    }
+  };
+
+  const handleEditMedicamento = (medicamento: Medicamento) => {
+    setEditingMedicamento(medicamento);
+    setEditModalOpen(true);
+  };
+
+  const hasPendingForMedicamento = (medId: number) =>
     eventosDoDia.some(e => e.tipo_evento === 'medicamento' && e.evento_id === medId && e.status === 'pendente');
 
-  const handleMarkMedicamentoDone = async (medId: string) => {
+  const handleMarkMedicamentoDone = async (medId: number) => {
     const ev = eventosDoDia.find(e => e.tipo_evento === 'medicamento' && e.evento_id === medId && e.status === 'pendente');
     if (!ev) return;
     setMarking(prev => ({ ...prev, [medId]: true }));
     const prevEventos = eventosDoDia;
     setEventosDoDia(prev => prev.map(e => e.id === ev.id ? { ...e, status: 'confirmado' } : e));
     try {
-      await makeRequest(`/api/historico_eventos/${ev.id}`, {
-        method: 'PATCH',
-        body: JSON.stringify({ status: 'confirmado' }),
-      });
+      await atualizarStatusEvento(ev.id, 'confirmado');
+      // Recarrega os medicamentos para atualizar a quantidade
+      await fetchMedicamentos();
+      toast.success('Medicamento marcado como tomado');
     } catch (err) {
       setEventosDoDia(prevEventos);
-      alert(err instanceof Error ? err.message : 'Falha ao atualizar evento');
+      const errorMessage = err instanceof Error ? err.message : 'Falha ao atualizar evento';
+      toast.error(errorMessage);
+      alert(errorMessage);
     } finally {
       setMarking(prev => ({ ...prev, [medId]: false }));
     }
@@ -272,7 +386,7 @@ export default function Remedios() {
             // Sucesso: PROCESSADO ou PROCESSADO_PARCIALMENTE
             if (status === 'PROCESSADO' || status === 'PROCESSADO_PARCIALMENTE') {
               toast.success('Receita processada. Atualizando medicamentos...');
-              await fetchItems();
+              await fetchMedicamentos();
               return; // fim do polling
             }
             // Erros: ERRO_PROCESSAMENTO (ex.: não encontrou medicamentos) ou ERRO_DATABASE
@@ -308,7 +422,7 @@ export default function Remedios() {
     }
   };
 
-  // Render content
+  // Renderiza o conteúdo
   const renderContent = () => {
     if (isFamiliar && !targetUserId) {
       return (
@@ -330,8 +444,8 @@ export default function Remedios() {
             <MedicamentoCard
               key={medicamento.id}
               medicamento={medicamento}
-              onEdit={editItem}
-              onDelete={deleteItem}
+              onEdit={handleEditMedicamento}
+              onDelete={handleDeleteMedicamento}
               hasPendingToday={hasPendingForMedicamento(medicamento.id)}
               isMarking={!!marking[medicamento.id]}
               onMarkAsDone={() => handleMarkMedicamentoDone(medicamento.id)}
@@ -359,7 +473,7 @@ export default function Remedios() {
 
         {!loading && !error && !(isFamiliar && !targetUserId) && (
           <div className={styles.actionsContainer}>
-            <button className={styles.addButton} onClick={() => addModal.open()}>
+            <button className={styles.addButton} onClick={() => setAddModalOpen(true)}>
               <span className={styles.addIcon}>+</span>
               Adicionar Medicamento
             </button>
@@ -375,21 +489,24 @@ export default function Remedios() {
         </section>
       </div>
 
-      <Modal isOpen={addModal.isOpen} onClose={addModal.close} title="Adicionar medicamento">
-        <AddMedicamentoForm onSave={handleSaveMedicamento} onCancel={addModal.close} />
+      <Modal isOpen={addModalOpen} onClose={() => setAddModalOpen(false)} title="Adicionar medicamento">
+        <AddMedicamentoForm onSave={handleSaveMedicamento} onCancel={() => setAddModalOpen(false)} />
       </Modal>
 
-      <Modal isOpen={editModal.isOpen} onClose={editModal.close} title="Editar medicamento">
-        {editModal.item && (
+      <Modal isOpen={editModalOpen} onClose={() => setEditModalOpen(false)} title="Editar medicamento">
+        {editingMedicamento && (
           <AddMedicamentoForm
             onSave={handleUpdateMedicamento}
-            onCancel={editModal.close}
+            onCancel={() => {
+              setEditModalOpen(false);
+              setEditingMedicamento(null);
+            }}
             medicamento={{
-              id: editModal.item.id,
-              nome: editModal.item.nome,
-              dosagem: editModal.item.dosagem ?? '',
-              quantidade: editModal.item.quantidade ?? 0,
-              frequencia: editModal.item.frequencia ?? null,
+              id: editingMedicamento.id.toString(),
+              nome: editingMedicamento.nome,
+              dosagem: editingMedicamento.dosagem ?? '',
+              quantidade: editingMedicamento.quantidade ?? 0,
+              frequencia: editingMedicamento.frequencia ?? null,
             }}
           />
         )}

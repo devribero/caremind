@@ -236,23 +236,146 @@
   white-space: nowrap;
 }
 
-.horariosContainer {
+.horarioInputContainer .inputError {
+  border-color: #ef4444 !important;
+  background-color: #fff5f5;
+}
+
+.timePickerField {
+  width: 100%;
+}
+
+.dateTimeWrapper {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
-  gap: 10px;
-  margin: 12px 0;
-  max-height: 220px;
-  overflow-y: auto;
-  overflow-x: hidden;
-  padding: 12px;
-  scrollbar-width: thin;
-  scrollbar-color: #d1d5db #f3f4f6;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 1rem;
   align-items: start;
-  position: relative;
-  min-height: 60px;
-  background-color: #f9fafb;
-  border-radius: 8px;
-  border: 1px dashed #e5e7eb;
+}
+
+.dateField,
+.timeField {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.subLabel {
+  font-size: 0.85rem;
+  font-weight: 500;
+  color: #4b5563;
+}
+
+/* Botões rápidos de horários */
+.quickTimeButtons {
+  margin: 16px 0;
+  padding: 16px;
+  background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+  border-radius: 12px;
+  border: 2px solid #e2e8f0;
+  font-family: inherit;
+}
+
+.quickTimeLabel {
+  display: block;
+  font-size: 0.9375rem;
+  font-weight: 500;
+  color: #374151;
+  margin-bottom: 12px;
+  font-family: inherit;
+}
+
+.quickTimeGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+  gap: 10px;
+}
+
+.quickTimeButton {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  padding: 14px 12px;
+  background: white;
+  border: 2px solid #cbd5e1;
+  border-radius: 10px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-family: inherit;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+}
+
+.quickTimeButton:hover {
+  border-color: #0400BA;
+  background: #f0f4ff;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(4, 0, 186, 0.15);
+}
+
+.quickTimeButtonActive {
+  background: linear-gradient(135deg, #0400BA 0%, #03008f 100%);
+  border-color: #0400BA;
+  color: white;
+  box-shadow: 0 4px 12px rgba(4, 0, 186, 0.3);
+}
+
+.quickTimeButtonActive:hover {
+  background: linear-gradient(135deg, #03008f 0%, #020070 100%);
+  transform: translateY(-1px);
+}
+
+.quickTimeLabelText {
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: inherit;
+  font-family: inherit;
+}
+
+.quickTimeButtonActive .quickTimeLabelText {
+  color: white;
+}
+
+.quickTimeValue {
+  font-size: 1rem;
+  font-weight: 600;
+  color: #64748b;
+  font-variant-numeric: tabular-nums;
+  font-family: inherit;
+}
+
+.quickTimeButtonActive .quickTimeValue {
+  color: white;
+}
+
+/* Container de horários adicionados */
+.horariosContainer {
+  margin: 20px 0;
+  padding: 16px;
+  background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
+  border-radius: 12px;
+  border: 2px solid #e2e8f0;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+  font-family: inherit;
+}
+
+.horariosHeader {
+  margin-bottom: 12px;
+  padding-bottom: 12px;
+  border-bottom: 2px solid #e2e8f0;
+}
+
+.horariosCount {
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: #374151;
+  font-family: inherit;
+}
+
+.horariosList {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
 }
 
 .horariosContainer::-webkit-scrollbar {
@@ -286,21 +409,47 @@
   min-height: 60px;
 }
 
+.hintText {
+  margin-top: 12px;
+  padding: 12px 16px;
+  background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
+  border-left: 4px solid #f59e0b;
+  border-radius: 8px;
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: #92400e;
+  line-height: 1.5;
+  box-shadow: 0 2px 4px rgba(245, 158, 11, 0.1);
+  font-family: inherit;
+}
+
 .horarioItem {
   display: inline-flex;
   justify-content: space-between;
   align-items: center;
-  padding: 8px 10px;
-  background-color: white;
-  border-radius: 6px;
-  border: 1px solid #e5e7eb;
-  transition: all 0.2s ease;
-  animation: popIn 0.2s ease-out;
-  font-size: 0.9rem;
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+  gap: 12px;
+  padding: 14px 18px;
+  background: linear-gradient(135deg, #e0e7ff 0%, #c7d2fe 100%);
+  border-radius: 12px;
+  border: 3px solid #0400BA;
+  transition: all 0.3s ease;
+  animation: popIn 0.3s ease-out;
+  font-size: 1rem;
+  box-shadow: 0 4px 12px rgba(4, 0, 186, 0.3), 0 0 0 2px rgba(4, 0, 186, 0.1);
   position: relative;
   overflow: hidden;
-  min-width: 0;
+  min-width: 120px;
+  font-weight: 600;
+}
+
+.horarioTime {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: #0400BA;
+  font-variant-numeric: tabular-nums;
+  font-family: inherit;
+  text-shadow: 0 1px 2px rgba(4, 0, 186, 0.1);
+  letter-spacing: 0.5px;
 }
 
 @keyframes popIn {
@@ -318,10 +467,15 @@
 }
 
 .horarioItem:hover {
-  background-color: #f8fafc;
-  border-color: #cbd5e1;
-  transform: translateY(-1px);
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
+  background: linear-gradient(135deg, #c7d2fe 0%, #a5b4fc 100%);
+  border-color: #03008f;
+  transform: translateY(-3px) scale(1.02);
+  box-shadow: 0 6px 16px rgba(4, 0, 186, 0.4), 0 0 0 3px rgba(4, 0, 186, 0.15);
+}
+
+.horarioItem:hover .horarioTime {
+  color: #03008f;
+  text-shadow: 0 2px 4px rgba(4, 0, 186, 0.2);
 }
 
 .horarioItem:active {
@@ -329,52 +483,75 @@
   box-shadow: none;
 }
 
-.horarioItem span {
-  flex: 1;
-  text-align: center;
-  font-feature-settings: 'tnum';
-  font-variant-numeric: tabular-nums;
-}
 
 /* Melhorias na responsividade */
 @media (max-width: 480px) {
-  .horariosContainer {
-    grid-template-columns: 1fr;
-    padding: 8px;
+  .quickTimeGrid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 8px;
   }
-  
-  .addHorarioContainer {
-    grid-template-columns: 1fr;
+
+  .quickTimeButton {
+    padding: 12px 8px;
+  }
+
+  .quickTimeLabelText {
+    font-size: 0.8125rem;
+  }
+
+  .quickTimeValue {
+    font-size: 0.9375rem;
+  }
+
+  .horariosContainer {
     padding: 12px;
+  }
+
+  .addHorarioContainer {
+    padding: 16px;
   }
 }
 
 .addHorarioContainer {
-  display: grid;
-  grid-template-columns: 1fr auto;
+  display: flex;
+  flex-direction: column;
   gap: 12px;
-  margin: 16px 0 8px;
+  margin: 20px 0 8px;
   position: relative;
   background: white;
-  padding: 16px;
-  border-radius: 8px;
-  border: 1px solid #e5e7eb;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
-  align-items: center;
+  padding: 20px;
+  border-radius: 12px;
+  border: 2px solid #e2e8f0;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+}
+
+.horarioInputWrapper {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  flex: 1;
+}
+
+.horarioInputLabel {
+  font-size: 0.9375rem;
+  font-weight: 500;
+  color: #374151;
+  margin: 0;
+  font-family: inherit;
 }
 
 .addHorarioContainer .timeInput {
   width: 100%;
-  min-width: 120px;
-  max-width: 180px;
-  padding: 12px;
+  padding: 14px 16px;
   font-size: 1rem;
-  border: 1px solid #9ca3af; /* mais contraste */
-  border-radius: 6px;
-  background-color: #ffffff; /* garante branco puro */
-  color: #111827; /* texto mais escuro */
+  border: 2px solid #cbd5e1;
+  border-radius: 10px;
+  background-color: #ffffff;
+  color: #374151;
   transition: all 0.2s ease;
   font-weight: 500;
+  font-variant-numeric: tabular-nums;
+  font-family: inherit;
 }
 
 /* Aumenta contraste dos campos nativos do time input (WebKit) */
@@ -390,38 +567,41 @@
 }
 
 .addHorarioContainer .timeInput:hover {
-  border-color: #6b7280;
+  border-color: #94a3b8;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
 }
 
 .addHorarioContainer .timeInput:focus {
   border-color: #0400BA;
-  box-shadow: 0 0 0 3px rgba(4, 0, 186, 0.15);
+  box-shadow: 0 0 0 4px rgba(4, 0, 186, 0.2);
+  outline: none;
 }
 
 .addHorarioContainer .addButton {
-  background-color: #0400BA;
+  background: linear-gradient(135deg, #0400BA 0%, #03008f 100%);
   color: white;
   border: none;
-  border-radius: 6px;
-  padding: 12px 16px;
+  border-radius: 10px;
+  padding: 14px 20px;
   font-size: 0.95rem;
-  font-weight: 500;
+  font-weight: 600;
   cursor: pointer;
-  display: inline-flex;
+  display: flex;
   align-items: center;
   justify-content: center;
   gap: 8px;
   transition: all 0.2s ease;
   white-space: nowrap;
-  width: auto;
+  width: 100%;
   margin-top: 0;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 4px 12px rgba(4, 0, 186, 0.25);
+  font-family: inherit;
 }
 
 .addHorarioContainer .addButton:hover:not(:disabled) {
-  background-color: #03008f;
-  transform: translateY(-1px);
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.15);
+  background: linear-gradient(135deg, #03008f 0%, #020070 100%);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(4, 0, 186, 0.35);
 }
 
 .addHorarioContainer .addButton:active:not(:disabled) {
@@ -436,18 +616,34 @@
 }
 
 .removeButton {
-  background: rgba(239, 68, 68, 0.1);
-  border: none;
-  border-radius: 6px;
-  padding: 0 12px;
-  font-size: 0.9rem;
-  font-weight: 500;
+  background: rgba(239, 68, 68, 0.15);
+  border: 2px solid rgba(239, 68, 68, 0.3);
+  border-radius: 8px;
+  padding: 6px 12px;
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: #dc2626;
   cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
-  transition: background-color 0.2s ease;
+  transition: all 0.2s ease;
   white-space: nowrap;
+  min-width: 32px;
+  height: 32px;
+  line-height: 1;
+  font-family: inherit;
+}
+
+.removeButton:hover {
+  background: rgba(239, 68, 68, 0.25);
+  border-color: #dc2626;
+  transform: scale(1.1);
+  box-shadow: 0 2px 6px rgba(239, 68, 68, 0.3);
+}
+
+.removeButton:active {
+  transform: scale(0.95);
 }
 
 .addButton:hover {

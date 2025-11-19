@@ -3,7 +3,8 @@
 import { createContext, useContext, useEffect, useMemo, useState, ReactNode, useCallback } from 'react';
 import { createClient } from '@/lib/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
-import { useProfile } from '@/contexts/ProfileContext';
+import { useProfile } from '@/hooks/useProfile';
+import { listarIdososVinculados } from '@/lib/supabase/services/vinculos';
 
 export type IdosoResumo = {
   id: string;
@@ -30,7 +31,7 @@ export function IdosoProvider({ children }: { children: ReactNode }) {
   const [selecionado, setSelecionado] = useState<string | null>(null);
 
   const refresh = useCallback(async () => {
-    if (!user) {
+    if (!user?.id) {
       setLista([]);
       setSelecionado(null);
       return;
@@ -42,25 +43,18 @@ export function IdosoProvider({ children }: { children: ReactNode }) {
       setSelecionado(null);
       return;
     }
+    
     setLoading(true);
     try {
-      const { data: { session } } = await supabase.auth.getSession();
-      const token = session?.access_token;
-      const res = await fetch('/api/vinculos/idosos', {
-        headers: token ? { Authorization: `Bearer ${token}` } : undefined,
-        cache: 'no-store',
-      });
-      if (!res.ok) {
-        setLista([]);
-        setSelecionado(null);
-        return;
-      }
-      const itens = await res.json();
-      const mapped: IdosoResumo[] = (Array.isArray(itens) ? itens : []).map((x: any) => ({
-        id: x.id || x.idoso_id || x.id_idoso,
-        nome: x.nome || x.nome_idoso || x.nome_completo || 'Idoso',
+      const idososVinculados = await listarIdososVinculados(user.id);
+      
+      const mapped: IdosoResumo[] = idososVinculados.map((vinculo) => ({
+        id: vinculo.id_idoso,
+        nome: vinculo.idoso?.nome || 'Idoso',
       }));
+      
       setLista(mapped);
+      
       // Mantém seleção se ainda existir; caso contrário, usa persistido ou seleciona primeiro
       const persisted = typeof window !== 'undefined' ? (localStorage.getItem('idosoSelecionadoId') || null) : null;
       setSelecionado((prev) => {
@@ -68,10 +62,14 @@ export function IdosoProvider({ children }: { children: ReactNode }) {
         if (candidate && mapped.some((i) => i.id === candidate)) return candidate;
         return mapped.length ? mapped[0].id : null;
       });
+    } catch (error) {
+      console.error('Erro ao carregar idosos vinculados:', error);
+      setLista([]);
+      setSelecionado(null);
     } finally {
       setLoading(false);
     }
-  }, [supabase, user, profile?.tipo]);
+  }, [user, profile?.tipo]);
 
   useEffect(() => {
     refresh();

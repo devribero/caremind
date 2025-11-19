@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import styles from './AddForm.module.css';
+import { TimePicker } from './TimePicker';
 
 // Tipos de Frequência
 type FrequenciaDiaria = {
@@ -50,14 +51,15 @@ export function AddRotinaForm({ onSave, onCancel, rotina }: AddRotinaFormProps) 
   
   // Estados para o controle da frequência
   const [tipoFrequencia, setTipoFrequencia] = useState<'diario' | 'intervalo' | 'dias_alternados' | 'semanal'>('diario');
-  const [horarios, setHorarios] = useState<string[]>(['09:00']);
+  const [horarios, setHorarios] = useState<string[]>([]);
   const [novoHorario, setNovoHorario] = useState('');
   const [intervaloHoras, setIntervaloHoras] = useState(8);
-  const [horaInicio, setHoraInicio] = useState('09:00');
+  const [horaInicio, setHoraInicio] = useState('');
   const [intervaloDias, setIntervaloDias] = useState(2);
   const [diasSemana, setDiasSemana] = useState<number[]>([]);
   const [loading, setLoading] = useState(false);
   const [formErrors, setFormErrors] = useState<Record<string, string>>({});
+  const [horarioError, setHorarioError] = useState('');
 
   const diasDaSemana = [
     { id: 1, label: 'Seg' },
@@ -70,9 +72,30 @@ export function AddRotinaForm({ onSave, onCancel, rotina }: AddRotinaFormProps) 
   ];
 
   const adicionarHorario = () => {
-    if (novoHorario && !horarios.includes(novoHorario)) {
-      setHorarios([...horarios, novoHorario].sort());
-      setNovoHorario('');
+    const horarioFormatado = novoHorario.trim();
+    setHorarioError('');
+
+    if (!horarioFormatado) {
+      setHorarioError('Por favor, informe um horário');
+      return;
+    }
+
+    const horarioValido = /^([01]?[0-9]|2[0-3]):[0-5][0-9]$/.test(horarioFormatado);
+    if (!horarioValido) {
+      setHorarioError('Formato inválido. Use HH:MM');
+      return;
+    }
+
+    if (horarios.includes(horarioFormatado)) {
+      setHorarioError('Este horário já foi adicionado');
+      return;
+    }
+
+    setHorarios(prev => [...prev, horarioFormatado].sort((a, b) => a.localeCompare(b)));
+    setNovoHorario('');
+
+    if (formErrors.horarios) {
+      setFormErrors(prev => ({ ...prev, horarios: '' }));
     }
   };
 
@@ -247,7 +270,7 @@ export function AddRotinaForm({ onSave, onCancel, rotina }: AddRotinaFormProps) 
             {horarios.length > 0 ? (
               horarios.map((horario, index) => (
                 <div key={index} className={styles.horarioItem}>
-                  <span>{horario}</span>
+                  <span className={styles.horarioTime}>{horario}</span>
                   <button 
                     type="button" 
                     onClick={() => {
@@ -269,21 +292,26 @@ export function AddRotinaForm({ onSave, onCancel, rotina }: AddRotinaFormProps) 
           </div>
           <div className={styles.addHorarioContainer}>
             <div className={styles.horarioInputContainer}>
-              <input
-                type="time"
+              <TimePicker
+                id="novoHorarioRotina"
                 value={novoHorario}
-                onChange={(e) => {
-                  setNovoHorario(e.target.value);
+                onChange={(value) => {
+                  setNovoHorario(value);
+                  if (horarioError) setHorarioError('');
                   if (formErrors.horarios) {
                     setFormErrors(prev => ({ ...prev, horarios: '' }));
                   }
                 }}
                 onKeyDown={(e) => e.key === 'Enter' && (e.preventDefault(), adicionarHorario())}
-                className={`${styles.timeInput} ${formErrors.horarios ? styles.inputError : ''}`}
-                aria-invalid={!!formErrors.horarios}
-                aria-describedby={formErrors.horarios ? 'horarios-error' : undefined}
-                placeholder="HH:MM"
+                className={styles.timePickerField}
+                ariaInvalid={!!formErrors.horarios || !!horarioError}
+                ariaDescribedBy={formErrors.horarios || horarioError ? 'horarios-error' : undefined}
               />
+              {(formErrors.horarios || horarioError) && (
+                <div id="horarios-error" className={styles.errorMessage}>
+                  {formErrors.horarios || horarioError}
+                </div>
+              )}
             </div>
             <button
               type="button"
@@ -310,7 +338,12 @@ export function AddRotinaForm({ onSave, onCancel, rotina }: AddRotinaFormProps) 
           </div>
           <div className={styles.formGroup}>
             <label htmlFor="horaInicio">A partir das</label>
-            <input id="horaInicio" type="time" value={horaInicio} onChange={(e) => setHoraInicio(e.target.value)} className={styles.input} />
+            <TimePicker
+              id="horaInicioIntervalo"
+              value={horaInicio}
+              onChange={setHoraInicio}
+              className={styles.timePickerField}
+            />
           </div>
         </>
       )}
@@ -323,7 +356,12 @@ export function AddRotinaForm({ onSave, onCancel, rotina }: AddRotinaFormProps) 
           </div>
           <div className={styles.formGroup}>
             <label htmlFor="horaDiasAlternados">No horário</label>
-            <input id="horaDiasAlternados" type="time" value={horaInicio} onChange={(e) => setHoraInicio(e.target.value)} className={styles.input} />
+            <TimePicker
+              id="horaDiasAlternados"
+              value={horaInicio}
+              onChange={setHoraInicio}
+              className={styles.timePickerField}
+            />
           </div>
         </>
       )}
@@ -364,12 +402,11 @@ export function AddRotinaForm({ onSave, onCancel, rotina }: AddRotinaFormProps) 
           </div>
           <div className={styles.formGroup}>
             <label htmlFor="horaSemanal">No horário</label>
-            <input 
-              id="horaSemanal" 
-              type="time" 
-              value={horaInicio} 
-              onChange={(e) => setHoraInicio(e.target.value)} 
-              className={styles.input} 
+            <TimePicker
+              id="horaSemanal"
+              value={horaInicio}
+              onChange={setHoraInicio}
+              className={styles.timePickerField}
             />
           </div>
         </>

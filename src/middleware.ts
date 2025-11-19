@@ -68,7 +68,7 @@ export async function middleware(request: NextRequest) {
     }
   )
 
-  // Atualiza a sessão do usuário. Essencial para Server Components e API Routes.
+  // Atualiza a sessão do usuário. Essencial para Server Components e rotas de API.
   await supabase.auth.getSession()
 
   const csp = [
@@ -77,11 +77,12 @@ export async function middleware(request: NextRequest) {
     "form-action 'self'",
     "frame-ancestors 'self'",
     "object-src 'none'",
-    "script-src 'self' 'unsafe-inline' 'unsafe-eval'",
-    "style-src 'self' 'unsafe-inline'",
+    "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://va.vercel-scripts.com https://va.vercel.com",
+    "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
+    "style-src-elem 'self' 'unsafe-inline' https://fonts.googleapis.com",
     "img-src 'self' data: https:",
-    "font-src 'self' data:",
-    "connect-src 'self' https://*.supabase.co wss://*.supabase.co",
+    "font-src 'self' data: https://fonts.gstatic.com",
+    "connect-src 'self' https://*.supabase.co wss://*.supabase.co https://va.vercel-scripts.com https://va.vercel.com",
     'upgrade-insecure-requests',
   ].join('; ')
 
@@ -114,7 +115,6 @@ export async function middleware(request: NextRequest) {
 
 export const config = {
   matcher: [
-    '/api/change-password/:path*',
     '/((?!_next/static|_next/image|favicon.ico|.*\\.png|.*\\.jpg|.*\\.jpeg|.*\\.gif|.*\\.svg|.*\\.webp).*)',
   ],
 }

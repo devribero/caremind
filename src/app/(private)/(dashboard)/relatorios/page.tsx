@@ -8,9 +8,10 @@ import { useState, useEffect, useMemo } from 'react';
 import { Bar } from 'react-chartjs-2';
 import { useAuth } from '@/contexts/AuthContext';
 import { useRouter } from 'next/navigation';
-import { createClient } from '@/lib/supabase/client';
+import { useProfile } from '@/hooks/useProfile';
 import { useIdoso } from '@/contexts/IdosoContext';
 import { FullScreenLoader } from '@/components/features/FullScreenLoader';
+import { listarEventos } from '@/lib/supabase/services/historicoEventos';
 import {
   Chart as ChartJS,
   CategoryScale,
@@ -43,7 +44,7 @@ interface EventoHistorico {
 export default function Relatorios() {
   const { user } = useAuth();
   const router = useRouter();
-  const supabase = useMemo(() => createClient(), []);
+  const { profile } = useProfile();
   const { idosoSelecionadoId, listaIdososVinculados } = useIdoso();
   const [loading, setLoading] = useState(true);
   const [eventos, setEventos] = useState<EventoHistorico[]>([]);
@@ -52,6 +53,7 @@ export default function Relatorios() {
   const [tipoSelecionado, setTipoSelecionado] = useState<'Todos' | 'Medicamento' | 'Rotina'>('Todos');
   const [applyTick, setApplyTick] = useState<number>(0);
   const isFamiliar = user?.user_metadata?.account_type === 'familiar';
+  const targetProfileId = isFamiliar ? idosoSelecionadoId : profile?.id;
   const selectedElderName = useMemo(() => (
     listaIdososVinculados.find((i) => i.id === idosoSelecionadoId)?.nome || null
   ), [listaIdososVinculados, idosoSelecionadoId]);
@@ -106,47 +108,65 @@ export default function Relatorios() {
         router.push('/auth');
         return;
       }
-      if (isFamiliar && !idosoSelecionadoId) {
+      if (isFamiliar && !targetProfileId) {
         setEventos([]);
         setLoading(false);
         return;
       }
+      if (!targetProfileId) {
+        setLoading(false);
+        return;
+      }
+
       try {
         setLoading(true);
-        const { data: sessionData } = await supabase.auth.getSession();
-        const token = sessionData.session?.access_token;
-        const params = new URLSearchParams();
-        if (idosoSelecionadoId) params.set('idoso_id', idosoSelecionadoId);
-        if (dataInicio) params.set('dataInicio', dataInicio);
-        if (dataFim) params.set('dataFim', dataFim);
-        if (tipoSelecionado && tipoSelecionado !== 'Todos') params.set('tipoEvento', tipoSelecionado);
-        const qs = params.toString() ? `?${params.toString()}` : '';
-        const res = await fetch(`/api/relatorios/historico${qs}`, {
-          headers: token ? { Authorization: `Bearer ${token}` } : undefined,
-          cache: 'no-store',
+        
+        const dataInicioDate = dataInicio ? new Date(dataInicio) : undefined;
+        const dataFimDate = dataFim ? new Date(dataFim) : undefined;
+        
+        // Mapear status baseado no tipo de evento se necessário
+        let statusFiltro: ('pendente' | 'confirmado' | 'cancelado' | 'atrasado')[] | undefined;
+        
+        // Buscar eventos do histórico
+        const eventosHistorico = await listarEventos({
+          perfilId: targetProfileId,
+          dataInicio: dataInicioDate,
+          dataFim: dataFimDate,
+          status: statusFiltro,
         });
-        if (!res.ok) {
-          throw new Error(`HTTP ${res.status}`);
+
+        // Filtrar por tipo de evento se necessário
+        let eventosFiltrados = eventosHistorico;
+        if (tipoSelecionado && tipoSelecionado !== 'Todos') {
+          eventosFiltrados = eventosHistorico.filter(
+            e => e.tipo_evento.toLowerCase() === tipoSelecionado.toLowerCase()
+          );
         }
-        const historico = await res.json();
-        const eventosFormatados: EventoHistorico[] = (historico || []).map((evento: any) => ({
-          id: evento.id,
-          tipo: evento.tipo_evento as 'Medicamento' | 'Rotina',
-          nome: evento.evento,
-          horario: evento.horario_programado,
-          status: evento.status,
-          created_at: evento.horario_programado,
+
+        // Mapear para o formato esperado pela UI
+        const eventosFormatados: EventoHistorico[] = eventosFiltrados.map((evento) => ({
+          id: evento.id.toString(),
+          tipo: (evento.tipo_evento === 'medicamento' ? 'Medicamento' : 'Rotina') as 'Medicamento' | 'Rotina',
+          nome: evento.titulo || 'Evento',
+          horario: evento.data_hora,
+          status: evento.status === 'confirmado' ? 'Confirmado' : 
+                  evento.status === 'pendente' ? 'Pendente' :
+                  evento.status === 'cancelado' ? 'Cancelado' :
+                  evento.status === 'atrasado' ? 'Atrasado' : 'Pendente',
+          created_at: evento.data_hora,
         }));
+
         setEventos(eventosFormatados);
       } catch (err) {
         console.error('Erro ao buscar eventos:', err);
+        setEventos([]);
       } finally {
         setLoading(false);
       }
     };
 
     fetchEventos();
-  }, [user, router, supabase, idosoSelecionadoId, isFamiliar, dataInicio, dataFim, tipoSelecionado, applyTick]);
+  }, [user, router, targetProfileId, isFamiliar, dataInicio, dataFim, tipoSelecionado, applyTick]);
 
   // Função para calcular estatísticas por período
   const calcularEstatisticas = (dias: number) => {

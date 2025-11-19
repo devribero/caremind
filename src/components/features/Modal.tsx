@@ -67,8 +67,8 @@ export function Modal({ isOpen, onClose, title, children }: ModalProps) {
     return null;
   }
 
-  // Usando createPortal para renderizar o modal no final do body
-  // Isso evita problemas de z-index e contexto de empilhamento.
+  // Usa createPortal para renderizar o modal no final do body
+  // Isso evita problemas de z-index e contexto de empilhamento
   return createPortal(
     <div 
       className={styles.modalOverlay}

@@ -3,7 +3,7 @@
 import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/contexts/AuthContext';
-import { useProfile } from '@/contexts/ProfileContext';
+import { useProfile } from '@/hooks/useProfile';
 import { useIdoso } from '@/contexts/IdosoContext';
 import { FullScreenLoader } from '@/components/features/FullScreenLoader';
 import DashboardClient from '@/components/features/DashboardClient';

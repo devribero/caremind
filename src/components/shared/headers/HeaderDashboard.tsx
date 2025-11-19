@@ -3,7 +3,7 @@ import { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { usePathname } from 'next/navigation';
 import { useAuth } from '@/contexts/AuthContext';
-import { useProfile } from '@/contexts/ProfileContext';
+import { useProfile } from '@/hooks/useProfile';
 import { useIdoso } from '@/contexts/IdosoContext';
 import Link from 'next/link';
 import Image from 'next/image';
@@ -17,7 +17,7 @@ interface HeaderProps {
 
 export function Header({ isMenuOpen, onMenuToggle }: HeaderProps) {
     const { user, signOut } = useAuth();
-    const { photoUrl, refresh, profile } = useProfile();
+    const { profile, refresh } = useProfile();
     const { listaIdososVinculados, idosoSelecionadoId, setIdosoSelecionado } = useIdoso();
     const router = useRouter();
     const pathname = usePathname();
@@ -53,7 +53,7 @@ export function Header({ isMenuOpen, onMenuToggle }: HeaderProps) {
         };
 
         // Só força refresh inicial se não houver foto em cache
-        if (!photoUrl) {
+        if (!profile?.foto_usuario) {
             refresh();
         }
 
@@ -145,19 +145,19 @@ export function Header({ isMenuOpen, onMenuToggle }: HeaderProps) {
 
             <div className={styles.profileContainer} ref={profileMenuRef}>
                 <div className={styles.actions} onClick={() => setIsProfileOpen(!isProfileOpen)}>
-                    {photoUrl ? (
+                    {profile?.foto_usuario ? (
                         <Image
-                            src={photoUrl}
+                            src={profile.foto_usuario}
                             alt="Foto de perfil"
                             width={40}
                             height={40}
                             className={styles.profilePicture}
-                            key={photoUrl}
+                            key={profile.foto_usuario}
                             priority
                             loading="eager"
                             onError={() => {
-                                if (lastErrorUrlRef.current !== photoUrl) {
-                                    lastErrorUrlRef.current = photoUrl;
+                                if (lastErrorUrlRef.current !== profile?.foto_usuario) {
+                                    lastErrorUrlRef.current = profile?.foto_usuario ?? null;
                                     refresh();
                                 }
                             }}

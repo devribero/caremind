@@ -3,7 +3,6 @@
 import { useState, ChangeEvent } from 'react';
 import { createClient } from '@/lib/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
-import { useAuthRequest } from '@/hooks/useAuthRequest';
 import styles from './EditProfileModal.module.css';
 
 interface EditProfileModalProps {
@@ -29,7 +28,6 @@ export function EditProfileModal({
   const [error, setError] = useState<string>('');
   const { user } = useAuth();
   const supabase = createClient();
-  const { makeRequest } = useAuthRequest();
 
   const handleInputChange = (e: ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;

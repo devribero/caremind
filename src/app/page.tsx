@@ -9,6 +9,7 @@ import { Header } from '@/components/shared/headers/HeaderHome';
 import { Footer } from '@/components/shared/Footer';
 import styles from './page.module.css';
 import Image from 'next/image';
+import { Waves } from '@/components/shared/Waves';
 
 export default function Home() {
   const { user, loading } = useAuth();
@@ -49,6 +50,7 @@ export default function Home() {
 
   return (
     <main className={styles.main}>
+      <Waves />
       <Header />
 
       <section className={styles.heroSection}>

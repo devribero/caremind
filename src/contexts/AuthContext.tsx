@@ -7,39 +7,96 @@ import { createClient } from '@/lib/supabase/client';
 import { User, Session, AuthResponse, AuthError } from '@supabase/supabase-js';
 import { normalizeError } from '@/utils/errors';
 
+type AuthErrorResponse = {
+  error: {
+    message: string;
+    code?: string;
+    status?: number;
+  } | null;
+  data: {
+    user: User | null;
+    session: Session | null;
+  } | null;
+};
+
+// Common error messages
+const ERROR_MESSAGES = {
+  INVALID_CREDENTIALS: 'E-mail ou senha inválidos. Por favor, tente novamente.',
+  EMAIL_ALREADY_IN_USE: 'Este e-mail já está em uso. Tente fazer login ou recuperar sua senha.',
+  WEAK_PASSWORD: 'A senha deve ter pelo menos 6 caracteres.',
+  INVALID_EMAIL: 'Por favor, insira um endereço de e-mail válido.',
+  NETWORK_ERROR: 'Não foi possível conectar ao servidor. Verifique sua conexão com a internet.',
+  TOO_MANY_REQUESTS: 'Muitas tentativas. Por favor, aguarde um momento antes de tentar novamente.',
+  DEFAULT: 'Ocorreu um erro inesperado. Por favor, tente novamente mais tarde.',
+  SESSION_EXPIRED: 'Sessão expirada. Por favor, faça login novamente.',
+  USER_NOT_FOUND: 'Nenhuma conta encontrada com este e-mail.',
+  RESET_PASSWORD_SUCCESS: 'Enviamos um e-mail com instruções para redefinir sua senha.',
+} as const;
+
 interface AuthContextType {
   user: User | null;
   session: Session | null;
   loading: boolean;
-  signIn: (email: string, password: string) => Promise<AuthResponse>;
-  signUp: (email: string, password: string, fullName?: string, accountType?: 'individual' | 'familiar') => Promise<AuthResponse>;
+  signIn: (email: string, password: string) => Promise<AuthResponse | AuthErrorResponse>;
+  signUp: (email: string, password: string, fullName?: string, accountType?: 'individual' | 'familiar') => Promise<AuthResponse | AuthErrorResponse>;
   resetPassword: (email: string) => Promise<{ error: AuthError | null }>;
   signOut: () => Promise<void>;
 }
 
-  const AuthContext = createContext<AuthContextType | undefined>(undefined);
+const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export function AuthProvider({ children }: { children: ReactNode }) {
-  // 👇 2. Crie a instância do Supabase DENTRO do componente
-  const supabase = useMemo( () => createClient(), [] ); 
-  
+  const supabase = useMemo(() => createClient(), []);
+
   const [user, setUser] = useState<User | null>(null);
   const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState(true);
-  
-  // Função de reset password (necessita da instância do supabase)
-  const resetPassword = async (email: string) => {
-    const { error } = await supabase.auth.resetPasswordForEmail(email, {
+
+  const resetPassword = async (email: string): Promise<{ error: AuthError | null }> => {
+    try {
+      if (!email) {
+        return { 
+          error: { 
+            message: 'Por favor, insira um endereço de e-mail.',
+            status: 400,
+            name: 'AuthError'
+          } as AuthError 
+        };
+      }
+
+      const { error } = await supabase.auth.resetPasswordForEmail(email, {
         redirectTo: `${window.location.origin}/reset-password`,
-    });
-    return { error };
+      });
+
+      if (error) {
+        console.error('Erro ao redefinir senha:', error);
+        const authError = new Error(getErrorMessage(error, 'RESET_PASSWORD')) as AuthError;
+        Object.assign(authError, {
+          status: error.status,
+          name: error.name,
+          code: error.code,
+          stack: error.stack,
+          cause: error.cause
+        });
+        return { error: authError };
+      }
+
+      return { error: null };
+    } catch (error) {
+      console.error('Erro inesperado ao redefinir senha:', error);
+      return { 
+        error: { 
+          message: ERROR_MESSAGES.DEFAULT,
+          status: 500,
+          name: 'AuthError'
+        } as AuthError 
+      };
+    }
   };
 
   useEffect(() => {
-    // Verifica a sessão atual ao carregar o componente
     const getInitialSession = async () => {
       try {
-        // Cache da sessão para evitar múltiplas verificações
         const cachedSession = typeof window !== 'undefined' ? 
           sessionStorage.getItem('supabase_session') : null;
         
@@ -58,7 +115,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         setSession(session);
         setUser(session?.user ?? null);
         
-        // Cache da sessão
         if (typeof window !== 'undefined' && session) {
           sessionStorage.setItem('supabase_session', JSON.stringify(session));
         }
@@ -71,20 +127,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
     getInitialSession();
 
-    // Escuta mudanças no estado de autenticação
     const {
       data: { subscription },
     } = supabase.auth.onAuthStateChange(async (event, session) => {
       setSession(session);
-      // Evita atualizar o estado do usuário quando apenas o token é renovado
-      // (ex.: ao focar a aba). Mantém a referência se o id não mudou.
       setUser((prev) => {
         const nextUser = session?.user ?? null;
         if (prev?.id === nextUser?.id) return prev;
         return nextUser;
       });
 
-      // Fallback: ao logar, tenta sincronizar metadados pendentes (ex.: phone) se não existirem ainda
       try {
         if (event === 'SIGNED_IN' && session?.user) {
           const currentMeta = session.user.user_metadata as Record<string, any> | undefined;
@@ -101,14 +153,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
                 },
               });
             }
-            // Limpa pendências após tentativa
             if (typeof window !== 'undefined') {
               localStorage.removeItem('pendingUserMetadata');
             }
           }
         }
       } catch (syncErr) {
-        // opcional: silenciar avisos não-críticos
+        console.error('Erro ao sincronizar metadados:', syncErr);
       }
 
       setLoading(false);
@@ -120,15 +171,86 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, [supabase]);
 
   const signIn = async (email: string, password: string) => {
-    return await supabase.auth.signInWithPassword({
-      email,
-      password,
-    });
+    try {
+      if (!email || !password) {
+        return { 
+          data: { user: null, session: null },
+          error: { 
+            message: 'Por favor, preencha todos os campos obrigatórios.',
+            code: 'MISSING_FIELDS'
+          }
+        } as AuthErrorResponse;
+      }
+
+      const response = await supabase.auth.signInWithPassword({
+        email: email.trim(),
+        password,
+      });
+
+      if (response.error) {
+        console.error('Erro ao fazer login:', response.error);
+        return {
+          ...response,
+          error: {
+            ...response.error,
+            message: getErrorMessage(response.error, 'SIGN_IN')
+          }
+        } as AuthErrorResponse;
+      }
+
+      return response;
+    } catch (error) {
+      console.error('Erro inesperado ao fazer login:', error);
+      return {
+        data: { user: null, session: null },
+        error: { 
+          message: ERROR_MESSAGES.DEFAULT,
+          code: 'UNKNOWN_ERROR'
+        }
+      } as AuthErrorResponse;
+    }
+  };
+
+  const getErrorMessage = (error: AuthError | null, context: 'SIGN_UP' | 'SIGN_IN' | 'RESET_PASSWORD' = 'SIGN_UP'): string => {
+    if (!error) return '';
+    
+    const errorCode = error.status?.toString() || '';
+    const errorMessage = error.message.toLowerCase();
+    
+    if (errorMessage.includes('email already in use')) {
+      return ERROR_MESSAGES.EMAIL_ALREADY_IN_USE;
+    }
+    if (errorMessage.includes('invalid login credentials') || 
+        errorMessage.includes('invalid email or password')) {
+      return ERROR_MESSAGES.INVALID_CREDENTIALS;
+    }
+    if (errorMessage.includes('password should be at least')) {
+      return ERROR_MESSAGES.WEAK_PASSWORD;
+    }
+    if (errorMessage.includes('invalid email address')) {
+      return ERROR_MESSAGES.INVALID_EMAIL;
+    }
+    if (errorMessage.includes('too many requests')) {
+      return ERROR_MESSAGES.TOO_MANY_REQUESTS;
+    }
+    
+    if (context === 'SIGN_UP' && errorMessage.includes('user already registered')) {
+      return 'Este e-mail já está cadastrado. Por favor, faça login ou recupere sua senha.';
+    }
+    
+    if (context === 'SIGN_IN' && errorMessage.includes('email not confirmed')) {
+      return 'Por favor, verifique seu e-mail para confirmar sua conta antes de fazer login.';
+    }
+    
+    if (context === 'RESET_PASSWORD' && errorMessage.includes('email not found')) {
+      return 'Nenhuma conta encontrada com este e-mail.';
+    }
+    
+    return error.message || ERROR_MESSAGES.DEFAULT;
   };
 
   const signUp = async (email: string, password: string, fullName?: string, accountType: 'individual' | 'familiar' = 'individual') => {
     try {
-      // Verifica se as variáveis de ambiente estão configuradas
       const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
       const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
       
@@ -136,7 +258,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         throw new Error('Configuração do Supabase não encontrada. Verifique o arquivo .env.local');
       }
       
-      // Primeiro, registra o usuário na autenticação
       const authResponse = await supabase.auth.signUp({
         email,
         password,
@@ -148,7 +269,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         },
       });
       
-      // Tratamento: se usuário já existir, tentar realizar sign-in com a mesma credencial
       if (authResponse.error && typeof authResponse.error.message === 'string' && authResponse.error.message.toLowerCase().includes('already')) {
         const signInResp = await supabase.auth.signInWithPassword({ email, password });
         if (signInResp.data.user && !signInResp.error) {
@@ -157,18 +277,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         return authResponse;
       }
 
-      // Se o registro de autenticação for bem-sucedido, cria/atualiza o Perfis no banco de dados
       if (authResponse.data.user && !authResponse.error) {
         const userId = authResponse.data.user.id;
         
-        // Dados do Perfis seguindo o schema: chave estrangeira em user_id
         const profileData = {
           user_id: userId,
           nome: fullName || 'Sem nome',
           tipo: accountType,
         } as const;
         
-        // Upsert evita condição de corrida entre checar e inserir/atualizar
         const { error: upsertError } = await supabase
           .from('perfis')
           .upsert(profileData, { onConflict: 'user_id' });
@@ -191,12 +308,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       const { error } = await supabase.auth.signOut();
       if (error) {
         console.error('Erro ao fazer logout:', error);
-        throw error;
+        throw new Error('Falha ao sair da conta. Por favor, tente novamente.');
       }
-      // Limpa o estado local imediatamente
       setUser(null);
       setSession(null);
-      // Limpa o cache de sessão para evitar reuso indevido ao reentrar
       if (typeof window !== 'undefined') {
         try {
           sessionStorage.removeItem('supabase_session');

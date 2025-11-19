@@ -1,0 +1,55 @@
+
+[functions.get-amazon-auth-url]
+enabled = true
+verify_jwt = true
+import_map = "./functions/get-amazon-auth-url/deno.json"
+# Uncomment to specify a custom file path to the entrypoint.
+# Supported file extensions are: .ts, .js, .mjs, .jsx, .tsx
+entrypoint = "./functions/get-amazon-auth-url/index.ts"
+# Specifies static files to be bundled with the function. Supports glob patterns.
+# For example, if you want to serve static HTML pages in your function:
+# static_files = [ "./functions/get-amazon-auth-url/*.html" ]
+
+[functions.amazon-auth-callback]
+enabled = true
+verify_jwt = true
+import_map = "./functions/amazon-auth-callback/deno.json"
+# Uncomment to specify a custom file path to the entrypoint.
+# Supported file extensions are: .ts, .js, .mjs, .jsx, .tsx
+entrypoint = "./functions/amazon-auth-callback/index.ts"
+# Specifies static files to be bundled with the function. Supports glob patterns.
+# For example, if you want to serve static HTML pages in your function:
+# static_files = [ "./functions/amazon-auth-callback/*.html" ]
+
+[functions.disparar-lembretes-alexa]
+enabled = true
+verify_jwt = true
+import_map = "./functions/disparar-lembretes-alexa/deno.json"
+# Uncomment to specify a custom file path to the entrypoint.
+# Supported file extensions are: .ts, .js, .mjs, .jsx, .tsx
+entrypoint = "./functions/disparar-lembretes-alexa/index.ts"
+# Specifies static files to be bundled with the function. Supports glob patterns.
+# For example, if you want to serve static HTML pages in your function:
+# static_files = [ "./functions/disparar-lembretes-alexa/*.html" ]
+
+[functions.alexa-handler]
+enabled = true
+verify_jwt = true
+import_map = "./functions/alexa-handler/deno.json"
+# Uncomment to specify a custom file path to the entrypoint.
+# Supported file extensions are: .ts, .js, .mjs, .jsx, .tsx
+entrypoint = "./functions/alexa-handler/index.ts"
+# Specifies static files to be bundled with the function. Supports glob patterns.
+# For example, if you want to serve static HTML pages in your function:
+# static_files = [ "./functions/alexa-handler/*.html" ]
+
+[functions.processar-resultado-ocr]
+enabled = true
+verify_jwt = true
+import_map = "./functions/processar-resultado-ocr/deno.json"
+# Uncomment to specify a custom file path to the entrypoint.
+# Supported file extensions are: .ts, .js, .mjs, .jsx, .tsx
+entrypoint = "./functions/processar-resultado-ocr/index.ts"
+# Specifies static files to be bundled with the function. Supports glob patterns.
+# For example, if you want to serve static HTML pages in your function:
+# static_files = [ "./functions/processar-resultado-ocr/*.html" ]

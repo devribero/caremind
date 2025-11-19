@@ -2,7 +2,9 @@
 
 import { useEffect, useState, forwardRef, useImperativeHandle } from 'react';
 import Image from 'next/image';
-import { useAuthRequest } from '@/hooks/useAuthRequest';
+import { useAuth } from '@/contexts/AuthContext';
+import { useProfile } from '@/hooks/useProfile';
+import { listarIdososVinculados, deletarVinculo } from '@/lib/supabase/services/vinculos';
 import { toast } from '@/components/features/Toast';
 
 interface IdosoItem {
@@ -16,35 +18,47 @@ export type GerenciarIdososVinculadosRef = {
 };
 
 function GerenciarIdososVinculadosImpl(_props: {}, ref: React.Ref<GerenciarIdososVinculadosRef>) {
-  const { makeRequest } = useAuthRequest();
+  const { user } = useAuth();
+  const { profile } = useProfile();
   const [idosos, setIdosos] = useState<IdosoItem[]>([]);
   const [loading, setLoading] = useState(false);
 
   const fetchIdosos = async () => {
+    if (!user?.id || !profile?.id) {
+      setIdosos([]);
+      return;
+    }
+
     setLoading(true);
     try {
-      const data = await makeRequest<any[]>("/api/vinculos/idosos");
-      const normalized: IdosoItem[] = (Array.isArray(data) ? data : []).map((x: any) => ({
-        id_idoso: x.id_idoso || x.idoso_id || x.id,
-        nome: x.nome ?? x.nome_idoso ?? x.nome_completo ?? null,
-        foto_usuario: x.foto_usuario ?? x.foto ?? null,
+      const vinculos = await listarIdososVinculados(user.id);
+      const normalized: IdosoItem[] = vinculos.map((vinculo) => ({
+        id_idoso: vinculo.id_idoso,
+        nome: vinculo.idoso?.nome || null,
+        foto_usuario: vinculo.idoso?.foto_url || null,
       }));
       setIdosos(normalized);
     } catch (err) {
-      // falha silenciosa por enquanto
+      console.error('Erro ao buscar idosos vinculados:', err);
+      toast.error('Erro ao carregar idosos vinculados.');
     } finally {
       setLoading(false);
     }
   };
 
-  useImperativeHandle(ref, () => ({ refresh: fetchIdosos }), []);
+  useImperativeHandle(ref, () => ({ refresh: fetchIdosos }), [user?.id, profile?.id]);
 
   useEffect(() => {
     fetchIdosos();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [user?.id, profile?.id]);
 
   const handleDesvincular = async (id_idoso: string) => {
+    if (!user?.id) {
+      toast.error('Usuário não autenticado.');
+      return;
+    }
+
     const input = prompt('Para confirmar a desvinculação, digite: desvincular');
     if (input === null) return; // cancelado
     if ((input || '').trim().toLowerCase() !== 'desvincular') {
@@ -52,10 +66,11 @@ function GerenciarIdososVinculadosImpl(_props: {}, ref: React.Ref<GerenciarIdoso
       return;
     }
     try {
-      await makeRequest(`/api/vinculos/${id_idoso}`, { method: 'DELETE' });
+      await deletarVinculo(id_idoso, user.id);
       setIdosos(prev => prev.filter(i => i.id_idoso !== id_idoso));
       toast.success('Idoso desvinculado com sucesso.');
     } catch (err) {
+      console.error('Erro ao desvincular idoso:', err);
       toast.error('Não foi possível desvincular. Tente novamente.');
     }
   };

@@ -1,542 +1,276 @@
-'use client'
+'use client';
 
-import pageStyles from './page.module.css';
-import modalStyles from './modal.module.css';
-import { createClient } from '@/lib/supabase/client';
-import { useState, useEffect, useRef, useCallback, ChangeEvent } from 'react';
-import { useRouter } from 'next/navigation';
+import { useRef, useState } from 'react';
 import Image from 'next/image';
-import { useAuth } from '@/contexts/AuthContext';
-import { useAuthRequest } from '@/hooks/useAuthRequest';
+import { useRouter } from 'next/navigation';
+import { useProfileManagement } from '@/hooks/useProfileManagement';
 import { EditProfileModal } from '@/components/features/EditProfileModal';
-import { toast } from '@/components/features/Toast';
-// Elders management moved to /familia
+import { ChangePasswordModal } from '@/components/features/ChangePasswordModal';
+import pageStyles from './page.module.css';
 
-// --- DEFINIÇÃO DE TIPOS ---
-interface PasswordData {
-    currentPassword: string;
-    newPassword: string;
-    confirmNewPassword: string;
-}
-
-interface ProfileDataType {
-    fullName: string;
-    email: string;
-    phone: string;
-    dob: string;
-    photoUrl: string;
-}
-
-interface ChangePasswordModalProps {
-    show: boolean;
-    onClose: () => void;
-    onSave: (data: PasswordData) => void;
-    loading: boolean; // Corrigido: Agora é obrigatório
-}
-
-// --- COMPONENTE MODAL DE ALTERAR SENHA ---
-
-const ChangePasswordModal = ({ show, onClose, onSave, loading }: ChangePasswordModalProps) => {
-    const [passwordData, setPasswordData] = useState<PasswordData>({
-        currentPassword: '',
-        newPassword: '',
-        confirmNewPassword: ''
-    });
-    const [error, setError] = useState<string>('');
-
-    if (!show) {
-        return null;
-    }
-
-    const handlePasswordChange = (e: ChangeEvent<HTMLInputElement>) => {
-        const { name, value } = e.target;
-        setPasswordData(prev => ({ ...prev, [name]: value }));
-        if (error) setError('');
-    };
-
-    const handleSaveClick = () => {
-        if (!passwordData.currentPassword) {
-            setError("Por favor, informe a senha atual");
-            return;
-        }
-        if (!passwordData.newPassword) {
-            setError("Por favor, informe a nova senha");
-            return;
-        }
-        if (passwordData.newPassword.length < 6) {
-            setError("A nova senha deve ter pelo menos 6 caracteres");
-            return;
-        }
-        if (passwordData.newPassword !== passwordData.confirmNewPassword) {
-            setError("As novas senhas não coincidem!");
-            return;
-        }
-        setError('');
-        onSave(passwordData);
-    };
-
-    const handleClose = () => {
-        setPasswordData({
-            currentPassword: '',
-            newPassword: '',
-            confirmNewPassword: ''
-        });
-        setError('');
-        onClose();
-    };
-
-    return (
-        <div className={modalStyles.modalOverlay}>
-            <div className={modalStyles.modalContent}>
-                <h2 className={modalStyles.modalTitle}>Alterar Senha</h2>
-                <span className={modalStyles.modalClose} onClick={handleClose}>&times;</span>
-                
-                {error && (
-                    <div className={modalStyles.errorMessage}>
-                        {error}
-                    </div>
-                )}
-
-                <div className={modalStyles.formGroup}>
-                    <label htmlFor="currentPassword" className={modalStyles.modalLabel}>Senha Atual</label>
-                    <input 
-                        type="password" 
-                        id="currentPassword" 
-                        name="currentPassword" 
-                        className={modalStyles.modalInput} 
-                        value={passwordData.currentPassword}
-                        onChange={handlePasswordChange}
-                        disabled={loading}
-                    />
-                </div>
-                <div className={modalStyles.formGroup}>
-                    <label htmlFor="newPassword" className={modalStyles.modalLabel}>Nova Senha</label>
-                    <input 
-                        type="password" 
-                        id="newPassword" 
-                        name="newPassword" 
-                        className={modalStyles.modalInput} 
-                        value={passwordData.newPassword}
-                        onChange={handlePasswordChange}
-                        disabled={loading}
-                    />
-                </div>
-                <div className={modalStyles.formGroup}>
-                    <label htmlFor="confirmNewPassword" className={modalStyles.modalLabel}>Repetir Nova Senha</label>
-                    <input 
-                        type="password" 
-                        id="confirmNewPassword" 
-                        name="confirmNewPassword" 
-                        className={modalStyles.modalInput} 
-                        value={passwordData.confirmNewPassword}
-                        onChange={handlePasswordChange}
-                        disabled={loading}
-                    />
-                </div>
-                <div className={modalStyles.modalActions}>
-                    <button 
-                        className={modalStyles.cancelButton} 
-                        onClick={handleClose}
-                        disabled={loading}
-                    >
-                        Cancelar
-                    </button>
-                    <button 
-                        className={modalStyles.saveButton} 
-                        onClick={handleSaveClick}
-                        disabled={loading}
-                    >
-                        {loading ? 'Salvando...' : 'Salvar'}
-                    </button>
-                </div>
-            </div>
-        </div>
-    );
-};
-
-
-// --- COMPONENTE PRINCIPAL DA PÁGINA DE PERFIL ---
 export default function Perfil() {
-    const { user, signOut } = useAuth();
-    const router = useRouter();
-    const supabase = createClient();
-    const { makeRequest } = useAuthRequest();
-    
-    
-    const [uploadingPhoto, setUploadingPhoto] = useState(false); 
-    const [successMessage, setSuccessMessage] = useState<string>('');
-    const [passwordLoading, setPasswordLoading] = useState(false); 
-    const [profileData, setProfileData] = useState<ProfileDataType>({
-        fullName: '',
-        email: '',
-        phone: '',
-        dob: '',
-        photoUrl: '/foto_padrao.png'
-    });
-    const [showPasswordModal, setShowPasswordModal] = useState(false);
-    const [isMenuOpen, setIsMenuOpen] = useState<boolean>(false);
-    const [showPhotoViewer, setShowPhotoViewer] = useState(false);
-    const [showEditModal, setShowEditModal] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [showPhotoViewer, setShowPhotoViewer] = useState(false);
+  
+  const {
+    profile,
+    loading,
+    error,
+    uploadingPhoto,
+    passwordLoading,
+    showPasswordModal,
+    showEditModal,
+    setShowPasswordModal,
+    setShowEditModal,
+    handleLogout,
+    handleSaveProfile,
+    handleFileChange,
+    handleSavePassword,
+  } = useProfileManagement();
 
-    const fileInputRef = useRef<HTMLInputElement>(null); // ADICIONADO
-    const BUCKET_NAME = process.env.NEXT_PUBLIC_SUPABASE_BUCKET || 'avatars'; // ADICIONADO
+  if (loading) {
+    return <div className={pageStyles.loading}>Carregando perfil...</div>;
+  }
 
-    useEffect(() => {
-        const fetchProfileData = async () => {
-            if (!user) return;
-            try {
-                const profile = await makeRequest<any>('/api/perfil');
-                if (profile) {
-                    setProfileData({
-                        fullName: profile.nome || user.user_metadata?.full_name || '',
-                        email: user.email || '',
-                        phone: profile.telefone || '',
-                        dob: profile.data_nascimento || '',
-                        photoUrl: profile.foto_usuario || '/foto_padrao.png',
-                    });
-                }
-            } catch (error) {
-                console.error('Erro ao buscar perfil pela API:', error);
-                setProfileData(prev => ({
-                    ...prev,
-                    fullName: user.user_metadata?.full_name || 'Nome não encontrado',
-                    email: user.email || '',
-                    photoUrl: '/foto_padrao.png',
-                }));
-            }
-        };
-        fetchProfileData();
-    }, [user, makeRequest]);
+  if (error) {
+    return <div className={pageStyles.error}>Erro ao carregar o perfil: {error.message}</div>;
+  }
 
-    const handleLogout = async () => {
-        await signOut();
-        router.push('/auth');
-    };
+  if (!profile) {
+    return <div className={pageStyles.error}>Perfil não encontrado</div>;
+  }
 
-    const handleSaveProfile = useCallback(async (data: { fullName: string; phone: string; dob: string }) => {
-        if (!user) {
-            alert("Erro: Usuário não encontrado.");
-            return;
-        }
-
-        try {
-            await makeRequest(`/api/perfil/${user.id}`, {
-                method: 'PUT',
-                body: JSON.stringify({
-                    fullName: data.fullName,
-                    phone: data.phone,
-                    dob: data.dob,
-                }),
-            });
-            
-            // Atualiza o estado local
-            setProfileData(prev => ({
-                ...prev,
-                fullName: data.fullName,
-                phone: data.phone,
-                dob: data.dob,
-            }));
-            
-            // Dispara evento para atualizar outros componentes
-            window.dispatchEvent(new CustomEvent('profileUpdated', { 
-                detail: { 
-                    fullName: data.fullName,
-                    phone: data.phone,
-                    dob: data.dob,
-                } 
-            }));
-            
-            return true;
-        } catch (error) {
-            console.error('Erro ao salvar perfil:', error);
-            const { normalizeError } = await import('@/utils/errors');
-            throw normalizeError(error, 'Erro ao salvar perfil');
-        }
-    }, [user, makeRequest]);
-
-    // Função refatorada para centralizar o upload de foto
-    const handleUploadButtonClick = () => {
-        fileInputRef.current?.click();
-    };
-
-    const handleFileChange = async (event: ChangeEvent<HTMLInputElement>) => {
-        const files = event.target.files;
-        if (!files || files.length === 0) return;
-        if (!user) {
-            alert('Você precisa estar autenticado para enviar uma foto.');
-            return;
-        }
-
-        const file = files[0];
-        try {
-            setUploadingPhoto(true);
-            if (!BUCKET_NAME) {
-                alert('Bucket do Storage não configurado. Defina NEXT_PUBLIC_SUPABASE_BUCKET no seu .env.local (ex.: avatars) e crie esse bucket no Supabase.');
-                return;
-            }
-            // Gera um caminho único por usuário/timestamp
-            const fileExt = file.name.split('.').pop();
-            const filePath = `profiles/${user.id}/${Date.now()}.${fileExt}`;
-
-            // Faz upload para o bucket
-            const { error: uploadError } = await supabase.storage
-                .from(BUCKET_NAME) 
-                .upload(filePath, file, {
-                    cacheControl: '3600',
-                    upsert: true,
-                });
-
-            if (uploadError) throw uploadError;
-
-            // Obtém URL pública
-            const { data: publicData } = supabase.storage
-                .from(BUCKET_NAME)
-                .getPublicUrl(filePath);
-
-            const publicUrl = publicData.publicUrl;
-
-            // Atualiza via API de perfil
-            await makeRequest(`/api/perfil/${user.id}`, {
-                method: 'PUT',
-                body: JSON.stringify({ foto_usuario: publicUrl }),
-            });
-
-            // Atualiza UI
-            setProfileData(prev => ({ ...prev, photoUrl: publicUrl }));
-            
-            // Sinaliza que o perfil foi atualizado para o header
-            localStorage.setItem('profileUpdated', 'true');
-            
-            // Dispara evento customizado para notificar outros componentes
-            window.dispatchEvent(new CustomEvent('profilePhotoUpdated', { 
-                detail: { photoUrl: publicUrl } 
-            }));
-            
-            toast.success('Foto de perfil atualizada com sucesso!');    
-        } catch (err: any) {
-            console.error('Erro ao enviar/atualizar foto:', err);
-            if (err?.message?.toLowerCase?.().includes('bucket not found')) {
-                alert(`Bucket não encontrado no Supabase. Verifique se o bucket "${BUCKET_NAME ?? ''}" existe e está público nas configurações de Storage.`);
-            } else {
-                alert('Não foi possível atualizar a foto de perfil.');
-            }
-        } finally {
-            setUploadingPhoto(false);
-            if (fileInputRef.current) fileInputRef.current.value = '';
-        }
-    };
-
-    const handleEditClick = () => {
-        setShowEditModal(true);
-    };
-
-    // Salvar nova senha via API
-    const handleSavePassword = async (data: PasswordData) => {
-        setPasswordLoading(true);
-        try {
-            await makeRequest('/api/change-password', {
-                method: 'POST',
-                body: JSON.stringify({
-                    currentPassword: data.currentPassword,
-                    newPassword: data.newPassword,
-                }),
-            });
-
-            alert("Senha alterada com sucesso! Por segurança, você será desconectado para reautenticar.");
-            
-            // Desconecta o usuário após a mudança de senha, forçando um novo login com a nova senha
-            await signOut();
-            router.push('/auth');
-
-        } catch (error) {
-            console.error("Erro ao salvar senha:", error);
-            if (error instanceof Error) {
-                // Trata o erro de reautenticação (ex: senha atual incorreta)
-                alert(`Erro ao alterar senha: ${error.message}`);
-            } else {
-                alert("Erro inesperado ao tentar alterar a senha.");
-            }
-        } finally {
-            setPasswordLoading(false);
-            // O modal só fecha se for para a tela de login ou se houver erro não-crítico
-            // Se a senha foi salva, a navegação resolve o fechamento.
-            if (!passwordLoading) setShowPasswordModal(false); 
-        }
-    };
-
-    const toggleMenu = () => setIsMenuOpen(!isMenuOpen);
-    const closeMenu = () => setIsMenuOpen(false);
-
-    return (
-        <main className={pageStyles.main}>
-            <div className={pageStyles.mainContent}>
-                <div className={pageStyles.content}>
-                    
-                    <div className={pageStyles.pageHeader}>
-                        <h1 className={pageStyles.content_title}>Perfil</h1>
-                    </div>
-                    <section className={pageStyles.content_info}>
-                        <div className={pageStyles.profileSection}>
-                            <div className={pageStyles.profileHeader}>
-                                <div className={pageStyles.profileInfo}>
-                                        <div className={pageStyles.profilePhotoContainer}>
-                                            <Image
-                                                src={profileData.photoUrl}
-                                                alt="Foto de Perfil"
-                                                className={pageStyles.profilePhoto}
-                                                width={80}
-                                                height={80}
-                                                key={profileData.photoUrl}
-                                                onError={() => {
-                                                    setProfileData(prev => ({ ...prev, photoUrl: '/foto_padrao.png' }));
-                                                }}
-                                                onClick={() => setShowPhotoViewer(true)}
-                                                style={{ cursor: 'pointer' }}
-                                            />
-                                            <button 
-                                                className={pageStyles.uploadPhotoButton} 
-                                                onClick={handleUploadButtonClick}
-                                                disabled={uploadingPhoto}
-                                            >
-                                                {uploadingPhoto ? (
-                                                    <svg className={pageStyles.spinner} viewBox="0 0 50 50">
-                                                        <circle className={pageStyles.path} cx="25" cy="25" r="20" fill="none" strokeWidth="5"></circle>
-                                                    </svg>
-                                                ) : (
-                                                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
-                                                        <path d="M12 9V3H9V9H3V12H9V18H12V12H18V9H12Z" />
-                                                    </svg>
-                                                )}
-                                            </button>
-                                            <input
-                                                type="file"
-                                                ref={fileInputRef}
-                                                onChange={handleFileChange}
-                                                style={{ display: 'none' }}
-                                                accept="image/png, image/jpeg"
-                                                disabled={uploadingPhoto}
-                                            />
-                                        </div>
-                                        <div className={pageStyles.profileText}>
-                                            <h1 className={pageStyles.profileName}>{profileData.fullName}</h1>
-                                            <span className={pageStyles.profileEmail}>{profileData.email}</span>
-                                        </div>
-                                    </div>
-                                    <div className={pageStyles.profileActions}>
-                                        <button 
-                                            className={pageStyles.actionButton} 
-                                            onClick={() => setShowPasswordModal(true)}
-                                            disabled={passwordLoading || uploadingPhoto}
-                                        >
-                                            Alterar Senha
-                                        </button>
-                                        <button className={pageStyles.logoutButton} onClick={handleLogout}>Logout</button>
-                                    </div>
-                                </div>
-                                <div className={pageStyles.infoCard}>
-                                    <h2 className={pageStyles.cardTitle}>Informações do Perfil</h2>
-                                    <div className={pageStyles.infoGrid}>
-                                        <div className={pageStyles.infoField}>
-                                            <label htmlFor="fullName" className={pageStyles.fieldLabel}>Nome Completo</label>
-                                            <input
-                                                type="text"
-                                                id="fullName"
-                                                name="fullName"
-                                                value={profileData.fullName}
-                                                className={pageStyles.fieldInput}
-                                                disabled
-                                            />
-                                        </div>
-                                        <div className={pageStyles.infoField}>
-                                            <label htmlFor="email" className={pageStyles.fieldLabel}>Email</label>
-                                            <input
-                                                type="email"
-                                                id="email"
-                                                name="email"
-                                                value={profileData.email}
-                                                className={pageStyles.fieldInput}
-                                                disabled
-                                            />
-                                        </div>
-                                        <div className={pageStyles.infoField}>
-                                            <label htmlFor="phone" className={pageStyles.fieldLabel}>Telefone</label>
-                                            <input
-                                                type="text"
-                                                id="phone"
-                                                name="phone"
-                                                value={profileData.phone}
-                                                className={pageStyles.fieldInput}
-                                                disabled
-                                            />
-                                        </div>
-                                        <div className={pageStyles.infoField}>
-                                            <label htmlFor="dob" className={pageStyles.fieldLabel}>Data de Nascimento</label>
-                                            <input
-                                                type="date"
-                                                id="dob"
-                                                name="dob"
-                                                value={profileData.dob}
-                                                className={pageStyles.fieldInput}
-                                                disabled
-                                            />
-                                        </div>
-                                    </div>
-                                    <div className={pageStyles.editButtonContainer}>
-                                        <button
-                                            className={pageStyles.editProfileButton}
-                                            onClick={handleEditClick}
-                                            disabled={uploadingPhoto || passwordLoading}
-                                            type="button"
-                                        >
-                                            Editar Perfil
-                                        </button>
-                                    </div>
-                                </div>
-                            </div>
-                            <ChangePasswordModal 
-                                show={showPasswordModal} 
-                                onClose={() => setShowPasswordModal(false)} 
-                                onSave={handleSavePassword}
-                                loading={passwordLoading}
-                            />
-                            
-                            <EditProfileModal
-                                isOpen={showEditModal}
-                                onClose={() => setShowEditModal(false)}
-                                onSave={handleSaveProfile}
-                                initialData={{
-                                    fullName: profileData.fullName,
-                                    phone: profileData.phone,
-                                    dob: profileData.dob,
-                                }}
-                                loading={uploadingPhoto || passwordLoading}
-                            />
-
-
-
-                            {showPhotoViewer && (
-                                <div className={modalStyles.modalOverlay} onClick={() => setShowPhotoViewer(false)}>
-                                    <div
-                                        className={modalStyles.modalContent}
-                                        onClick={(e) => e.stopPropagation()}
-                                        style={{ background: 'transparent', boxShadow: 'none', padding: 0, maxWidth: '90vw' }}
-                                    >
-                                        <span className={modalStyles.modalClose} onClick={() => setShowPhotoViewer(false)}>&times;</span>
-                                        <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', maxHeight: '80vh' }}>
-                                            <Image
-                                                src={profileData.photoUrl}
-                                                alt="Visualização da Foto de Perfil"
-                                                width={1000}
-                                                height={1000}
-                                                style={{ width: 'auto', height: '80vh', objectFit: 'contain', borderRadius: 8 }}
-                                            />
-                                        </div>
-                                    </div>
-                                </div>
-                            )}
-                        </section>
-                    </div>
-                </div>
-            </main>
-        );
+  const toggleMenu = () => setIsMenuOpen(!isMenuOpen);
+  const closeMenu = () => setIsMenuOpen(false);
+  
+  const handleEditClick = () => setShowEditModal(true);
+  const handleChangePasswordClick = () => setShowPasswordModal(true);
+  
+  const handleFileInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    handleFileChange(e);
+  };
+  
+  const handleCloseEditModal = () => setShowEditModal(false);
+  const handleClosePasswordModal = () => setShowPasswordModal(false);
+  
+  const handleUploadClick = () => {
+    if (fileInputRef.current) {
+      fileInputRef.current.click();
     }
+  };
+
+  const PhotoViewer = () => (
+    <div 
+      className={pageStyles.modalOverlay} 
+      onClick={() => setShowPhotoViewer(false)}
+      style={{
+        position: 'fixed',
+        top: 0,
+        left: 0,
+        right: 0,
+        bottom: 0,
+        backgroundColor: 'rgba(0,0,0,0.8)',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        zIndex: 1000,
+      }}
+    >
+      <div 
+        style={{ 
+          maxWidth: '90vw', 
+          maxHeight: '90vh',
+          position: 'relative' 
+        }}
+        onClick={(e) => e.stopPropagation()}
+      >
+        <Image
+          src={profile.photoUrl}
+          alt="Foto de Perfil"
+          width={800}
+          height={800}
+          style={{ 
+            width: '100%', 
+            height: 'auto',
+            maxHeight: '90vh',
+            objectFit: 'contain' 
+          }}
+        />
+        <button
+          onClick={() => setShowPhotoViewer(false)}
+          style={{
+            position: 'absolute',
+            top: '10px',
+            right: '10px',
+            background: 'rgba(0,0,0,0.5)',
+            color: 'white',
+            border: 'none',
+            borderRadius: '50%',
+            width: '40px',
+            height: '40px',
+            fontSize: '20px',
+            cursor: 'pointer',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+          }}
+        >
+          ×
+        </button>
+      </div>
+    </div>
+  );
+
+  return (
+    <main className={pageStyles.main}>
+      <div className={pageStyles.mainContent}>
+        <div className={pageStyles.content}>
+          
+          <div className={pageStyles.pageHeader}>
+            <h1 className={pageStyles.content_title}>Perfil</h1>
+          </div>
+          <section className={pageStyles.content_info}>
+            <div className={pageStyles.profileSection}>
+              <div className={pageStyles.profileHeader}>
+                <div className={pageStyles.profileInfo}>
+                  <div className={pageStyles.profilePhotoContainer}>
+                    <Image
+                      src={profile.photoUrl}
+                      alt="Foto de Perfil"
+                      className={pageStyles.profilePhoto}
+                      width={100}
+                      height={100}
+                      key={profile.photoUrl}
+                      onError={() => {
+                        // setProfileData(prev => ({ ...prev, photoUrl: '/foto_padrao.png' }));
+                      }}
+                      onClick={() => setShowPhotoViewer(true)}
+                      style={{ cursor: 'pointer' }}
+                    />
+                    <button 
+                      className={pageStyles.uploadPhotoButton} 
+                      onClick={handleUploadClick}
+                      disabled={uploadingPhoto}
+                    >
+                      {uploadingPhoto ? (
+                        <svg className={pageStyles.spinner} viewBox="0 0 50 50">
+                          <circle className={pageStyles.path} cx="25" cy="25" r="20" fill="none" strokeWidth="5"></circle>
+                        </svg>
+                      ) : (
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
+                          <path d="M12 9V3H9V9H3V12H9V18H12V12H18V9H12Z" />
+                        </svg>
+                      )}
+                    </button>
+                    <input
+                      type="file"
+                      ref={fileInputRef}
+                      onChange={handleFileInputChange}
+                      style={{ display: 'none' }}
+                      accept="image/png, image/jpeg"
+                      disabled={uploadingPhoto}
+                    />
+                  </div>
+                  <div className={pageStyles.profileText}>
+                    <h2>{profile.fullName || 'Nome não informado'}</h2>
+                    <p>{profile.email || 'Email não informado'}</p>
+                    {profile.phone && <p>{profile.phone}</p>}
+                  </div>
+                </div>
+                <div className={pageStyles.profileActions}>
+                  <button 
+                    className={pageStyles.actionButton} 
+                    onClick={() => setShowPasswordModal(true)}
+                    disabled={passwordLoading || uploadingPhoto}
+                  >
+                    Alterar Senha
+                  </button>
+                  <button className={pageStyles.logoutButton} onClick={handleLogout}>Logout</button>
+                </div>
+              </div>
+              <div className={pageStyles.infoCard}>
+                <h2 className={pageStyles.cardTitle}>Informações do Perfil</h2>
+                <div className={pageStyles.infoGrid}>
+                  <div className={pageStyles.infoField}>
+                    <label htmlFor="fullName" className={pageStyles.fieldLabel}>Nome Completo</label>
+                    <input
+                      type="text"
+                      id="fullName"
+                      name="fullName"
+                      value={profile.fullName}
+                      className={pageStyles.fieldInput}
+                      disabled
+                    />
+                  </div>
+                  <div className={pageStyles.infoField}>
+                    <label htmlFor="email" className={pageStyles.fieldLabel}>Email</label>
+                    <input
+                      type="email"
+                      id="email"
+                      name="email"
+                      value={profile.email}
+                      className={pageStyles.fieldInput}
+                      disabled
+                    />
+                  </div>
+                  <div className={pageStyles.infoField}>
+                    <label htmlFor="phone" className={pageStyles.fieldLabel}>Telefone</label>
+                    <input
+                      type="text"
+                      id="phone"
+                      name="phone"
+                      value={profile.phone}
+                      className={pageStyles.fieldInput}
+                      disabled
+                    />
+                  </div>
+                  <div className={pageStyles.infoField}>
+                    <label htmlFor="dob" className={pageStyles.fieldLabel}>Data de Nascimento</label>
+                    <input
+                      type="date"
+                      id="dob"
+                      name="dob"
+                      value={profile.dob}
+                      className={pageStyles.fieldInput}
+                      disabled
+                    />
+                  </div>
+                </div>
+                <div className={pageStyles.editButtonContainer}>
+                  <button
+                    className={pageStyles.editProfileButton}
+                    onClick={handleEditClick}
+                    disabled={uploadingPhoto || passwordLoading}
+                    type="button"
+                  >
+                    Editar Perfil
+                  </button>
+                </div>
+              </div>
+            </div>
+            <ChangePasswordModal 
+              show={showPasswordModal} 
+              onClose={() => setShowPasswordModal(false)} 
+              onSave={handleSavePassword}
+              loading={passwordLoading}
+            />
+            
+            <EditProfileModal
+              isOpen={showEditModal}
+              onClose={() => setShowEditModal(false)}
+              onSave={handleSaveProfile}
+              initialData={{
+                fullName: profile.fullName,
+                phone: profile.phone,
+                dob: profile.dob,
+              }}
+              loading={uploadingPhoto || passwordLoading}
+            />
+            {showPhotoViewer && <PhotoViewer />}
+          </section>
+        </div>
+      </div>
+    </main>
+  );
+}

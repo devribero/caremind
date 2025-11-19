@@ -4,13 +4,13 @@ import Link from "next/link";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/contexts/AuthContext";
-import { useProfile } from "@/contexts/ProfileContext";
+import { useProfile } from "@/hooks/useProfile";
 import styles from "./ClientAreaHeader.module.css";
 import { IoPersonCircleOutline } from "react-icons/io5";
 
 export function ClientAreaHeader() {
   const { user, signOut } = useAuth();
-  const { photoUrl } = useProfile();
+  const { profile } = useProfile();
   const router = useRouter();
 
   const [isProfileOpen, setIsProfileOpen] = useState(false);
@@ -43,14 +43,14 @@ export function ClientAreaHeader() {
       <div className={styles.right}>
         <div className={styles.profileContainer} ref={profileMenuRef}>
           <button className={styles.profileButton} onClick={() => setIsProfileOpen((v) => !v)} aria-haspopup="menu" aria-expanded={isProfileOpen}>
-            {photoUrl ? (
-              <Image 
-                src={photoUrl} 
-                alt="Foto de perfil" 
-                width={28} 
-                height={28} 
+            {profile?.foto_usuario ? (
+              <Image
+                src={profile.foto_usuario}
+                alt="Foto de perfil"
+                width={28}
+                height={28}
                 className={styles.profilePicture}
-                key={photoUrl}
+                key={profile.foto_usuario}
               />
             ) : (
               <IoPersonCircleOutline className={styles.person} size={28} />
