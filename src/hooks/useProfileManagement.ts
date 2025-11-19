@@ -137,7 +137,7 @@ export const useProfileManagement = () => {
       email: user?.email || '',
       phone: profile.telefone || '',
       dob: profile.data_nascimento || '',
-      photoUrl: profile.foto_usuario || '/foto_padrao.png',
+      photoUrl: profile.foto_usuario || '/icons/foto_padrao.png',
     } : null,
     loading,
     error,

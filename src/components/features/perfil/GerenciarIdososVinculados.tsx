@@ -6,11 +6,14 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useProfile } from '@/hooks/useProfile';
 import { listarIdososVinculados, deletarVinculo } from '@/lib/supabase/services/vinculos';
 import { toast } from '@/components/features/Toast';
+import EditIdosoModal from '@/components/features/modals/EditIdosoModal';
 
 interface IdosoItem {
   id_idoso: string;
   nome: string | null;
   foto_usuario: string | null;
+  telefone: string | null;
+  data_nascimento: string | null;
 }
 
 export type GerenciarIdososVinculadosRef = {
@@ -22,6 +25,7 @@ function GerenciarIdososVinculadosImpl(_props: {}, ref: React.Ref<GerenciarIdoso
   const { profile } = useProfile();
   const [idosos, setIdosos] = useState<IdosoItem[]>([]);
   const [loading, setLoading] = useState(false);
+  const [editingIdoso, setEditingIdoso] = useState<IdosoItem | null>(null);
 
   const fetchIdosos = async () => {
     if (!user?.id || !profile?.id) {
@@ -35,7 +39,9 @@ function GerenciarIdososVinculadosImpl(_props: {}, ref: React.Ref<GerenciarIdoso
       const normalized: IdosoItem[] = vinculos.map((vinculo) => ({
         id_idoso: vinculo.id_idoso,
         nome: vinculo.idoso?.nome || null,
-        foto_usuario: vinculo.idoso?.foto_url || null,
+        foto_usuario: vinculo.idoso?.foto_usuario || null,
+        telefone: vinculo.idoso?.telefone || null,
+        data_nascimento: vinculo.idoso?.data_nascimento || null,
       }));
       setIdosos(normalized);
     } catch (err) {
@@ -86,18 +92,45 @@ function GerenciarIdososVinculadosImpl(_props: {}, ref: React.Ref<GerenciarIdoso
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(260px, 1fr))', gap: 12 }}>
           {idosos.map((i) => (
             <div key={i.id_idoso} style={{ border: '1px solid #e5e7eb', borderRadius: 12, padding: 12, display: 'flex', gap: 12, alignItems: 'center', minWidth: 0 }}>
-              <Image src={i.foto_usuario || '/foto_padrao.png'} alt={i.nome || 'Idoso'} width={44} height={44} style={{ borderRadius: '9999px', objectFit: 'cover', flexShrink: 0 }} />
+              <Image src={i.foto_usuario || '/icons/foto_padrao.png'} alt={i.nome || 'Idoso'} width={56} height={56} style={{ borderRadius: '9999px', objectFit: 'cover', flexShrink: 0 }} />
               <div style={{ flex: 1, minWidth: 0 }}>
                 <div style={{ fontWeight: 700, color: '#111827', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{i.nome || 'Sem nome'}</div>
                 <div style={{ fontSize: 12, color: '#6b7280', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{i.id_idoso}</div>
               </div>
-              <button onClick={() => handleDesvincular(i.id_idoso)} style={{ background: '#ef4444', color: 'white', padding: '8px 12px', borderRadius: 10, fontWeight: 700, flexShrink: 0 }}>
-                Desvincular
-              </button>
+              <div style={{ display: 'flex', gap: 8 }}>
+                <button
+                  onClick={() => setEditingIdoso(i)}
+                  style={{ background: '#0400BA', color: 'white', padding: '8px 12px', borderRadius: 10, fontWeight: 700, flexShrink: 0 }}
+                >
+                  Editar
+                </button>
+                <button onClick={() => handleDesvincular(i.id_idoso)} style={{ background: '#ef4444', color: 'white', padding: '8px 12px', borderRadius: 10, fontWeight: 700, flexShrink: 0 }}>
+                  Desvincular
+                </button>
+              </div>
             </div>
           ))}
         </div>
       )}
+      <EditIdosoModal
+        isOpen={!!editingIdoso}
+        idosoId={editingIdoso?.id_idoso}
+        initialData={
+          editingIdoso
+            ? {
+                nome: editingIdoso.nome || '',
+                telefone: editingIdoso.telefone || '',
+                data_nascimento: editingIdoso.data_nascimento || '',
+                foto_usuario: editingIdoso.foto_usuario || '',
+              }
+            : undefined
+        }
+        onClose={() => setEditingIdoso(null)}
+        onSaved={() => {
+          setEditingIdoso(null);
+          fetchIdosos();
+        }}
+      />
     </section>
   );
 }

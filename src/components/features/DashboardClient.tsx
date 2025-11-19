@@ -255,6 +255,7 @@ export default function DashboardClient({ readOnly = false, idosoId }: { readOnl
   };
 
   const handleToggleAgendaStatus = async (item: AgendaItem) => {
+    if (readOnly) return;
     if (item.tipo === 'compromisso') return; // Compromissos não têm status
 
     const novoStatus = item.status === 'confirmado' ? 'pendente' : 'confirmado';
@@ -360,7 +361,7 @@ export default function DashboardClient({ readOnly = false, idosoId }: { readOnl
                   <span
                     onClick={() => handleToggleAgendaStatus(item)}
                     className={getStatusBadge(item.status, item.horario)}
-                    style={{ cursor: 'pointer' }}
+                    style={{ cursor: readOnly ? 'default' : 'pointer' }}
                   >
                     {getStatusText(item.status, item.horario)}
                   </span>

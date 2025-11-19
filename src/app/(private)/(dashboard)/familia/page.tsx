@@ -1,9 +1,7 @@
 'use client'
 
 import pageStyles from '../perfil/page.module.css';
-import modalStyles from '../perfil/modal.module.css';
 import { useAuth } from '@/contexts/AuthContext';
-import { useRouter } from 'next/navigation';
 import { useState, useRef } from 'react';
 import GerenciarIdososVinculados, { GerenciarIdososVinculadosRef } from '@/components/features/perfil/GerenciarIdososVinculados';
 import AddIdosoModal from '@/components/features/modals/AddIdosoModal';
@@ -11,7 +9,6 @@ import { ToastContainer } from '@/components/features/Toast';
 
 export default function FamiliaPage() {
   const { user } = useAuth();
-  const router = useRouter();
   const [showAddIdosoModal, setShowAddIdosoModal] = useState(false);
   const idososRef = useRef<GerenciarIdososVinculadosRef>(null);
 
@@ -49,7 +46,7 @@ export default function FamiliaPage() {
             <h1 className={pageStyles.content_title}>Família</h1>
           </div>
 
-          <div style={{ display: 'flex', gap: 12, marginBottom: 16 }}>
+          <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap', marginBottom: 16 }}>
             <button 
               className={pageStyles.actionButton}
               onClick={() => setShowAddIdosoModal(true)}
@@ -61,12 +58,6 @@ export default function FamiliaPage() {
               onClick={() => idososRef.current?.refresh()}
             >
               Atualizar Lista
-            </button>
-            <button 
-              className={pageStyles.actionButton}
-              onClick={() => router.push('/perfil')}
-            >
-              Voltar para Perfil
             </button>
           </div>
 

@@ -1,17 +1,24 @@
 import { createClient } from '../client';
 
 export interface VinculoFamiliar {
-  id: string;
   id_idoso: string;
   id_familiar: string;
-  aprovado: boolean;
-  data_solicitacao: string;
-  data_aprovacao?: string | null;
+  created_at: string;
   idoso?: {
     id: string;
     nome: string;
-    foto_url?: string | null;
+    foto_usuario?: string | null;
+    telefone?: string | null;
+    data_nascimento?: string | null;
   };
+}
+
+export interface PerfilIdosoBasico {
+  id: string;
+  nome: string;
+  telefone: string | null;
+  data_nascimento: string | null;
+  foto_usuario: string | null;
 }
 
 const TABLE_NAME = 'vinculos_familiares';
@@ -22,8 +29,7 @@ export const listarIdososVinculados = async (familiarId: string): Promise<Vincul
   const { data, error } = await supabase
     .from(TABLE_NAME)
     .select('*')
-    .eq('id_familiar', familiarId)
-    .eq('aprovado', true);
+    .eq('id_familiar', familiarId);
 
   if (error) {
     console.error('Erro ao listar idosos vinculados:', error);
@@ -35,7 +41,7 @@ export const listarIdososVinculados = async (familiarId: string): Promise<Vincul
     const ids = data.map(v => v.id_idoso);
     const { data: idosos } = await supabase
       .from('perfis')
-      .select('id, nome, foto_url')
+      .select('id, nome, foto_usuario, telefone, data_nascimento')
       .in('id', ids);
 
     if (idosos) {
@@ -47,6 +53,50 @@ export const listarIdososVinculados = async (familiarId: string): Promise<Vincul
   }
 
   return data as VinculoFamiliar[];
+};
+
+interface AtualizarPerfilIdosoInput {
+  idosoId: string;
+  nome: string;
+  telefone?: string | null;
+  data_nascimento?: string | null;
+  foto_usuario?: string | null;
+}
+
+export const atualizarPerfilIdoso = async ({
+  idosoId,
+  nome,
+  telefone,
+  data_nascimento,
+  foto_usuario,
+}: AtualizarPerfilIdosoInput): Promise<PerfilIdosoBasico> => {
+  const supabase = createClient();
+  const nomeLimpo = nome.trim();
+  if (!nomeLimpo) {
+    throw new Error('O nome é obrigatório.');
+  }
+
+  const { data, error } = await supabase.functions.invoke('atualizar-idoso', {
+    body: {
+      idosoId,
+      nome: nomeLimpo,
+      telefone: telefone?.trim() || null,
+      data_nascimento: data_nascimento || null,
+      foto_usuario: foto_usuario || null,
+    },
+  });
+
+  if (error) {
+    console.error('Erro ao atualizar perfil do idoso:', error);
+    throw new Error(error.message || 'Não foi possível salvar as alterações.');
+  }
+
+  const perfil = (data as { perfil?: PerfilIdosoBasico })?.perfil;
+  if (!perfil) {
+    throw new Error('Resposta inválida ao salvar o idoso.');
+  }
+
+  return perfil;
 };
 
 export const deletarVinculo = async (idIdoso: string, idFamiliar: string): Promise<boolean> => {
@@ -71,12 +121,16 @@ export const solicitarVinculo = async (idIdoso: string, idFamiliar: string): Pro
   
   const { error } = await supabase
     .from(TABLE_NAME)
-    .upsert({
-      id_idoso: idIdoso,
-      id_familiar: idFamiliar,
-      aprovado: false,
-      data_solicitacao: new Date().toISOString()
-    });
+    .upsert(
+      {
+        id_idoso: idIdoso,
+        id_familiar: idFamiliar,
+      },
+      {
+        onConflict: 'id_idoso,id_familiar',
+        ignoreDuplicates: true,
+      }
+    );
 
   if (error) {
     console.error('Erro ao solicitar vínculo:', error);
@@ -86,23 +140,3 @@ export const solicitarVinculo = async (idIdoso: string, idFamiliar: string): Pro
   return true;
 };
 
-export const aprovarVinculo = async (idVinculo: string): Promise<VinculoFamiliar> => {
-  const supabase = createClient();
-  
-  const { data, error } = await supabase
-    .from(TABLE_NAME)
-    .update({
-      aprovado: true,
-      data_aprovacao: new Date().toISOString()
-    })
-    .eq('id', idVinculo)
-    .select()
-    .single();
-
-  if (error) {
-    console.error('Erro ao aprovar vínculo:', error);
-    throw error;
-  }
-
-  return data as VinculoFamiliar;
-};

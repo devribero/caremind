@@ -1,0 +1,97 @@
+.insightsCard {
+  background: #ffffff;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  padding: 24px;
+  margin-bottom: 24px;
+}
+
+.insightsHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 16px;
+}
+
+.insightsTitle {
+  font-size: 18px;
+  font-weight: 600;
+  color: #1f2933;
+  margin: 0;
+}
+
+.insightsList {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.insightItem {
+  display: flex;
+  gap: 12px;
+  padding: 12px;
+  border-radius: 10px;
+  background: #f8fafc;
+  border: 1px solid transparent;
+}
+
+.iconWrapper {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+  flex-shrink: 0;
+}
+
+.insightContent strong {
+  display: block;
+  font-size: 14px;
+  color: #111;
+}
+
+.insightContent p {
+  font-size: 13px;
+  color: #4b5563;
+  margin: 4px 0 0;
+}
+
+.danger {
+  border-color: rgba(220, 38, 38, 0.25);
+  background: #fff5f5;
+}
+
+.danger .iconWrapper {
+  background: #dc2626;
+}
+
+.warning {
+  border-color: rgba(245, 158, 11, 0.25);
+  background: #fffaf0;
+}
+
+.warning .iconWrapper {
+  background: #f59e0b;
+}
+
+.success {
+  border-color: rgba(16, 185, 129, 0.25);
+  background: #f0fdf4;
+}
+
+.success .iconWrapper {
+  background: #10b981;
+}
+
+.info {
+  border-color: rgba(59, 130, 246, 0.25);
+  background: #eff6ff;
+}
+
+.info .iconWrapper {
+  background: #3b82f6;
+}
+
+

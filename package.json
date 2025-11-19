@@ -21,6 +21,8 @@
     "class-variance-authority": "^0.7.1",
     "date-fns": "^4.1.0",
     "framer-motion": "^12.23.24",
+    "html2canvas": "^1.4.1",
+    "jspdf": "^3.0.4",
     "lucide-react": "^0.542.0",
     "next": "^15.5.4",
     "next-themes": "^0.4.6",
@@ -32,15 +34,19 @@
     "tailwind-merge": "^3.3.1"
   },
   "devDependencies": {
+    "@alloc/quick-lru": "^5.2.0",
     "@eslint/eslintrc": "^3",
     "@types/node": "20.19.23",
     "@types/react": "18.3.26",
     "@types/react-dom": "^18.3.0",
     "@typescript-eslint/eslint-plugin": "^8.46.4",
     "@typescript-eslint/parser": "^8.46.4",
+    "autoprefixer": "^10.4.22",
     "eslint": "^9",
     "eslint-config-next": "^15.4.6",
     "eslint-plugin-react-hooks": "^7.0.1",
+    "postcss": "^8.5.6",
+    "supabase": "^2.58.5",
     "typescript": "5.9.3"
   }
 }

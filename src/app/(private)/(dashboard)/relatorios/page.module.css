@@ -16,6 +16,14 @@
   padding: 0 20px;
 }
 
+.printContainer {
+  background: #ffffff;
+  border-radius: 16px;
+  padding: 24px;
+  box-shadow: 0 8px 30px rgba(15, 23, 42, 0.08);
+  margin-top: 24px;
+}
+
 .content_title {
   font-family: "Poppins", sans-serif;
   font-size: 40px;
@@ -62,6 +70,13 @@
 }
 
 /* Report Cards Grid */
+.summaryGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 24px;
+  margin-bottom: 30px;
+}
+
 .reportGrid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
@@ -139,6 +154,17 @@
   margin-bottom: 30px;
 }
 
+.chartRow {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+  gap: 24px;
+  margin-bottom: 30px;
+}
+
+.chartBody {
+  height: 280px;
+}
+
 .chartTitle {
   font-size: 20px;
   font-weight: 600;
@@ -200,6 +226,7 @@
   display: flex;
   gap: 10px;
   margin-left: auto;
+  flex-wrap: wrap;
 }
 
 .filterActions button {
@@ -220,6 +247,118 @@
   background: #fff;
   color: #0400BA;
   border-color: #0400BA;
+}
+
+.exportButton {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: #0400BA;
+  color: #fff;
+  border: none;
+  padding: 0 16px;
+}
+
+.exportButton:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.tableWrapper {
+  width: 100%;
+  overflow-x: auto;
+}
+
+.kpiValue {
+  font-size: 36px;
+  font-weight: 700;
+  color: #0400BA;
+  margin: 0;
+}
+
+.kpiValueDanger {
+  font-size: 36px;
+  font-weight: 700;
+  color: #dc3545;
+  margin: 0;
+}
+
+.kpiLabel {
+  margin: 4px 0 16px;
+  color: #666;
+  font-size: 14px;
+}
+
+.kpiSplit {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  font-size: 14px;
+}
+
+.kpiSplit span {
+  color: #666;
+}
+
+.kpiSplit strong {
+  display: block;
+  font-size: 18px;
+  color: #333;
+}
+
+.alertCard {
+  border: 1px solid rgba(220, 53, 69, 0.1);
+  background: #fff6f6;
+}
+
+.donutCard {
+  position: relative;
+  overflow: hidden;
+}
+
+.donutWrapper {
+  position: relative;
+  width: 180px;
+  height: 180px;
+  margin: 0 auto;
+}
+
+.donutWrapper canvas {
+  position: absolute;
+  top: 0;
+  left: 0;
+}
+
+.donutCenter {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  text-align: center;
+  line-height: 1.2;
+}
+
+.donutCenter strong {
+  font-size: 24px;
+  color: #0400BA;
+  display: block;
+}
+
+.donutCenter span {
+  font-size: 12px;
+  color: #666;
+}
+
+.cardTitleRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.cardSubtitle {
+  font-size: 12px;
+  color: #999;
 }
 
 /* History Table */
@@ -274,6 +413,15 @@
   .reportGrid {
     grid-template-columns: 1fr;
     gap: 16px;
+  }
+
+  .summaryGrid {
+    grid-template-columns: 1fr;
+    gap: 16px;
+  }
+
+  .chartRow {
+    grid-template-columns: 1fr;
   }
 
   .filterBar {
