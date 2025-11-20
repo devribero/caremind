@@ -39,6 +39,8 @@ export default function Remedios() {
   const { idosoSelecionadoId, listaIdososVinculados } = useIdoso();
   const { profile } = useProfile();
   const isFamiliar = user?.user_metadata?.account_type === 'familiar';
+  // idosoSelecionadoId é o id do perfil, que agora é o mesmo que o user_id após nossa correção
+  // Como o id do perfil agora é igual ao user_id, podemos usar diretamente
   const targetUserId = isFamiliar ? idosoSelecionadoId : user?.id;
   const targetProfileId = isFamiliar ? idosoSelecionadoId : profile?.id;
   const selectedElderName = useMemo(() => (

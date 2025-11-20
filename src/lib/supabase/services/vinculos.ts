@@ -6,6 +6,7 @@ export interface VinculoFamiliar {
   created_at: string;
   idoso?: {
     id: string;
+    user_id?: string;
     nome: string;
     foto_usuario?: string | null;
     telefone?: string | null;
@@ -41,7 +42,7 @@ export const listarIdososVinculados = async (familiarId: string): Promise<Vincul
     const ids = data.map(v => v.id_idoso);
     const { data: idosos } = await supabase
       .from('perfis')
-      .select('id, nome, foto_usuario, telefone, data_nascimento')
+      .select('id, user_id, nome, foto_usuario, telefone, data_nascimento')
       .in('id', ids);
 
     if (idosos) {

@@ -1,0 +1,260 @@
+/* Container para visualização em grade */
+.gridContainer {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 16px;
+}
+
+/* Container para visualização em lista */
+.listContainer {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+/* Card (visualização em grade) */
+.card {
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  background: white;
+  transition: box-shadow 0.2s, transform 0.2s;
+}
+
+.card:hover {
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  transform: translateY(-2px);
+}
+
+.cardImage {
+  width: 80px;
+  height: 80px;
+  margin-bottom: 12px;
+  flex-shrink: 0;
+}
+
+.cardContent {
+  flex: 1;
+  width: 100%;
+  margin-bottom: 12px;
+}
+
+.cardName {
+  font-size: 18px;
+  font-weight: 700;
+  color: #111827;
+  margin: 0 0 12px 0;
+  word-break: break-word;
+  overflow-wrap: break-word;
+}
+
+.cardInfo {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin-bottom: 8px;
+  font-size: 14px;
+  color: #4b5563;
+}
+
+.cardLabel {
+  font-weight: 600;
+  color: #6b7280;
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.cardActions {
+  display: flex;
+  gap: 8px;
+  width: 100%;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+
+/* Item de lista (visualização em lista) */
+.listItem {
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+  padding: 16px;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  background: white;
+  transition: box-shadow 0.2s;
+}
+
+.listItem:hover {
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+}
+
+.listImage {
+  width: 56px;
+  height: 56px;
+  flex-shrink: 0;
+}
+
+.listContent {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.listName {
+  font-size: 18px;
+  font-weight: 700;
+  color: #111827;
+  margin: 0;
+  word-break: break-word;
+  overflow-wrap: break-word;
+}
+
+.listDetails {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.listDetail {
+  display: flex;
+  gap: 8px;
+  font-size: 14px;
+  color: #4b5563;
+}
+
+.listLabel {
+  font-weight: 600;
+  color: #6b7280;
+  min-width: 80px;
+}
+
+.listActions {
+  display: flex;
+  gap: 8px;
+  flex-shrink: 0;
+  margin-left: auto;
+}
+
+/* Botões */
+.btnEdit {
+  background: #0400BA;
+  color: white;
+  padding: 8px 16px;
+  border-radius: 8px;
+  font-weight: 600;
+  font-size: 14px;
+  border: none;
+  cursor: pointer;
+  transition: background-color 0.2s;
+  white-space: nowrap;
+}
+
+.btnEdit:hover {
+  background: #0300a0;
+}
+
+.btnDesvincular {
+  background: #ef4444;
+  color: white;
+  padding: 8px 16px;
+  border-radius: 8px;
+  font-weight: 600;
+  font-size: 14px;
+  border: none;
+  cursor: pointer;
+  transition: background-color 0.2s;
+  white-space: nowrap;
+}
+
+.btnDesvincular:hover {
+  background: #dc2626;
+}
+
+/* Botões de visualização */
+.viewButton {
+  background: white;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  padding: 8px;
+  cursor: pointer;
+  color: #6b7280;
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.viewButton:hover {
+  background: #f9fafb;
+  border-color: #d1d5db;
+  color: #111827;
+}
+
+.viewButtonActive {
+  background: #0400BA;
+  border: 1px solid #0400BA;
+  border-radius: 8px;
+  padding: 8px;
+  cursor: pointer;
+  color: white;
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.viewButtonActive:hover {
+  background: #0300a0;
+  border-color: #0300a0;
+}
+
+/* Responsividade */
+@media (max-width: 768px) {
+  .gridContainer {
+    grid-template-columns: 1fr;
+  }
+
+  .listItem {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .listActions {
+    width: 100%;
+    margin-left: 0;
+    margin-top: 12px;
+    justify-content: flex-end;
+  }
+
+  .cardActions {
+    flex-direction: column;
+  }
+
+  .btnEdit,
+  .btnDesvincular {
+    width: 100%;
+  }
+}
+
+@media (max-width: 480px) {
+  .card {
+    padding: 12px;
+  }
+
+  .listItem {
+    padding: 12px;
+  }
+
+  .cardName,
+  .listName {
+    font-size: 16px;
+  }
+}
+
