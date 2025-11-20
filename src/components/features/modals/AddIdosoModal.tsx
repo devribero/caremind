@@ -39,11 +39,21 @@ export default function AddIdosoModal({ isOpen, onClose, onSuccess }: AddIdosoMo
     setError(null);
     setIsLoading(true);
     try {
+      const nomeTrimmed = nome.trim();
+      const emailTrimmed = email.trim();
+      
+      // Log para debug
+      console.log('Enviando dados para criar idoso:', {
+        nome_idoso: nomeTrimmed,
+        email_idoso: emailTrimmed,
+        senha_length: senha.length
+      });
+      
       // Chamar a Edge Function criar-idoso
       const { data, error: functionError } = await supabase.functions.invoke('criar-idoso', {
         body: {
-          nome_idoso: nome.trim(),
-          email_idoso: email.trim(),
+          nome_idoso: nomeTrimmed,
+          email_idoso: emailTrimmed,
           senha_idoso: senha,
         },
       });

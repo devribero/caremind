@@ -86,61 +86,271 @@ Deno.serve(async (req) => {
     const idFamiliar = perfilFamiliar.id
 
     // Extrair dados do idoso do corpo da requisição
-    const { nome_idoso, email_idoso, senha_idoso } = await req.json()
+    const body = await req.json()
+    const { nome_idoso, email_idoso, senha_idoso } = body
 
-    if (!nome_idoso || !email_idoso || !senha_idoso) {
+    // Log para debug
+    console.log('Dados recebidos na Edge Function:', {
+      nome_idoso,
+      email_idoso,
+      senha_provided: !!senha_idoso,
+      body_keys: Object.keys(body)
+    })
+
+    // Validação mais rigorosa
+    if (!nome_idoso || typeof nome_idoso !== 'string' || nome_idoso.trim().length === 0) {
       return new Response(
-        JSON.stringify({ error: 'Dados do idoso incompletos. Forneça nome_idoso, email_idoso e senha_idoso' }),
+        JSON.stringify({ error: 'Nome do idoso é obrigatório e não pode estar vazio' }),
         { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       )
     }
 
-    // PASSO 1: Criar usuário no Auth (com privilégios admin)
+    if (!email_idoso || typeof email_idoso !== 'string' || email_idoso.trim().length === 0) {
+      return new Response(
+        JSON.stringify({ error: 'Email do idoso é obrigatório e não pode estar vazio' }),
+        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      )
+    }
+
+    if (!senha_idoso || typeof senha_idoso !== 'string' || senha_idoso.length < 6) {
+      return new Response(
+        JSON.stringify({ error: 'Senha é obrigatória e deve ter no mínimo 6 caracteres' }),
+        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      )
+    }
+
+    // Normalizar dados
+    const nomeNormalizado = nome_idoso.trim()
+    const emailNormalizado = email_idoso.trim().toLowerCase()
+    
+    console.log('Dados normalizados:', {
+      nomeNormalizado,
+      emailNormalizado,
+      senha_length: senha_idoso.length
+    })
+
+    let novoUserIdoso: string
+    let perfilIdosoId: string
+    let perfilIdoso: any
+
+    // PASSO 1: Tentar criar usuário no Auth (com privilégios admin)
+    console.log('Criando usuário no Auth com:', {
+      email: emailNormalizado,
+      nome: nomeNormalizado
+    })
+    
     const { data: authUser, error: createUserError } = await supabaseAdmin.auth.admin.createUser({
-      email: email_idoso,
+      email: emailNormalizado,
       password: senha_idoso,
       email_confirm: true, // Confirmar email automaticamente
       user_metadata: {
         account_type: 'idoso',
-        nome: nome_idoso,
+        nome: nomeNormalizado,
       }
     })
 
-    if (createUserError || !authUser?.user) {
-      console.error('Erro ao criar usuário:', createUserError)
+    if (createUserError) {
+      // Se o erro for de email duplicado, buscar o usuário existente
+      if (createUserError.message?.includes('already registered') || 
+          createUserError.message?.includes('already exists') ||
+          createUserError.message?.includes('User already registered')) {
+        
+        // Buscar usuário existente pelo email
+        const { data: existingUsers } = await supabaseAdmin.auth.admin.listUsers()
+        const existingUser = existingUsers?.users?.find(u => u.email?.toLowerCase() === emailNormalizado)
+        
+        if (!existingUser) {
+          console.error('Erro ao criar usuário e não foi possível encontrar usuário existente:', createUserError)
+          return new Response(
+            JSON.stringify({ error: `Erro ao criar usuário: ${createUserError.message}` }),
+            { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+          )
+        }
+
+        novoUserIdoso = existingUser.id
+        
+        // Verificar se já existe perfil para este usuário
+        const { data: existingPerfil } = await supabaseAdmin
+          .from('perfis')
+          .select('id')
+          .eq('user_id', novoUserIdoso)
+          .maybeSingle()
+
+        if (existingPerfil) {
+          // Perfil já existe - retornar erro informando que o idoso já está cadastrado
+          return new Response(
+            JSON.stringify({ 
+              error: 'Este email já está cadastrado. O idoso já possui um perfil no sistema.',
+              existing_idoso: {
+                id: existingPerfil.id,
+                user_id: novoUserIdoso,
+                email: emailNormalizado
+              }
+            }),
+            { status: 409, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+          )
+        }
+
+        // Usuário existe mas não tem perfil - criar apenas o perfil
+        // O id do perfil deve ser o mesmo do user_id (como no profileService.ts)
+        perfilIdosoId = novoUserIdoso
+        
+        console.log('Criando perfil para usuário existente:', {
+          id: perfilIdosoId,
+          user_id: novoUserIdoso,
+          nome: nomeNormalizado,
+          tipo: 'idoso'
+        })
+        
+        const { data: newPerfil, error: createPerfilError } = await supabaseAdmin
+          .from('perfis')
+          .insert({
+            id: perfilIdosoId,
+            user_id: novoUserIdoso,
+            nome: nomeNormalizado,
+            tipo: 'idoso',
+          })
+          .select()
+          .single()
+
+        if (createPerfilError || !newPerfil) {
+          console.error('Erro ao criar perfil para usuário existente:', createPerfilError)
+          return new Response(
+            JSON.stringify({ error: `Erro ao criar perfil: ${createPerfilError?.message || 'Erro desconhecido'}` }),
+            { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+          )
+        }
+
+        perfilIdoso = newPerfil
+      } else {
+        // Outro tipo de erro ao criar usuário
+        console.error('Erro ao criar usuário:', createUserError)
+        return new Response(
+          JSON.stringify({ error: `Erro ao criar usuário: ${createUserError.message || 'Erro desconhecido'}` }),
+          { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        )
+      }
+    } else if (!authUser?.user) {
       return new Response(
-        JSON.stringify({ error: `Erro ao criar usuário: ${createUserError?.message || 'Erro desconhecido'}` }),
+        JSON.stringify({ error: 'Erro ao criar usuário: usuário não foi retornado' }),
         { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       )
-    }
+    } else {
+      // Usuário criado com sucesso
+      novoUserIdoso = authUser.user.id
 
-    const novoUserIdoso = authUser.user.id
+      // PASSO 2: Criar perfil do idoso na tabela perfis
+      // O id do perfil deve ser o mesmo do user_id (como no profileService.ts)
+      perfilIdosoId = novoUserIdoso
 
-    // PASSO 2: Criar perfil do idoso na tabela perfis
-    // O id do perfil deve ser um UUID (geralmente o mesmo do user_id ou um UUID gerado)
-    // Vamos usar um UUID v4 gerado
-    const perfilIdosoId = crypto.randomUUID()
+      // Verificar se já existe perfil com este user_id (proteção contra race condition)
+      const { data: existingPerfil } = await supabaseAdmin
+        .from('perfis')
+        .select('id, nome, tipo')
+        .eq('user_id', novoUserIdoso)
+        .maybeSingle()
 
-    const { data: perfilIdoso, error: createPerfilError } = await supabaseAdmin
-      .from('perfis')
-      .insert({
-        id: perfilIdosoId,
-        user_id: novoUserIdoso,
-        nome: nome_idoso,
-        tipo: 'idoso',
-      })
-      .select()
-      .single()
+      if (existingPerfil) {
+        // Perfil já foi criado (possível race condition ou trigger) - usar o existente
+        console.log('Perfil já existe (possível trigger ou race condition):', existingPerfil)
+        perfilIdosoId = existingPerfil.id
+        perfilIdoso = existingPerfil
+        
+        // Se o perfil existe mas está sem nome ou tipo incorreto, atualizar
+        if (!existingPerfil.nome || existingPerfil.nome.trim() === '' || existingPerfil.tipo !== 'idoso') {
+          console.log('Atualizando nome e tipo do perfil existente que estava vazio ou incorreto')
+          const { data: updatedPerfil } = await supabaseAdmin
+            .from('perfis')
+            .update({ 
+              nome: nomeNormalizado, 
+              tipo: 'idoso' 
+            })
+            .eq('id', perfilIdosoId)
+            .select()
+            .single()
+          if (updatedPerfil) {
+            perfilIdoso = updatedPerfil
+          }
+        }
+      } else {
+        console.log('Criando perfil para novo usuário:', {
+          id: perfilIdosoId,
+          user_id: novoUserIdoso,
+          nome: nomeNormalizado,
+          tipo: 'idoso'
+        })
+        
+        const { data: newPerfil, error: createPerfilError } = await supabaseAdmin
+          .from('perfis')
+          .insert({
+            id: perfilIdosoId,
+            user_id: novoUserIdoso,
+            nome: nomeNormalizado,
+            tipo: 'idoso',
+          })
+          .select()
+          .single()
 
-    if (createPerfilError || !perfilIdoso) {
-      // Se falhar ao criar o perfil, tenta remover o usuário criado
-      await supabaseAdmin.auth.admin.deleteUser(novoUserIdoso)
-      
-      console.error('Erro ao criar perfil:', createPerfilError)
-      return new Response(
-        JSON.stringify({ error: `Erro ao criar perfil: ${createPerfilError?.message || 'Erro desconhecido'}` }),
-        { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      )
+        if (createPerfilError) {
+          console.error('Erro ao criar perfil:', createPerfilError)
+          // Verificar se o erro é de constraint única (user_id já existe)
+          if (createPerfilError.code === '23505' || createPerfilError.message?.includes('duplicate key')) {
+            // Perfil já existe - buscar o existente
+            const { data: existingPerfil } = await supabaseAdmin
+              .from('perfis')
+              .select()
+              .eq('user_id', novoUserIdoso)
+              .single()
+            
+            if (existingPerfil) {
+              console.log('Perfil já existe, usando existente:', existingPerfil)
+              perfilIdosoId = existingPerfil.id
+              perfilIdoso = existingPerfil
+              
+              // Atualizar o nome e tipo se estiverem vazios ou diferentes
+              if (!existingPerfil.nome || existingPerfil.nome.trim() === '' || existingPerfil.tipo !== 'idoso') {
+                console.log('Atualizando nome e tipo do perfil existente')
+                const { data: updatedPerfil } = await supabaseAdmin
+                  .from('perfis')
+                  .update({ 
+                    nome: nomeNormalizado,
+                    tipo: 'idoso'
+                  })
+                  .eq('id', perfilIdosoId)
+                  .select()
+                  .single()
+                if (updatedPerfil) {
+                  perfilIdoso = updatedPerfil
+                }
+              }
+            } else {
+              // Se falhar ao criar o perfil, tenta remover o usuário criado
+              await supabaseAdmin.auth.admin.deleteUser(novoUserIdoso)
+              return new Response(
+                JSON.stringify({ error: `Erro ao criar perfil: ${createPerfilError.message || 'Erro desconhecido'}` }),
+                { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+              )
+            }
+          } else {
+            // Se falhar ao criar o perfil, tenta remover o usuário criado
+            await supabaseAdmin.auth.admin.deleteUser(novoUserIdoso)
+            return new Response(
+              JSON.stringify({ error: `Erro ao criar perfil: ${createPerfilError.message || 'Erro desconhecido'}` }),
+              { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+            )
+          }
+        } else if (!newPerfil) {
+          console.error('Perfil não foi retornado após criação')
+          await supabaseAdmin.auth.admin.deleteUser(novoUserIdoso)
+          return new Response(
+            JSON.stringify({ error: 'Erro ao criar perfil: perfil não foi retornado' }),
+            { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+          )
+        } else {
+          console.log('Perfil criado com sucesso:', newPerfil)
+          perfilIdoso = newPerfil
+        }
+      }
     }
 
     // PASSO 3: Criar vínculo familiar
@@ -163,6 +373,22 @@ Deno.serve(async (req) => {
       )
     }
 
+    // Verificar se o perfil foi criado corretamente
+    if (!perfilIdoso || !perfilIdoso.nome || perfilIdoso.nome.trim() === '') {
+      console.error('Perfil criado sem nome válido:', perfilIdoso)
+      return new Response(
+        JSON.stringify({ error: 'Erro: perfil foi criado mas o nome não foi salvo corretamente' }),
+        { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      )
+    }
+
+    console.log('Idoso criado com sucesso:', {
+      id: perfilIdosoId,
+      user_id: novoUserIdoso,
+      nome: perfilIdoso.nome,
+      email: emailNormalizado
+    })
+
     // Sucesso: retornar resposta positiva
     return new Response(
       JSON.stringify({ 
@@ -171,8 +397,8 @@ Deno.serve(async (req) => {
         idoso: {
           id: perfilIdosoId,
           user_id: novoUserIdoso,
-          nome: nome_idoso,
-          email: email_idoso,
+          nome: perfilIdoso.nome,
+          email: emailNormalizado,
         }
       }),
       { 
