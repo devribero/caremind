@@ -217,8 +217,7 @@ export default function Configuracoes() {
                   </label>
                 </div>
                 <p className={styles.settingDescription}>
-                  Este número será usado para enviar SMS quando o botão de pânico for acionado. 
-                  Configure seu telefone na página de <a href="/perfil" style={{ color: '#3b82f6', textDecoration: 'underline' }}>Perfil</a>.
+                  Este número será usado para enviar SMS quando o botão de pânico for acionado. Configure seu telefone na página de <a href="/perfil" style={{ color: '#3b82f6', textDecoration: 'underline' }}>Perfil</a>.
                 </p>
               </div>
               <button
