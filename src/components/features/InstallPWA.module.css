@@ -142,22 +142,47 @@
 }
 
 .secondaryButton {
-  background-color: #f8fafc;
-  color: #4b5563;
-  border: 1px solid #e2e8f0;
-  transition: all 0.2s ease;
+  flex: 1;
+  padding: 12px 20px;
+  border-radius: 10px;
+  font-weight: 600;
+  font-size: 14px;
+  cursor: pointer;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  display: flex;
   align-items: center;
   justify-content: center;
-  gap: 6px;
-  transition: background-color 0.2s ease, color 0.2s ease;
+  gap: 8px;
+  letter-spacing: 0.3px;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+  background-color: #fff;
+  color: #0400BA;
+  border: 2px solid #0400BA;
+  position: relative;
+  overflow: hidden;
 }
 
 .secondaryButton:hover {
-  background-color: #f0f0ff;
+  background-color: #fff;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(4, 0, 186, 0.2);
+}
+
+
+.secondaryButton::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(rgba(255, 255, 255, 0.1), transparent);
+  pointer-events: none;
 }
 
 .secondaryButton:active {
-  background-color: #e0e0ff;
+  transform: translateY(0);
+  box-shadow: 0 2px 5px rgba(4, 0, 186, 0.2);
 }
 
 .buttonIcon {

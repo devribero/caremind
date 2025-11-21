@@ -22,7 +22,7 @@ import styles from './page.module.css';
 
 type Medicamento = {
   id: number;
-  nome: string;
+  nome: string | null;
   dosagem?: string | null;
   frequencia?: any;
   quantidade?: number | null;
@@ -47,14 +47,14 @@ export default function Remedios() {
   const selectedElderName = useMemo(() => (
     listaIdososVinculados.find((i) => i.id === idosoSelecionadoId)?.nome || null
   ), [listaIdososVinculados, idosoSelecionadoId]);
-  
+
   const [medicamentos, setMedicamentos] = useState<Medicamento[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [addModalOpen, setAddModalOpen] = useState(false);
   const [editModalOpen, setEditModalOpen] = useState(false);
   const [editingMedicamento, setEditingMedicamento] = useState<Medicamento | null>(null);
-  
+
   const [photoModal, setPhotoModal] = useState({
     isOpen: false,
     open: () => setPhotoModal(prev => ({ ...prev, isOpen: true })),
@@ -125,7 +125,7 @@ export default function Remedios() {
     const loadAgenda = async () => {
       if (!targetProfileId) return;
       if (isFamiliar && !targetProfileId) return;
-      
+
       try {
         const hoje = new Date();
         const eventos = await listarEventosDoDia(targetProfileId, hoje);
@@ -186,7 +186,7 @@ export default function Remedios() {
           frequenciaLimpa.dias_da_semana = frequencia.dias_da_semana;
         }
       }
-      
+
       // Garantir que strings vazias sejam null
       const novoMedicamento = await MedicamentosService.criarMedicamento({
         nome: nome?.trim() || null,
@@ -240,7 +240,7 @@ export default function Remedios() {
           frequenciaLimpa.dias_da_semana = frequencia.dias_da_semana;
         }
       }
-      
+
       // Garantir que strings vazias sejam null
       const medicamentoAtualizado = await MedicamentosService.atualizarMedicamento(
         editingMedicamento.id,
@@ -415,7 +415,7 @@ export default function Remedios() {
               const resultJson = (data as any)?.result_json;
               const medicamentos = resultJson?.medicamentos || [];
               const imageUrl = (data as any)?.image_url || '';
-              
+
               if (medicamentos.length > 0 && imageUrl) {
                 setValidacaoModal({
                   isOpen: true,
@@ -490,9 +490,9 @@ export default function Remedios() {
           {medicamentos.map((medicamento) => (
             <MedicamentoCard
               key={medicamento.id}
-              medicamento={medicamento}
-              onEdit={handleEditMedicamento}
-              onDelete={handleDeleteMedicamento}
+              medicamento={medicamento as any}
+              onEdit={() => handleEditMedicamento(medicamento)}
+              onDelete={() => handleDeleteMedicamento(medicamento.id)}
               hasPendingToday={hasPendingForMedicamento(medicamento.id)}
               isMarking={!!marking[medicamento.id]}
               onMarkAsDone={() => handleMarkMedicamentoDone(medicamento.id)}
@@ -540,12 +540,12 @@ export default function Remedios() {
         <AddMedicamentoForm onSave={handleSaveMedicamento} onCancel={() => setAddModalOpen(false)} />
       </Modal>
 
-      <Modal 
-        isOpen={editModalOpen} 
+      <Modal
+        isOpen={editModalOpen}
         onClose={() => {
           setEditModalOpen(false);
           setEditingMedicamento(null);
-        }} 
+        }}
         title="Editar medicamento"
       >
         {editingMedicamento && medicamentoFormData && (

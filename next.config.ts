@@ -9,8 +9,8 @@ const dynamicRemotePatterns = [];
 try {
   if (supabaseUrl) {
     const host = new URL(supabaseUrl).host;
-    dynamicRemotePatterns.push({ 
-      protocol: 'https', 
+    dynamicRemotePatterns.push({
+      protocol: 'https',
       hostname: host,
       pathname: '/storage/v1/object/public/**',
     });
@@ -46,19 +46,19 @@ const nextConfig: NextConfig = {
       }
     }
 
-  const cspParts = [
+    const cspParts = [
       "default-src 'self'",
       "base-uri 'self'",
-  `img-src 'self' data: blob: ${imgSrcHosts.join(' ')}`.trim(),
-  "script-src 'self' https://cdn.jsdelivr.net",
-  "script-src-attr 'none'",
-  "object-src 'none'",
-  "style-src 'self' https://fonts.googleapis.com",
-  "style-src-elem 'self' https://fonts.googleapis.com",
-  "style-src-attr 'unsafe-inline'",
-  "font-src 'self' data: https://fonts.gstatic.com",
-  // permitir fetchs para CDN de ícones e assets (bootstrap icons via jsdelivr)
-  "connect-src 'self' https://cdn.jsdelivr.net",
+      `img-src 'self' data: blob: ${imgSrcHosts.join(' ')}`.trim(),
+      "script-src 'self' https://cdn.jsdelivr.net",
+      "script-src-attr 'none'",
+      "object-src 'none'",
+      "style-src 'self' https://fonts.googleapis.com",
+      "style-src-elem 'self' https://fonts.googleapis.com",
+      "style-src-attr 'unsafe-inline'",
+      "font-src 'self' data: https://fonts.gstatic.com",
+      // permitir fetchs para CDN de ícones e assets (bootstrap icons via jsdelivr)
+      "connect-src 'self' https://cdn.jsdelivr.net",
       "media-src 'self'",
       (() => {
         const hosts = [];

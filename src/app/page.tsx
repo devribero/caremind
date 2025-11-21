@@ -8,8 +8,10 @@ import { Button } from "@/components/ui/button";
 import { Header } from '@/components/shared/headers/HeaderHome';
 import { Footer } from '@/components/shared/Footer';
 import styles from './page.module.css';
+import './icon-improvements.css';
 import Image from 'next/image';
 import { Waves } from '@/components/shared/Waves';
+import { BsCamera, BsMic, BsBell, BsPeople, BsAlarm, BsShield } from 'react-icons/bs';
 
 export default function Home() {
   const { user, loading } = useAuth();
@@ -90,7 +92,7 @@ export default function Home() {
                 height={400}
                 className={styles.heroImg}
                 style={{
-                  maxWidth: '100%',
+                  width: 'auto',
                   height: 'auto',
                 }}
               />
@@ -106,31 +108,28 @@ export default function Home() {
           </h1>
           <div className={styles.featuresGrid}>
             {[
-              { icon: "camera.svg", title: "Reconhecimento automático de medicamentos", desc: "Cadastre com uma foto: o sistema identifica o remédio e cria os lembretes sozinho.", delay: "0s" },
-              { icon: "mic.svg", title: "Comandos por voz", desc: "Compatível com Alexa e Google Home. Lembretes e confirmações de dose por voz, sem tocar no aparelho.", delay: "0.1s" },
-              { icon: "bell.svg", title: "Alertas inteligentes", desc: "O CareMind detecta atrasos e envia avisos antes que o esquecimento se torne um risco.", delay: "0.2s" },
-              { icon: "people.svg", title: "Família conectada", desc: "Parentes recebem notificações instantâneas sobre o andamento da rotina.", delay: "0.3s" },
-              { icon: "alarm.svg", title: "Rotina personalizada", desc: "Organize horários de refeições, hidratação e atividades diárias com poucos toques.", delay: "0.4s" },
-              { icon: "shield.svg", title: "Interface acessível", desc: "Textos grandes, alto contraste e navegação simples para todos os níveis de familiaridade digital.", delay: "0.5s" }
-            ].map((feature, index) => (
-              <div
-                key={index}
-                className={`${styles.featureCard} ${styles.scaleIn}`}
-                style={{ animationDelay: feature.delay }}
-              >
-                <div className={styles.featureIconWrapper}>
-                  <Image
-                    src={`https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/icons/${feature.icon}`}
-                    alt={feature.title}
-                    className={styles.featureIcon}
-                    width={32}
-                    height={32}
-                  />
+              { icon: BsCamera, title: "Reconhecimento automático de medicamentos", desc: "Cadastre com uma foto: o sistema identifica o remédio e cria os lembretes sozinho.", delay: "0s" },
+              { icon: BsMic, title: "Comandos por voz", desc: "Compatível com Alexa e Google Home. Lembretes e confirmações de dose por voz, sem tocar no aparelho.", delay: "0.1s" },
+              { icon: BsBell, title: "Alertas inteligentes", desc: "O CareMind detecta atrasos e envia avisos antes que o esquecimento se torne um risco.", delay: "0.2s" },
+              { icon: BsPeople, title: "Família conectada", desc: "Parentes recebem notificações instantâneas sobre o andamento da rotina.", delay: "0.3s" },
+              { icon: BsAlarm, title: "Rotina personalizada", desc: "Organize horários de refeições, hidratação e atividades diárias com poucos toques.", delay: "0.4s" },
+              { icon: BsShield, title: "Interface acessível", desc: "Textos grandes, alto contraste e navegação simples para todos os níveis de familiaridade digital.", delay: "0.5s" }
+            ].map((feature, index) => {
+              const IconComponent = feature.icon;
+              return (
+                <div
+                  key={index}
+                  className={`${styles.featureCard} ${styles.scaleIn}`}
+                  style={{ animationDelay: feature.delay }}
+                >
+                  <div className={styles.featureIconWrapper}>
+                    <IconComponent className={styles.featureIcon} size={40} />
+                  </div>
+                  <h3>{feature.title}</h3>
+                  <p>{feature.desc}</p>
                 </div>
-                <h3>{feature.title}</h3>
-                <p>{feature.desc}</p>
-              </div>
-            ))}
+              );
+            })}
           </div>
         </div>
       </section>

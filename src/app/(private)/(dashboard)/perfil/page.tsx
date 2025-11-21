@@ -1,18 +1,20 @@
 'use client';
 
-import { useRef, useState } from 'react';
+import { useRef, useState, useMemo } from 'react';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import { useProfileManagement } from '@/hooks/useProfileManagement';
 import { EditProfileModal } from '@/components/features/EditProfileModal';
 import { ChangePasswordModal } from '@/components/features/ChangePasswordModal';
 import pageStyles from './page.module.css';
+import { useAuth } from '@/contexts/AuthContext';
 
 export default function Perfil() {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [showPhotoViewer, setShowPhotoViewer] = useState(false);
-  
+  const { user } = useAuth();
+
   const {
     profile,
     loading,
@@ -29,6 +31,31 @@ export default function Perfil() {
     handleSavePassword,
   } = useProfileManagement();
 
+  // Constrói a URL do avatar
+  const avatarUrl = useMemo(() => {
+    if (!profile?.photoUrl) return null;
+
+    const path = profile.photoUrl;
+
+    // Se já é uma URL completa, retorna como está
+    if (path.startsWith('http://') || path.startsWith('https://')) {
+      return path;
+    }
+
+    // Se é um caminho absoluto local (ex: /icons/foto_padrao.png), retorna como está
+    if (path.startsWith('/')) {
+      return path;
+    }
+
+    // Se é um caminho relativo do storage, constrói manualmente a URL pública
+    // Formato: https://[PROJECT_URL]/storage/v1/object/public/[BUCKET]/[PATH]
+    const supabaseUrl = 'https://njxsuqvqaeesxmoajzyb.supabase.co';
+    const bucketName = 'avatars';
+    const publicUrl = `${supabaseUrl}/storage/v1/object/public/${bucketName}/${path}`;
+
+    return publicUrl;
+  }, [profile?.photoUrl]);
+
   if (loading) {
     return <div className={pageStyles.loading}>Carregando perfil...</div>;
   }
@@ -43,17 +70,17 @@ export default function Perfil() {
 
   const toggleMenu = () => setIsMenuOpen(!isMenuOpen);
   const closeMenu = () => setIsMenuOpen(false);
-  
+
   const handleEditClick = () => setShowEditModal(true);
   const handleChangePasswordClick = () => setShowPasswordModal(true);
-  
+
   const handleFileInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     handleFileChange(e);
   };
-  
+
   const handleCloseEditModal = () => setShowEditModal(false);
   const handleClosePasswordModal = () => setShowPasswordModal(false);
-  
+
   const handleUploadClick = () => {
     if (fileInputRef.current) {
       fileInputRef.current.click();
@@ -61,8 +88,8 @@ export default function Perfil() {
   };
 
   const PhotoViewer = () => (
-    <div 
-      className={pageStyles.modalOverlay} 
+    <div
+      className={pageStyles.modalOverlay}
       onClick={() => setShowPhotoViewer(false)}
       style={{
         position: 'fixed',
@@ -77,26 +104,28 @@ export default function Perfil() {
         zIndex: 1000,
       }}
     >
-      <div 
-        style={{ 
-          maxWidth: '90vw', 
+      <div
+        style={{
+          maxWidth: '90vw',
           maxHeight: '90vh',
-          position: 'relative' 
+          position: 'relative'
         }}
         onClick={(e) => e.stopPropagation()}
       >
-        <Image
-          src={profile.photoUrl}
-          alt="Foto de Perfil"
-          width={800}
-          height={800}
-          style={{ 
-            width: '100%', 
-            height: 'auto',
-            maxHeight: '90vh',
-            objectFit: 'contain' 
-          }}
-        />
+        {avatarUrl && (avatarUrl.startsWith('http') || avatarUrl.startsWith('/')) && (
+          <Image
+            src={avatarUrl}
+            alt="Foto de Perfil"
+            width={800}
+            height={800}
+            style={{
+              width: '100%',
+              height: 'auto',
+              maxHeight: '90vh',
+              objectFit: 'contain'
+            }}
+          />
+        )}
         <button
           onClick={() => setShowPhotoViewer(false)}
           style={{
@@ -126,7 +155,7 @@ export default function Perfil() {
     <main className={pageStyles.main}>
       <div className={pageStyles.mainContent}>
         <div className={pageStyles.content}>
-          
+
           <div className={pageStyles.pageHeader}>
             <h1 className={pageStyles.content_title}>Perfil</h1>
           </div>
@@ -135,21 +164,28 @@ export default function Perfil() {
               <div className={pageStyles.profileHeader}>
                 <div className={pageStyles.profileInfo}>
                   <div className={pageStyles.profilePhotoContainer}>
-                    <Image
-                      src={profile.photoUrl}
-                      alt="Foto de Perfil"
-                      className={pageStyles.profilePhoto}
-                      width={100}
-                      height={100}
-                      key={profile.photoUrl}
-                      onError={() => {
-                        // setProfileData(prev => ({ ...prev, photoUrl: '/foto_padrao.png' }));
-                      }}
-                      onClick={() => setShowPhotoViewer(true)}
-                      style={{ cursor: 'pointer' }}
-                    />
-                    <button 
-                      className={pageStyles.uploadPhotoButton} 
+                    {avatarUrl && (avatarUrl.startsWith('http') || avatarUrl.startsWith('/')) ? (
+                      <Image
+                        src={avatarUrl}
+                        alt="Foto de Perfil"
+                        className={pageStyles.profilePhoto}
+                        width={100}
+                        height={100}
+                        key={avatarUrl}
+                        onError={(e) => {
+                          const target = e.target as HTMLImageElement;
+                          target.style.display = 'none';
+                        }}
+                        onClick={() => setShowPhotoViewer(true)}
+                        style={{ cursor: 'pointer' }}
+                      />
+                    ) : (
+                      <div className={pageStyles.profilePhotoFallback}>
+                        👤
+                      </div>
+                    )}
+                    <button
+                      className={pageStyles.uploadPhotoButton}
                       onClick={handleUploadClick}
                       disabled={uploadingPhoto}
                       aria-label="Alterar foto de perfil"
@@ -181,8 +217,8 @@ export default function Perfil() {
                   </div>
                 </div>
                 <div className={pageStyles.profileActions}>
-                  <button 
-                    className={pageStyles.actionButton} 
+                  <button
+                    className={pageStyles.actionButton}
                     onClick={() => setShowPasswordModal(true)}
                     disabled={passwordLoading || uploadingPhoto}
                   >
@@ -251,13 +287,13 @@ export default function Perfil() {
                 </div>
               </div>
             </div>
-            <ChangePasswordModal 
-              show={showPasswordModal} 
-              onClose={() => setShowPasswordModal(false)} 
+            <ChangePasswordModal
+              show={showPasswordModal}
+              onClose={() => setShowPasswordModal(false)}
               onSave={handleSavePassword}
               loading={passwordLoading}
             />
-            
+
             <EditProfileModal
               isOpen={showEditModal}
               onClose={() => setShowEditModal(false)}

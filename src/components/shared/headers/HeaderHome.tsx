@@ -1,7 +1,7 @@
 import Image from 'next/image';
 import Link from 'next/link';
 import { useState } from 'react';
-import styles from './HeaderHome.module.css'; // Supondo que o CSS está em um module
+import styles from './HeaderHome.module.css';
 
 export function Header() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -10,19 +10,18 @@ export function Header() {
   const closeMenu = () => setIsMenuOpen(false);
 
   return (
-    // A tag <header> é mais semântica para o cabeçalho
     <header className={styles.header}>
       <div className={styles.header__container}>
         {/* Logo */}
         <Link href="/" className={styles.header__logo}>
-          <Image 
-            src="/icons/logo.png" 
-            alt="CareMind Logo" 
-            width={180} 
-            height={57} 
-            priority 
+          <Image
+            src="/icons/logo.png"
+            alt="CareMind Logo"
+            width={180}
+            height={57}
+            priority
             style={{
-              maxWidth: '100%',
+              width: 'auto',
               height: 'auto',
             }}
           />
@@ -34,7 +33,7 @@ export function Header() {
           <a className={styles.header__nav_desktop_item} href="#">Como Funciona</a>
           <a className={styles.header__nav_desktop_item} href="#">Para Famílias</a>
           <Link href="/auth" className={`${styles.btn} ${styles.btn_primary}`}>
-            Área do cliente
+            Área do Cliente
           </Link>
         </nav>
 
@@ -59,14 +58,14 @@ export function Header() {
       {/* Menu Mobile */}
       <div className={`${styles.mobile_menu} ${isMenuOpen ? styles.active : ''}`}>
         {/* Botão de fechar */}
-        <button 
+        <button
           className={styles.close_button}
           onClick={closeMenu}
           aria-label="Fechar menu"
         >
           ×
         </button>
-        
+
         <nav className={styles.mobile_menu__nav}>
           <a href="#" onClick={closeMenu}>Funcionalidades</a>
           <a href="#" onClick={closeMenu}>Como Funciona</a>
