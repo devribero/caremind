@@ -32,11 +32,18 @@ async function getNewAccessToken(refreshToken) {
 }
 // === Servidor Principal da Função ===
 serve(async (req)=>{
-  // Esta função SÓ DEVE ser chamada pelo pg_cron ou por um admin
-  // Vamos adicionar uma verificação de "bearer" simples (um segredo nosso)
-  // para impedir que qualquer pessoa na internet a chame.
-  // TODO: Adicionar um segredo (ex: 'CRON_JOB_SECRET') 
-  // e checar no req.headers.get('Authorization')
+  // Validação de segurança: verificar segredo do cron job
+  const cronSecret = Deno.env.get("CRON_JOB_SECRET");
+  const providedSecret = req.headers.get("X-Cron-Secret");
+  if (cronSecret && providedSecret !== cronSecret) {
+    return new Response(JSON.stringify({
+      success: false,
+      error: "Unauthorized: Invalid cron secret"
+    }), {
+      headers: { "Content-Type": "application/json" },
+      status: 401
+    });
+  }
   try {
     const { evento_id } = await req.json();
     if (!evento_id) {

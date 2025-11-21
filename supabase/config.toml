@@ -1,7 +1,7 @@
 
 [functions.get-amazon-auth-url]
 enabled = true
-verify_jwt = true
+verify_jwt = false
 import_map = "./functions/get-amazon-auth-url/deno.json"
 # Uncomment to specify a custom file path to the entrypoint.
 # Supported file extensions are: .ts, .js, .mjs, .jsx, .tsx
@@ -12,7 +12,7 @@ entrypoint = "./functions/get-amazon-auth-url/index.ts"
 
 [functions.amazon-auth-callback]
 enabled = true
-verify_jwt = true
+verify_jwt = false
 import_map = "./functions/amazon-auth-callback/deno.json"
 # Uncomment to specify a custom file path to the entrypoint.
 # Supported file extensions are: .ts, .js, .mjs, .jsx, .tsx
@@ -23,7 +23,7 @@ entrypoint = "./functions/amazon-auth-callback/index.ts"
 
 [functions.disparar-lembretes-alexa]
 enabled = true
-verify_jwt = true
+verify_jwt = false
 import_map = "./functions/disparar-lembretes-alexa/deno.json"
 # Uncomment to specify a custom file path to the entrypoint.
 # Supported file extensions are: .ts, .js, .mjs, .jsx, .tsx
@@ -34,7 +34,7 @@ entrypoint = "./functions/disparar-lembretes-alexa/index.ts"
 
 [functions.alexa-handler]
 enabled = true
-verify_jwt = true
+verify_jwt = false
 import_map = "./functions/alexa-handler/deno.json"
 # Uncomment to specify a custom file path to the entrypoint.
 # Supported file extensions are: .ts, .js, .mjs, .jsx, .tsx
@@ -45,7 +45,7 @@ entrypoint = "./functions/alexa-handler/index.ts"
 
 [functions.processar-resultado-ocr]
 enabled = true
-verify_jwt = true
+verify_jwt = false
 import_map = "./functions/processar-resultado-ocr/deno.json"
 # Uncomment to specify a custom file path to the entrypoint.
 # Supported file extensions are: .ts, .js, .mjs, .jsx, .tsx
@@ -53,3 +53,37 @@ entrypoint = "./functions/processar-resultado-ocr/index.ts"
 # Specifies static files to be bundled with the function. Supports glob patterns.
 # For example, if you want to serve static HTML pages in your function:
 # static_files = [ "./functions/processar-resultado-ocr/*.html" ]
+
+[functions.criar-idoso]
+enabled = true
+verify_jwt = false
+import_map = "./functions/criar-idoso/deno.json"
+entrypoint = "./functions/criar-idoso/index.ts"
+
+[functions.atualizar-idoso]
+enabled = true
+verify_jwt = false
+entrypoint = "./functions/atualizar-idoso/index.ts"
+
+[functions.relatorios-historico]
+enabled = true
+verify_jwt = false
+entrypoint = "./functions/relatorios-historico/index.ts"
+
+[functions.monitorar-medicamentos]
+enabled = true
+verify_jwt = false
+import_map = "./functions/monitorar-medicamentos/deno.json"
+entrypoint = "./functions/monitorar-medicamentos/index.ts"
+
+[functions.monitorar-rotinas]
+enabled = true
+verify_jwt = false
+import_map = "./functions/monitorar-rotinas/deno.json"
+entrypoint = "./functions/monitorar-rotinas/index.ts"
+
+[functions.reset-status-diario]
+enabled = true
+verify_jwt = false
+import_map = "./functions/reset-status-diario/deno.json"
+entrypoint = "./functions/reset-status-diario/index.ts"
