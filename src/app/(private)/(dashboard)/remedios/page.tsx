@@ -337,6 +337,21 @@ export default function Remedios() {
     const supabase = createClient();
 
     try {
+      // Validar se o perfil existe antes de criar o job
+      const userIdToUse = targetUserId || user.id;
+      const { data: perfil, error: perfilError } = await supabase
+        .from('perfis')
+        .select('id')
+        .eq('user_id', userIdToUse)
+        .maybeSingle();
+
+      if (perfilError || !perfil) {
+        setPhotoError('Perfil não encontrado. Verifique se o usuário possui um perfil cadastrado.');
+        toast.error('Perfil não encontrado. Verifique se o usuário possui um perfil cadastrado.');
+        setPhotoUploading(false);
+        return;
+      }
+
       const fileName = `${user.id}/${Date.now()}_${file.name}`;
       const { error: uploadError } = await supabase.storage
         .from('receitas-medicas')
@@ -364,7 +379,7 @@ export default function Remedios() {
         .from('ocr_gerenciamento')
         .insert({
           // Quando familiar, garantir que use o id do idoso selecionado
-          user_id: targetUserId || user.id,
+          user_id: userIdToUse,
           image_url: imageUrl,
           status: 'PENDENTE',
         })
@@ -413,8 +428,9 @@ export default function Remedios() {
             // Aguardando validação: abrir tela de validação
             if (status === 'AGUARDANDO_VALIDACAO') {
               const resultJson = (data as any)?.result_json;
-              const medicamentos = resultJson?.medicamentos || [];
+              const medicamentos = resultJson?.medicamentos || resultJson?.medicamentos_extraidos_qwen || [];
               const imageUrl = (data as any)?.image_url || '';
+              const perfilIdFromResult = resultJson?.perfil_id || null;
 
               if (medicamentos.length > 0 && imageUrl) {
                 setValidacaoModal({
@@ -609,6 +625,7 @@ export default function Remedios() {
             imageUrl={validacaoModal.imageUrl}
             medicamentos={validacaoModal.medicamentos}
             userId={targetUserId}
+            perfilId={targetProfileId || undefined}
             onConfirm={async () => {
               setValidacaoModal({
                 isOpen: false,

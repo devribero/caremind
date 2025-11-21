@@ -22,6 +22,7 @@ interface ValidarOcrMedicamentosProps {
   imageUrl: string;
   medicamentos: MedicamentoOCR[];
   userId: string;
+  perfilId?: string;  // Adicionar perfilId opcional
   onConfirm: () => void;
   onCancel: () => void;
 }
@@ -31,6 +32,7 @@ export function ValidarOcrMedicamentos({
   imageUrl,
   medicamentos: medicamentosIniciais,
   userId,
+  perfilId,
   onConfirm,
   onCancel,
 }: ValidarOcrMedicamentosProps) {
@@ -76,7 +78,24 @@ export function ValidarOcrMedicamentos({
     try {
       const supabase = createClient();
 
-      // Salvar cada medicamento
+      // Buscar perfil_id se não foi fornecido
+      let perfilIdToUse = perfilId;
+      if (!perfilIdToUse) {
+        const { data: perfil } = await supabase
+          .from('perfis')
+          .select('id')
+          .eq('user_id', userId)
+          .maybeSingle();
+        
+        if (!perfil) {
+          toast.error('Perfil não encontrado. Não é possível salvar os medicamentos.');
+          setSaving(false);
+          return;
+        }
+        perfilIdToUse = perfil.id;
+      }
+
+      // Salvar cada medicamento (suporta múltiplos medicamentos)
       let sucesso = 0;
       let falha = 0;
       const erros: string[] = [];
@@ -108,12 +127,14 @@ export function ValidarOcrMedicamentos({
             }
           }
 
+          // Usar perfil_id ao invés de user_id
           await MedicamentosService.criarMedicamento({
             nome: med.nome?.trim() || null,
             dosagem: med.dosagem?.trim() || null,
             frequencia: frequenciaLimpa,
             quantidade: med.quantidade || 30,
-            user_id: userId,
+            user_id: userId,  // Mantido para compatibilidade
+            perfil_id: perfilIdToUse,  // Campo preferencial
           });
           sucesso++;
         } catch (error) {
