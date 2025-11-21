@@ -266,6 +266,7 @@ export default function Perfil() {
                 fullName: profile.fullName,
                 phone: profile.phone,
                 dob: profile.dob,
+                timezone: profile.timezone || 'America/Sao_Paulo',
               }}
               loading={uploadingPhoto || passwordLoading}
             />

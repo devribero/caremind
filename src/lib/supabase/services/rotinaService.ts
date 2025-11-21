@@ -44,11 +44,28 @@ export const RotinasService = {
   async listarRotinas(userId: string): Promise<Rotina[]> {
     const supabase = createClient();
     
-    const { data, error } = await supabase
+    // Obter perfil_id do usuário
+    const { data: perfil } = await supabase
+      .from('perfis')
+      .select('id')
+      .eq('user_id', userId)
+      .maybeSingle();
+    
+    const perfilId = perfil?.id;
+    
+    // Usar perfil_id se disponível, senão usar user_id (compatibilidade durante transição)
+    const query = supabase
       .from('rotinas')
       .select('*')
-      .eq('user_id', userId)
       .order('created_at', { ascending: false });
+    
+    if (perfilId) {
+      query.or(`perfil_id.eq.${perfilId},user_id.eq.${userId}`);
+    } else {
+      query.eq('user_id', userId);
+    }
+    
+    const { data, error } = await query;
 
     if (error) {
       console.error('Erro ao listar rotinas:', error);
@@ -80,6 +97,19 @@ export const RotinasService = {
 
   async criarRotina(rotina: Omit<RotinaInsert, 'id' | 'created_at'>): Promise<Rotina> {
     const supabase = createClient();
+    
+    // Se não tem perfil_id, buscar do user_id
+    if (!(rotina as any).perfil_id && rotina.user_id) {
+      const { data: perfil } = await supabase
+        .from('perfis')
+        .select('id')
+        .eq('user_id', rotina.user_id)
+        .maybeSingle();
+      
+      if (perfil) {
+        (rotina as any).perfil_id = perfil.id;
+      }
+    }
     
     const { data, error } = await supabase
       .from('rotinas')

@@ -13,6 +13,7 @@ export type ProfilePreview = {
   foto_usuario: string | null;
   data_nascimento: string | null;
   telefone: string | null;
+  timezone: string | null;
 };
 
 // Tipo para upsert (campos que você envia)
@@ -23,6 +24,7 @@ export interface ProfileUpsertData {
   data_nascimento?: string | null;
   telefone?: string | null;
   foto_usuario?: string | null;
+  timezone?: string | null;
 }
 
 export class ProfileService {
@@ -39,7 +41,7 @@ export class ProfileService {
     // Usa maybeSingle() em vez de single() para evitar erro quando não há dados
     const { data, error } = await supabase
       .from('perfis')
-      .select('id, user_id, nome, tipo, foto_usuario, data_nascimento, telefone')
+      .select('id, user_id, nome, tipo, foto_usuario, data_nascimento, telefone, timezone')
       .eq('user_id', userId)
       .maybeSingle();
 
@@ -113,6 +115,7 @@ export class ProfileService {
     if (profileData.data_nascimento !== undefined) upsertData.data_nascimento = profileData.data_nascimento;
     if (profileData.telefone !== undefined) upsertData.telefone = profileData.telefone;
     if (profileData.foto_usuario !== undefined) upsertData.foto_usuario = profileData.foto_usuario;
+    if (profileData.timezone !== undefined) upsertData.timezone = profileData.timezone;
 
     const { data, error } = await supabase
       .from('perfis')
@@ -120,7 +123,7 @@ export class ProfileService {
         onConflict: 'user_id',
         ignoreDuplicates: false,
       })
-      .select('id, user_id, nome, tipo, foto_usuario, data_nascimento, telefone')
+      .select('id, user_id, nome, tipo, foto_usuario, data_nascimento, telefone, timezone')
       .single();
 
     if (error) {
@@ -209,7 +212,7 @@ export class ProfileService {
 
     const { data, error } = await supabase
       .from('perfis')
-      .select('id, user_id, nome, tipo, foto_usuario, data_nascimento, telefone')
+      .select('id, user_id, nome, tipo, foto_usuario, data_nascimento, telefone, timezone')
       .in('id', elderlyIds)
       .order('nome');
 
@@ -236,7 +239,7 @@ export class ProfileService {
 
     const { data, error } = await supabase
       .from('perfis')
-      .select('id, user_id, nome, tipo, foto_usuario, data_nascimento, telefone')
+      .select('id, user_id, nome, tipo, foto_usuario, data_nascimento, telefone, timezone')
       .in('id', familyIds);
 
     if (error) {

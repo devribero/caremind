@@ -25,7 +25,8 @@ async function verificarProcessado(gerenciamentoId) {
     'PROCESSADO',
     'PROCESSADO_PARCIALMENTE',
     'ERRO_PROCESSAMENTO',
-    'ERRO_DATABASE'
+    'ERRO_DATABASE',
+    'AGUARDANDO_VALIDACAO'
   ].includes(status);
 }
 // ========== Validação e confiança leves (sem dicionários gigantes) ==========
@@ -49,14 +50,23 @@ function calcularConfiancaLeve(m) {
 }
 // ========== Inserção com retry ==========
 async function inserirMedicamentosComRetry(medicamentos, userId) {
+  // Obter perfil_id do user_id
+  const { data: perfil } = await supabaseAdmin
+    .from('perfis')
+    .select('id')
+    .eq('user_id', userId)
+    .maybeSingle();
+  
+  const perfilId = perfil?.id;
+  
   let sucesso = 0;
   let falha = 0;
   const erros = [];
   for (const med of medicamentos){
     let ok = false;
     for(let attempt = 1; attempt <= 3; attempt++){
-      const { error } = await supabaseAdmin.from('medicamentos').insert({
-        user_id: userId,
+      const medicamentoData: any = {
+        user_id: userId, // Mantido para compatibilidade
         nome: med.nome,
         dosagem: med.dosagem ?? null,
         frequencia: med.frequencia ?? null,
@@ -66,7 +76,14 @@ async function inserirMedicamentosComRetry(medicamentos, userId) {
         data_agendada: med.data_agendada ?? new Date().toISOString(),
         confianca: med.confianca ?? 0,
         created_at: new Date().toISOString()
-      });
+      };
+      
+      // Adicionar perfil_id se disponível
+      if (perfilId) {
+        medicamentoData.perfil_id = perfilId;
+      }
+      
+      const { error } = await supabaseAdmin.from('medicamentos').insert(medicamentoData);
       if (!error) {
         ok = true;
         break;
@@ -172,29 +189,21 @@ serve(async (req)=>{
         status: 400
       });
     }
-    // Inserção com retry
-    const resultado = await inserirMedicamentosComRetry(medicamentos, userId);
-    // Status final
-    let statusFinal = 'PROCESSADO';
-    if (resultado.falha > 0 && resultado.sucesso > 0) statusFinal = 'PROCESSADO_PARCIALMENTE';
-    else if (resultado.falha === medicamentos.length) statusFinal = 'ERRO_DATABASE';
+    // AGUARDANDO_VALIDACAO: não salva automaticamente, aguarda validação do usuário
     await supabaseAdmin.from('ocr_gerenciamento').update({
-      status: statusFinal,
+      status: 'AGUARDANDO_VALIDACAO',
       processed_at: new Date().toISOString(),
-      medicamentos_count: resultado.sucesso,
-      error_message: resultado.erros.length > 0 ? JSON.stringify(resultado.erros) : null
+      medicamentos_count: medicamentos.length
     }).eq('id', gerenciamentoId);
     const tempo = Date.now() - start;
-    log('SUCCESS', 'Concluído', {
-      sucesso: resultado.sucesso,
-      falha: resultado.falha,
+    log('SUCCESS', 'Aguardando validação do usuário', {
+      total: medicamentos.length,
       tempo_ms: tempo
     });
     return new Response(JSON.stringify({
       success: true,
+      status: 'AGUARDANDO_VALIDACAO',
       total: medicamentos.length,
-      inseridos: resultado.sucesso,
-      falhas: resultado.falha,
       tempo_ms: tempo
     }), {
       headers: {

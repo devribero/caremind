@@ -42,6 +42,11 @@ body.modalOpen {
   scrollbar-color: #c1c1c1 #f0f0f0;
 }
 
+.modalContent:has(.container) {
+  max-width: 1200px;
+  width: 95%;
+}
+
 .modalHeader {
   display: flex;
   justify-content: space-between;

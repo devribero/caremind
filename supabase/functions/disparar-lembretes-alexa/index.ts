@@ -52,12 +52,25 @@ serve(async (req)=>{
     console.log(`[JOB] Processando evento: ${evento_id}`);
     // Criamos um cliente Admin para bypassar RLS
     const supabaseAdmin = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
-    // 1. Buscar o evento e o user_id associado
-    const { data: evento, error: eventoError } = await supabaseAdmin.from('historico_eventos').select('user_id, titulo, data_prevista').eq('id', evento_id).single();
+    // 1. Buscar o evento e o perfil_id associado
+    const { data: evento, error: eventoError } = await supabaseAdmin
+      .from('historico_eventos')
+      .select('perfil_id, titulo, data_prevista, perfis!inner(user_id)')
+      .eq('id', evento_id)
+      .single();
     if (eventoError) throw new Error(`Evento não encontrado: ${eventoError.message}`);
-    const { user_id, titulo, data_prevista } = evento;
+    const { perfil_id, titulo, data_prevista, perfis } = evento;
+    const user_id = perfis?.user_id;
+    if (!user_id) {
+      throw new Error(`Perfil não encontrado para o evento ${evento_id}`);
+    }
     // 2. Buscar o refresh_token do usuário
-    const { data: integracao, error: intError } = await supabaseAdmin.from('user_integrations').select('refresh_token, id').eq('user_id', user_id).eq('provider', 'amazon_alexa').single();
+    const { data: integracao, error: intError } = await supabaseAdmin
+      .from('user_integrations')
+      .select('refresh_token, id')
+      .eq('user_id', user_id)
+      .eq('provider', 'amazon_alexa')
+      .single();
     if (intError || !integracao?.refresh_token) {
       throw new Error(`Integração Alexa não encontrada ou sem refresh_token para o usuário ${user_id}`);
     }

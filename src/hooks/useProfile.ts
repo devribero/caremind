@@ -46,6 +46,7 @@ export const useProfile = (userId?: string) => {
         data_nascimento: updates.data_nascimento ?? null,
         telefone: updates.telefone ?? null,
         foto_usuario: updates.foto_usuario ?? null,
+        timezone: updates.timezone ?? null,
       };
 
       // Remove campos undefined para não sobrescrever com null no banco

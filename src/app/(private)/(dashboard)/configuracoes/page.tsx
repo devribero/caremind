@@ -16,6 +16,8 @@ import {
   LogOut,
   CheckCircle2,
   AlertCircle,
+  Phone,
+  AlertTriangle,
 } from 'lucide-react';
 import styles from './page.module.css';
 
@@ -191,7 +193,48 @@ export default function Configuracoes() {
           </div>
         </section>
 
-        {/* Seção 2: Notificações & Alertas */}
+        {/* Seção 2: Emergência */}
+        <section className={styles.section}>
+          <div className={styles.sectionHeader}>
+            <div className={styles.sectionIconWrapper}>
+              <AlertTriangle className={styles.sectionIcon} size={20} style={{ color: '#ef4444' }} />
+            </div>
+            <div>
+              <h2 className={styles.sectionTitle}>🚨 Emergência</h2>
+              <p className={styles.sectionDescription}>
+                Configure seu número de telefone para receber alertas de emergência
+              </p>
+            </div>
+          </div>
+
+          <div className={styles.card}>
+            <div className={styles.settingItem}>
+              <div className={styles.settingInfo}>
+                <div className={styles.settingLabelWithIcon}>
+                  <Phone className={styles.settingIcon} size={18} />
+                  <label className={styles.settingLabel}>
+                    Telefone de Emergência
+                  </label>
+                </div>
+                <p className={styles.settingDescription}>
+                  Este número será usado para enviar SMS quando o botão de pânico for acionado. 
+                  Configure seu telefone na página de <a href="/perfil" style={{ color: '#3b82f6', textDecoration: 'underline' }}>Perfil</a>.
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={() => router.push('/perfil')}
+                className={styles.actionButton}
+                aria-label="Ir para página de perfil para configurar telefone"
+              >
+                <Phone className={styles.actionIcon} size={18} />
+                <span>Configurar Telefone</span>
+              </button>
+            </div>
+          </div>
+        </section>
+
+        {/* Seção 3: Notificações & Alertas */}
         <section className={styles.section}>
           <div className={styles.sectionHeader}>
             <div className={styles.sectionIconWrapper}>
@@ -272,7 +315,7 @@ export default function Configuracoes() {
           </div>
         </section>
 
-        {/* Seção 3: Integrações e Dispositivos */}
+        {/* Seção 4: Integrações e Dispositivos */}
         <section className={styles.section}>
           <div className={styles.sectionHeader}>
             <div className={styles.sectionIconWrapper}>
@@ -324,7 +367,7 @@ export default function Configuracoes() {
           </div>
         </section>
 
-        {/* Seção 4: Conta e Segurança */}
+        {/* Seção 5: Conta e Segurança */}
         <section className={styles.section}>
           <div className={styles.sectionHeader}>
             <div className={styles.sectionIconWrapper}>

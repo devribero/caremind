@@ -11,6 +11,7 @@ import { FullScreenLoader } from '@/components/features/FullScreenLoader';
 import { AddMedicamentoForm } from '@/components/features/forms/AddMedicamentoForm';
 import { Modal } from '@/components/features/Modal';
 import MedicamentoCard from '@/components/features/MedicamentoCard';
+import { ValidarOcrMedicamentos } from '@/components/features/ValidarOcrMedicamentos';
 import { createClient } from '@/lib/supabase/client';
 import { toast } from '@/components/features/Toast';
 import { MedicamentosService } from '@/lib/supabase/services';
@@ -63,6 +64,18 @@ export default function Remedios() {
   const [photoUploading, setPhotoUploading] = useState(false);
   const [photoStatus, setPhotoStatus] = useState<string | null>(null);
   const [photoError, setPhotoError] = useState<string | null>(null);
+
+  const [validacaoModal, setValidacaoModal] = useState<{
+    isOpen: boolean;
+    ocrId: number | null;
+    imageUrl: string | null;
+    medicamentos: any[];
+  }>({
+    isOpen: false,
+    ocrId: null,
+    imageUrl: null,
+    medicamentos: [],
+  });
 
   const [eventosDoDia, setEventosDoDia] = useState<Array<{ id: number; tipo_evento: string; evento_id: number; status: string }>>([]);
   const [marking, setMarking] = useState<Record<number, boolean>>({});
@@ -380,7 +393,7 @@ export default function Remedios() {
           try {
             const { data, error } = await supabase
               .from('ocr_gerenciamento')
-              .select('status, error_message')
+              .select('status, error_message, result_json, image_url')
               .eq('id', ocrId)
               .single();
             if (error) {
@@ -397,6 +410,26 @@ export default function Remedios() {
               return;
             }
             const status = (data as any)?.status;
+            // Aguardando validação: abrir tela de validação
+            if (status === 'AGUARDANDO_VALIDACAO') {
+              const resultJson = (data as any)?.result_json;
+              const medicamentos = resultJson?.medicamentos || [];
+              const imageUrl = (data as any)?.image_url || '';
+              
+              if (medicamentos.length > 0 && imageUrl) {
+                setValidacaoModal({
+                  isOpen: true,
+                  ocrId: Number(ocrId),
+                  imageUrl,
+                  medicamentos,
+                });
+                photoModal.close();
+                return; // fim do polling - aguardando validação do usuário
+              } else {
+                toast.error('Erro: dados do OCR não encontrados');
+                return;
+              }
+            }
             // Sucesso: PROCESSADO ou PROCESSADO_PARCIALMENTE
             if (status === 'PROCESSADO' || status === 'PROCESSADO_PARCIALMENTE') {
               toast.success('Receita processada. Atualizando medicamentos...');
@@ -556,6 +589,45 @@ export default function Remedios() {
             </label>
           </fieldset>
         </div>
+      </Modal>
+
+      <Modal
+        isOpen={validacaoModal.isOpen}
+        onClose={() => {
+          setValidacaoModal({
+            isOpen: false,
+            ocrId: null,
+            imageUrl: null,
+            medicamentos: [],
+          });
+        }}
+        title="Validar Leitura OCR"
+      >
+        {validacaoModal.ocrId && validacaoModal.imageUrl && targetUserId && (
+          <ValidarOcrMedicamentos
+            ocrId={validacaoModal.ocrId}
+            imageUrl={validacaoModal.imageUrl}
+            medicamentos={validacaoModal.medicamentos}
+            userId={targetUserId}
+            onConfirm={async () => {
+              setValidacaoModal({
+                isOpen: false,
+                ocrId: null,
+                imageUrl: null,
+                medicamentos: [],
+              });
+              await fetchMedicamentos();
+            }}
+            onCancel={() => {
+              setValidacaoModal({
+                isOpen: false,
+                ocrId: null,
+                imageUrl: null,
+                medicamentos: [],
+              });
+            }}
+          />
+        )}
       </Modal>
     </main>
   );

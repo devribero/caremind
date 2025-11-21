@@ -31,9 +31,10 @@ export type Medicamento = Omit<Database['public']['Tables']['medicamentos']['Row
   frequencia: Frequencia | null;
 };
 
-export type MedicamentoInsert = Omit<Database['public']['Tables']['medicamentos']['Insert'], 'frequencia' | 'user_id'> & {
+export type MedicamentoInsert = Omit<Database['public']['Tables']['medicamentos']['Insert'], 'frequencia' | 'user_id' | 'perfil_id'> & {
   frequencia?: Frequencia | null;
   user_id: string;
+  perfil_id?: string;
 };
 
 export type MedicamentoUpdate = Omit<Database['public']['Tables']['medicamentos']['Update'], 'frequencia' | 'user_id'> & {
@@ -45,11 +46,29 @@ const TABLE_NAME = 'medicamentos';
 export const MedicamentosService = {
   async listarMedicamentos(userId: string): Promise<Medicamento[]> {
     const supabase = createClient();
-    const { data, error } = await supabase
+    
+    // Obter perfil_id do usuário
+    const { data: perfil } = await supabase
+      .from('perfis')
+      .select('id')
+      .eq('user_id', userId)
+      .maybeSingle();
+    
+    const perfilId = perfil?.id;
+    
+    // Usar perfil_id se disponível, senão usar user_id (compatibilidade durante transição)
+    const query = supabase
       .from(TABLE_NAME)
       .select('*')
-      .eq('user_id', userId)
       .order('created_at', { ascending: false });
+    
+    if (perfilId) {
+      query.or(`perfil_id.eq.${perfilId},user_id.eq.${userId}`);
+    } else {
+      query.eq('user_id', userId);
+    }
+    
+    const { data, error } = await query;
     if (error) throw error;
     return data as Medicamento[];
   },
@@ -67,6 +86,20 @@ export const MedicamentosService = {
 
   async criarMedicamento(medicamento: MedicamentoInsert): Promise<Medicamento> {
     const supabase = createClient();
+    
+    // Se não tem perfil_id, buscar do user_id
+    if (!medicamento.perfil_id && medicamento.user_id) {
+      const { data: perfil } = await supabase
+        .from('perfis')
+        .select('id')
+        .eq('user_id', medicamento.user_id)
+        .maybeSingle();
+      
+      if (perfil) {
+        (medicamento as any).perfil_id = perfil.id;
+      }
+    }
+    
     const { data, error } = await supabase
       .from(TABLE_NAME)
       .insert(medicamento)

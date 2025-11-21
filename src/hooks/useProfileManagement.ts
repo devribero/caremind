@@ -21,7 +21,7 @@ export const useProfileManagement = () => {
     router.push('/auth');
   }, [signOut, router]);
 
-  const handleSaveProfile = useCallback(async (data: { fullName: string; phone: string; dob: string }) => {
+  const handleSaveProfile = useCallback(async (data: { fullName: string; phone: string; dob: string; timezone: string }) => {
     if (!profile) return false;
 
     try {
@@ -29,6 +29,7 @@ export const useProfileManagement = () => {
         nome: data.fullName,
         telefone: data.phone,
         data_nascimento: data.dob,
+        timezone: data.timezone,
       });
       
       // Dispara evento para atualizar outros componentes
@@ -37,6 +38,7 @@ export const useProfileManagement = () => {
           fullName: data.fullName,
           phone: data.phone,
           dob: data.dob,
+          timezone: data.timezone,
         } 
       }));
       
@@ -137,6 +139,7 @@ export const useProfileManagement = () => {
       email: user?.email || '',
       phone: profile.telefone || '',
       dob: profile.data_nascimento || '',
+      timezone: profile.timezone || 'America/Sao_Paulo',
       photoUrl: profile.foto_usuario || '/icons/foto_padrao.png',
     } : null,
     loading,
