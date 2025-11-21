@@ -1,0 +1,492 @@
+.calendarContainer {
+  background: white;
+  border-radius: 20px;
+  padding: 1.5rem;
+  margin-bottom: 2rem;
+  box-shadow: 0 4px 14px 0 rgba(0, 0, 0, 0.1);
+}
+
+.calendar {
+  width: 100%;
+  border: none;
+  font-family: "Poppins", sans-serif;
+}
+
+.calendar :global(.react-calendar__navigation) {
+  display: flex;
+  margin-bottom: 1rem;
+}
+
+.calendar :global(.react-calendar__navigation button) {
+  color: #0400BA;
+  font-weight: 600;
+  font-size: 1rem;
+  min-width: 44px;
+  background: none;
+  border: none;
+  padding: 0.5rem;
+  cursor: pointer;
+  border-radius: 8px;
+  transition: background-color 0.2s;
+}
+
+.calendar :global(.react-calendar__navigation button:hover) {
+  background-color: #f3f4f6;
+}
+
+.calendar :global(.react-calendar__navigation button:enabled:hover),
+.calendar :global(.react-calendar__navigation button:enabled:focus) {
+  background-color: #e5e7eb;
+}
+
+.calendar :global(.react-calendar__month-view__weekdays) {
+  text-align: center;
+  font-weight: 600;
+  font-size: 0.875rem;
+  color: #6b7280;
+  margin-bottom: 0.5rem;
+}
+
+.calendar :global(.react-calendar__month-view__weekdays__weekday) {
+  padding: 0.5rem;
+}
+
+.calendar :global(.react-calendar__month-view__days__day) {
+  padding: 0.5rem;
+  border-radius: 8px;
+  transition: all 0.2s;
+}
+
+.calendar :global(.react-calendar__tile) {
+  height: 60px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 0.5rem;
+  border-radius: 8px;
+  transition: all 0.2s;
+}
+
+.calendar :global(.react-calendar__tile:hover) {
+  background-color: #f3f4f6;
+}
+
+.calendar :global(.react-calendar__tile--active) {
+  background: #0400BA !important;
+  color: white !important;
+}
+
+.calendar :global(.react-calendar__tile--now) {
+  background: #e5e7eb;
+  font-weight: 700;
+}
+
+.calendar :global(.react-calendar__tile--now:enabled:hover),
+.calendar :global(.react-calendar__tile--now:enabled:focus) {
+  background: #d1d5db;
+}
+
+.tileContent {
+  display: flex;
+  gap: 4px;
+  justify-content: center;
+  margin-top: 4px;
+  flex-wrap: wrap;
+}
+
+.dotPendente {
+  display: inline-block;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background-color: #ef4444;
+  color: white;
+  font-size: 0.7rem;
+  font-weight: 700;
+  line-height: 20px;
+  text-align: center;
+}
+
+.dotConcluido {
+  display: inline-block;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background-color: #10b981;
+  color: white;
+  font-size: 0.7rem;
+  font-weight: 700;
+  line-height: 20px;
+  text-align: center;
+}
+
+.dayWithPendentes {
+  background-color: #fef2f2 !important;
+  border: 2px solid #ef4444 !important;
+}
+
+.dayWithConcluidos {
+  background-color: #f0fdf4 !important;
+  border: 2px solid #10b981 !important;
+}
+
+.compromissosList {
+  margin-top: 2rem;
+  padding-top: 2rem;
+  border-top: 2px solid #e5e7eb;
+}
+
+.listTitle {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: #0400BA;
+  margin-bottom: 1rem;
+}
+
+.compromissosGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 1rem;
+}
+
+.compromissoItem {
+  background: #f9fafb;
+  border: 2px solid #e5e7eb;
+  border-radius: 12px;
+  padding: 1rem;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.compromissoItem:hover {
+  border-color: #0400BA;
+  box-shadow: 0 4px 12px rgba(4, 0, 186, 0.1);
+  transform: translateY(-2px);
+}
+
+.compromissoItem.concluido {
+  background: #f0fdf4;
+  border-color: #10b981;
+  opacity: 0.8;
+}
+
+.compromissoItem.passado {
+  background: #fef2f2;
+  border-color: #ef4444;
+}
+
+.compromissoHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.5rem;
+}
+
+.compromissoTime {
+  font-weight: 600;
+  color: #0400BA;
+  font-size: 0.875rem;
+}
+
+.badgeConcluido {
+  background: #10b981;
+  color: white;
+  padding: 0.25rem 0.5rem;
+  border-radius: 6px;
+  font-size: 0.75rem;
+  font-weight: 600;
+}
+
+.badgePassado {
+  background: #ef4444;
+  color: white;
+  padding: 0.25rem 0.5rem;
+  border-radius: 6px;
+  font-size: 0.75rem;
+  font-weight: 600;
+}
+
+.compromissoTitulo {
+  font-size: 1rem;
+  font-weight: 700;
+  color: #111827;
+  margin: 0.5rem 0;
+}
+
+.compromissoDescricao {
+  font-size: 0.875rem;
+  color: #6b7280;
+  margin: 0.5rem 0;
+}
+
+.compromissoLocal {
+  font-size: 0.875rem;
+  color: #6b7280;
+  margin: 0.5rem 0 0 0;
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+.emptyDay {
+  margin-top: 2rem;
+  padding: 2rem;
+  text-align: center;
+  color: #6b7280;
+  background: #f9fafb;
+  border-radius: 12px;
+}
+
+.emptyDay p {
+  margin: 0;
+  font-size: 1rem;
+}
+
+/* Toggle de visualização */
+.viewToggle {
+  display: flex;
+  gap: 0.5rem;
+  margin-bottom: 1.5rem;
+  background: #f3f4f6;
+  padding: 0.25rem;
+  border-radius: 8px;
+}
+
+.viewButton {
+  flex: 1;
+  padding: 0.75rem 1rem;
+  border: none;
+  background: transparent;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: #6b7280;
+  transition: all 0.2s;
+  font-family: "Poppins", sans-serif;
+}
+
+.viewButton:hover {
+  background: #e5e7eb;
+}
+
+.viewButtonActive {
+  background: #0400BA;
+  color: white;
+}
+
+.viewButtonActive:hover {
+  background: #0300a0;
+}
+
+/* Visualização de Dia */
+.dayView {
+  margin-top: 1rem;
+}
+
+.dayHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 1.5rem;
+  padding: 1rem;
+  background: #f9fafb;
+  border-radius: 12px;
+}
+
+.dayTitle {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: #0400BA;
+  margin: 0;
+  text-transform: capitalize;
+}
+
+.navButton {
+  background: #0400BA;
+  color: white;
+  border: none;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  cursor: pointer;
+  font-size: 1.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s;
+}
+
+.navButton:hover {
+  background: #0300a0;
+  transform: scale(1.1);
+}
+
+/* Visualização de Semana */
+.weekView {
+  margin-top: 1rem;
+}
+
+.weekHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 1.5rem;
+  padding: 1rem;
+  background: #f9fafb;
+  border-radius: 12px;
+}
+
+.weekTitle {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: #0400BA;
+  margin: 0;
+}
+
+.weekGrid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 0.5rem;
+  margin-bottom: 1rem;
+}
+
+.weekDay {
+  background: white;
+  border: 2px solid #e5e7eb;
+  border-radius: 12px;
+  padding: 1rem;
+  min-height: 200px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.weekDay:hover {
+  border-color: #0400BA;
+  box-shadow: 0 4px 12px rgba(4, 0, 186, 0.1);
+}
+
+.weekDay.today {
+  border-color: #0400BA;
+  background: #eef2ff;
+}
+
+.weekDay.selected {
+  border-color: #0400BA;
+  background: #eef2ff;
+  box-shadow: 0 4px 12px rgba(4, 0, 186, 0.2);
+}
+
+.weekDayHeader {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-bottom: 0.75rem;
+  padding-bottom: 0.75rem;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.weekDayName {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: #6b7280;
+  text-transform: uppercase;
+  margin-bottom: 0.25rem;
+}
+
+.weekDayNumber {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: #111827;
+}
+
+.weekDayCount {
+  margin-top: 0.25rem;
+  background: #0400BA;
+  color: white;
+  border-radius: 50%;
+  width: 24px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.75rem;
+  font-weight: 700;
+}
+
+.weekDayCompromissos {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.weekCompromissoItem {
+  background: #f3f4f6;
+  border-left: 3px solid #0400BA;
+  border-radius: 6px;
+  padding: 0.5rem;
+  cursor: pointer;
+  transition: all 0.2s;
+  font-size: 0.75rem;
+}
+
+.weekCompromissoItem:hover {
+  background: #e5e7eb;
+  transform: translateX(4px);
+}
+
+.weekCompromissoItem.concluido {
+  opacity: 0.6;
+  border-left-color: #10b981;
+}
+
+.weekCompromissoTime {
+  font-weight: 700;
+  color: #0400BA;
+  display: block;
+  margin-bottom: 0.25rem;
+}
+
+.weekCompromissoTitle {
+  color: #111827;
+  display: block;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.weekMoreCompromissos {
+  text-align: center;
+  color: #6b7280;
+  font-size: 0.75rem;
+  font-weight: 600;
+  padding: 0.5rem;
+  background: #f9fafb;
+  border-radius: 6px;
+  margin-top: 0.5rem;
+}
+
+/* Visualização de Mês */
+.monthView {
+  margin-top: 1rem;
+}
+
+@media (max-width: 768px) {
+  .weekGrid {
+    grid-template-columns: 1fr;
+  }
+  
+  .weekDay {
+    min-height: auto;
+  }
+  
+  .viewToggle {
+    flex-direction: column;
+  }
+  
+  .viewButton {
+    width: 100%;
+  }
+}
+

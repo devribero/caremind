@@ -290,3 +290,36 @@
   font-size: 2rem;
   margin-bottom: 0.5rem;
 }
+
+.viewToggle {
+  display: flex;
+  gap: 0.5rem;
+  background: #f3f4f6;
+  padding: 0.25rem;
+  border-radius: 8px;
+}
+
+.viewButton {
+  padding: 0.5rem 1rem;
+  border: none;
+  background: transparent;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: #6b7280;
+  transition: all 0.2s;
+}
+
+.viewButton:hover {
+  background: #e5e7eb;
+}
+
+.viewButtonActive {
+  background: #0400BA;
+  color: white;
+}
+
+.viewButtonActive:hover {
+  background: #0300a0;
+}

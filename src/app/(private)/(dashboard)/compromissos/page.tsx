@@ -7,6 +7,7 @@ import { CompromissosService } from '@/lib/supabase/services';
 import { Modal } from '@/components/features/Modal';
 import { AddEditCompromissoForm, type Compromisso } from '@/components/features/modals/AddEditCompromissoModal';
 import CompromissoCard from '@/components/features/CompromissoCard';
+import CompromissosCalendar from '@/components/features/CompromissosCalendar';
 import { toast } from '@/components/features/Toast';
 import styles from '../rotinas/page.module.css';
 import { Tables } from '@/types/supabase';
@@ -26,6 +27,8 @@ export default function CompromissosPage() {
   const [editModalOpen, setEditModalOpen] = useState(false);
   const [editingItem, setEditingItem] = useState<CompItem | null>(null);
   const [deleting, setDeleting] = useState<Record<string, boolean>>({});
+  const [viewMode, setViewMode] = useState<'list' | 'calendar'>('list');
+  const [selectedDate, setSelectedDate] = useState<Date | null>(null);
 
   const selectedElderName = useMemo(() => {
     const elderList = listaIdososVinculados ?? [];
@@ -195,6 +198,20 @@ export default function CompromissosPage() {
 
         {!loading && !error && !(isFamiliar && !targetProfileId) && (
           <div className={styles.actionsContainer}>
+            <div className={styles.viewToggle}>
+              <button
+                className={`${styles.viewButton} ${viewMode === 'list' ? styles.viewButtonActive : ''}`}
+                onClick={() => setViewMode('list')}
+              >
+                📋 Lista
+              </button>
+              <button
+                className={`${styles.viewButton} ${viewMode === 'calendar' ? styles.viewButtonActive : ''}`}
+                onClick={() => setViewMode('calendar')}
+              >
+                📅 Calendário
+              </button>
+            </div>
             <button className={styles.addButton} onClick={() => setAddModalOpen(true)}>
               <span className={styles.addIcon}>+</span>
               Adicionar Compromisso
@@ -202,7 +219,21 @@ export default function CompromissosPage() {
           </div>
         )}
 
-        <section className={styles.content_info}>{renderList()}</section>
+        <section className={styles.content_info}>
+          {viewMode === 'calendar' ? (
+            <CompromissosCalendar
+              compromissos={items}
+              selectedDate={selectedDate}
+              onDateChange={(date) => {
+                setSelectedDate(date);
+                setViewMode('list');
+              }}
+              onCompromissoClick={(comp) => openEditModal(comp)}
+            />
+          ) : (
+            renderList()
+          )}
+        </section>
       </div>
 
       <Modal isOpen={addModalOpen} onClose={() => setAddModalOpen(false)} title="Adicionar compromisso">

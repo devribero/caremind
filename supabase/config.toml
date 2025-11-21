@@ -87,3 +87,9 @@ enabled = true
 verify_jwt = false
 import_map = "./functions/reset-status-diario/deno.json"
 entrypoint = "./functions/reset-status-diario/index.ts"
+
+[functions.disparar-lembretes-google]
+enabled = true
+verify_jwt = false
+import_map = "./functions/disparar-lembretes-google/deno.json"
+entrypoint = "./functions/disparar-lembretes-google/index.ts"
