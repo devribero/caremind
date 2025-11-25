@@ -202,6 +202,7 @@ export default function AuthClient() {
                               onChange={(e) => setFullName(e.target.value)}
                               className={styles.input}
                               placeholder="Seu nome"
+                              autoComplete="name"
                               required
                             />
                           </div>
@@ -215,6 +216,7 @@ export default function AuthClient() {
                               onChange={(e) => setEmail(e.target.value)}
                               className={styles.input}
                               placeholder="seu@email.com"
+                              autoComplete="email"
                               required
                             />
                           </div>
@@ -233,7 +235,8 @@ export default function AuthClient() {
                               value={password}
                               onChange={(e) => setPassword(e.target.value)}
                               className={styles.input}
-                              placeholder='Password'
+                              placeholder='Senha'
+                              autoComplete="new-password"
                               required
                             />
                           </div>
@@ -245,7 +248,8 @@ export default function AuthClient() {
                               value={confirmPassword}
                               onChange={(e) => setConfirmPassword(e.target.value)}
                               className={styles.input}
-                              placeholder='Password'
+                              placeholder='Confirme a senha'
+                              autoComplete="new-password"
                               required
                             />
                           </div>
@@ -292,6 +296,7 @@ export default function AuthClient() {
                       onChange={(e) => setEmail(e.target.value)}
                       className={styles.input}
                       placeholder="seu@email.com"
+                      autoComplete="email"
                       required
                     />
                   </div>
@@ -304,7 +309,8 @@ export default function AuthClient() {
                       value={password}
                       onChange={(e) => setPassword(e.target.value)}
                       className={styles.input}
-                      placeholder='Password'
+                      placeholder='Senha'
+                      autoComplete="current-password"
                       required
                     />
                   </div>

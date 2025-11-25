@@ -1,36 +1,22 @@
 'use client';
 
 import { useEffect } from 'react';
-import { useAuth } from '@/contexts/AuthContext';
 import { useRouter } from 'next/navigation';
-import { FullScreenLoader } from '@/components/features/FullScreenLoader';
 import DashboardClient from '@/components/features/DashboardClient';
 import { useProfile } from '@/hooks/useProfile';
 
 export default function Dashboard() {
-  const { user, loading } = useAuth(); 
   const router = useRouter();
-  const { profile } = useProfile();
+  const { profile, loading: profileLoading } = useProfile();
 
+  // Redireciona para familiar-dashboard se o usuário for do tipo familiar
   useEffect(() => {
-    if (!loading && !user) {
-      router.push('/auth');
-    }
-  }, [user, loading, router]); 
-
-  useEffect(() => {
-    if (profile?.tipo?.toLowerCase() === 'familiar') {
+    if (!profileLoading && profile?.tipo?.toLowerCase() === 'familiar') {
       router.replace('/familiar-dashboard');
     }
-  }, [profile?.tipo, router]);
+  }, [profile?.tipo, profileLoading, router]);
 
-  if (loading) {
-    return <FullScreenLoader />;
-  }
-
-  if (user) {
-    return <DashboardClient />;
-  }
-
-  return null;
+  // O PrivateLayout já cuida da verificação de autenticação
+  // Aqui só renderizamos o DashboardClient
+  return <DashboardClient />;
 }

@@ -48,10 +48,12 @@ export default function DashboardClient({ readOnly = false, idosoId }: { readOnl
 
   const now = useMemo(() => new Date(), []);
 
-  const carregarDados = useCallback(async () => {
+  const carregarDados = useCallback(async (showLoader = false) => {
     if (!profile?.id) return;
 
-    setIsLoading(true);
+    // Só mostra loader em recarregamentos manuais, não no carregamento inicial
+    if (showLoader) setIsLoading(true);
+    
     try {
       const hoje = new Date();
       const [eventos, compromissos, meds, rots] = await Promise.all([
@@ -90,7 +92,7 @@ export default function DashboardClient({ readOnly = false, idosoId }: { readOnl
     } catch (error) {
       console.error("Erro ao carregar dados do dashboard:", error);
     } finally {
-      setIsLoading(false);
+      if (showLoader) setIsLoading(false);
     }
   }, [profile, setIsLoading]);
 
@@ -226,7 +228,7 @@ export default function DashboardClient({ readOnly = false, idosoId }: { readOnl
           await RotinasService.criarRotina({ ...rotinaData, user_id: profile.user_id });
         }
       }
-      await carregarDados();
+      await carregarDados(true); // Mostra loader ao salvar
       closeModal();
     } catch (error) {
       console.error(`Erro ao salvar ${modalType}:`, error);
@@ -245,7 +247,7 @@ export default function DashboardClient({ readOnly = false, idosoId }: { readOnl
           } else {
             await RotinasService.deletarRotina(id as number);
           }
-          await carregarDados();
+          await carregarDados(true); // Mostra loader ao excluir
         } catch (error) {
           console.error(`Erro ao excluir ${tipo}:`, error);
         } finally {
@@ -297,8 +299,8 @@ export default function DashboardClient({ readOnly = false, idosoId }: { readOnl
         setMedicamentos(meds);
       }
 
-      // Recarrega os dados para sincronizar a agenda
-      await carregarDados();
+      // Recarrega os dados para sincronizar a agenda (sem loader para toggle rápido)
+      await carregarDados(false);
     } catch (error) {
       console.error("Erro ao atualizar status do evento:", error);
       // Reverter

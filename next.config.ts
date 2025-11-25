@@ -1,5 +1,6 @@
 import type { NextConfig } from "next";
-import withPWAInit from "@ducanh2912/next-pwa";
+// PWA DESATIVADO - Não remover, apenas comentado para futura reativação
+// import withPWAInit from "@ducanh2912/next-pwa";
 const path = require('path');
 
 // Lógica para extrair o hostname da URL do Supabase
@@ -46,6 +47,17 @@ const nextConfig: NextConfig = {
       }
     }
 
+    // Construir lista de hosts para connect-src
+    const connectHosts = ["'self'", "https://cdn.jsdelivr.net", "https://fonts.googleapis.com", "https://fonts.gstatic.com"];
+    if (Array.isArray(dynamicRemotePatterns)) {
+      for (const p of dynamicRemotePatterns) {
+        if (p && p.hostname) {
+          connectHosts.push(`https://${p.hostname}`);
+          connectHosts.push(`wss://${p.hostname}`);
+        }
+      }
+    }
+
     const cspParts = [
       "default-src 'self'",
       "base-uri 'self'",
@@ -53,25 +65,12 @@ const nextConfig: NextConfig = {
       "script-src 'self' https://cdn.jsdelivr.net",
       "script-src-attr 'none'",
       "object-src 'none'",
-      "style-src 'self' https://fonts.googleapis.com",
-      "style-src-elem 'self' https://fonts.googleapis.com",
+      "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
+      "style-src-elem 'self' 'unsafe-inline' https://fonts.googleapis.com",
       "style-src-attr 'unsafe-inline'",
       "font-src 'self' data: https://fonts.gstatic.com",
-      // permitir fetchs para CDN de ícones e assets (bootstrap icons via jsdelivr)
-      "connect-src 'self' https://cdn.jsdelivr.net",
+      `connect-src ${connectHosts.join(' ')}`,
       "media-src 'self'",
-      (() => {
-        const hosts = [];
-        if (Array.isArray(dynamicRemotePatterns)) {
-          for (const p of dynamicRemotePatterns) {
-            if (p && p.hostname) {
-              hosts.push(`https://${p.hostname}`);
-              hosts.push(`wss://${p.hostname}`);
-            }
-          }
-        }
-        return ["connect-src 'self' https://cdn.jsdelivr.net", ...hosts].join(' ');
-      })(),
       "worker-src 'self' blob:",
       "frame-ancestors 'self'",
       "upgrade-insecure-requests",
@@ -98,18 +97,20 @@ const nextConfig: NextConfig = {
   },
 };
 
-const withPWA = withPWAInit({
-  dest: "public",
-  cacheOnFrontEndNav: true,
-  aggressiveFrontEndNavCaching: true,
-  reloadOnOnline: true,
-  disable: process.env.NODE_ENV === "development",
-  workboxOptions: {
-    disableDevLogs: true,
-  },
-  fallbacks: {
-    document: "/offline",
-  },
-});
+// PWA DESATIVADO - Não remover, apenas comentado para futura reativação
+// const withPWA = withPWAInit({
+//   dest: "public",
+//   cacheOnFrontEndNav: true,
+//   aggressiveFrontEndNavCaching: true,
+//   reloadOnOnline: true,
+//   disable: process.env.NODE_ENV === "development",
+//   workboxOptions: {
+//     disableDevLogs: true,
+//   },
+//   fallbacks: {
+//     document: "/offline",
+//   },
+// });
 
-export default withPWA(nextConfig);
+// export default withPWA(nextConfig);
+export default nextConfig;

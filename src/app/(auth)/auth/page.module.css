@@ -146,6 +146,19 @@
     box-sizing: border-box;
 }
 
+/* Esconde ícones de autopreenchimento e gerenciadores de senha do navegador */
+.input::-webkit-credentials-auto-fill-button,
+.input::-webkit-contacts-auto-fill-button,
+.input::-webkit-credit-card-auto-fill-button,
+.input::-ms-reveal,
+.input::-ms-clear {
+    display: none !important;
+    visibility: hidden !important;
+    pointer-events: none !important;
+    width: 0 !important;
+    height: 0 !important;
+}
+
 .input:focus {
     outline: none;
     border-color: rgba(255, 255, 255, 0.5);

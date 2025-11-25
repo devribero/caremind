@@ -4,4 +4,5 @@ export { useModalState } from './useModalState';
 export { useOptimisticUpdates } from './useOptimisticUpdates';
 export { useOptimizedNavigation } from './useOptimizedNavigation';
 export { usePersistentState } from './usePersistentState';
-export { usePWA } from './use-pwa';
+// PWA DESATIVADO - Não remover, apenas comentado para futura reativação
+// export { usePWA } from './use-pwa';

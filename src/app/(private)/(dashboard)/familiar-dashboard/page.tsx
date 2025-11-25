@@ -1,7 +1,5 @@
 'use client';
 
-import { useEffect } from 'react';
-import { useRouter } from 'next/navigation';
 import { useAuth } from '@/contexts/AuthContext';
 import { useProfile } from '@/hooks/useProfile';
 import { useIdoso } from '@/contexts/IdosoContext';
@@ -9,24 +7,18 @@ import { FullScreenLoader } from '@/components/features/FullScreenLoader';
 import DashboardClient from '@/components/features/DashboardClient';
 
 export default function FamiliarDashboardPage() {
-  const { user, loading } = useAuth();
+  const { user } = useAuth();
   const { profile } = useProfile();
   const { idosoSelecionadoId, listaIdososVinculados, loading: idososLoading } = useIdoso();
-  const router = useRouter();
 
-  useEffect(() => {
-    if (!loading && !user) {
-      router.push('/auth');
-    }
-  }, [loading, user, router]);
+  // O PrivateLayout já cuida da verificação de autenticação
 
-  if (loading || idososLoading) {
+  // Só mostra loader enquanto carrega os idosos vinculados
+  if (idososLoading) {
     return <FullScreenLoader />;
   }
 
-  if (!user) return null;
-
-  const tipo = (profile?.tipo || user.user_metadata?.account_type) as string | undefined;
+  const tipo = (profile?.tipo || user?.user_metadata?.account_type) as string | undefined;
   const isFamiliar = (tipo || '').toLowerCase() === 'familiar';
 
   if (!isFamiliar) {
