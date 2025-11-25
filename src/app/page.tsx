@@ -91,10 +91,6 @@ export default function Home() {
                 width={500}
                 height={400}
                 className={styles.heroImg}
-                style={{
-                  width: 'auto',
-                  height: 'auto',
-                }}
               />
             </div>
           </div>

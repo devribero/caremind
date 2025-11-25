@@ -6,6 +6,7 @@ import { CompromissosService, MedicamentosService, RotinasService } from '@/lib/
 import { listarEventosDoDia, atualizarStatusEvento } from '@/lib/supabase/services/historicoEventos';
 import { shouldResetMedicamento } from '@/lib/utils/medicamentoUtils';
 import { Tables } from '@/types/supabase';
+import { isScheduledForDate } from '@/lib/utils/scheduleUtils';
 
 import styles from './DashboardClient.module.css';
 import { Modal } from './Modal';
@@ -37,13 +38,13 @@ export default function DashboardClient({ readOnly = false, idosoId }: { readOnl
   const [agenda, setAgenda] = useState<AgendaItem[]>([]);
   const [medicamentos, setMedicamentos] = useState<Medicamento[]>([]);
   const [rotinas, setRotinas] = useState<Rotina[]>([]);
-  
+
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [modalType, setModalType] = useState<'medicamento' | 'rotina'>('medicamento');
   const [isEditing, setIsEditing] = useState(false);
   const [currentItem, setCurrentItem] = useState<Medicamento | Rotina | null>(null);
 
-  const [confirmDialog, setConfirmDialog] = useState({ isOpen: false, title: '', message: '', onConfirm: () => {} });
+  const [confirmDialog, setConfirmDialog] = useState({ isOpen: false, title: '', message: '', onConfirm: () => { } });
 
   const now = useMemo(() => new Date(), []);
 
@@ -96,28 +97,28 @@ export default function DashboardClient({ readOnly = false, idosoId }: { readOnl
   useEffect(() => {
     carregarDados();
   }, [carregarDados]);
-  
-    // Efeito para verificar periodicamente se os medicamentos precisam ser desmarcados
-    useEffect(() => {
-        const intervalo = setInterval(() => {
-            setMedicamentos(medicamentosAtuais => {
-                const listaAtualizada = medicamentosAtuais.map(med => {
-                    if (med.concluido && shouldResetMedicamento(med as any)) {
-                        return { ...med, concluido: false };
-                    }
-                    return med;
-                });
 
-                if (JSON.stringify(listaAtualizada) !== JSON.stringify(medicamentosAtuais)) {
-                    return listaAtualizada;
-                }
+  // Efeito para verificar periodicamente se os medicamentos precisam ser desmarcados
+  useEffect(() => {
+    const intervalo = setInterval(() => {
+      setMedicamentos(medicamentosAtuais => {
+        const listaAtualizada = medicamentosAtuais.map(med => {
+          if (med.concluido && shouldResetMedicamento(med as any)) {
+            return { ...med, concluido: false };
+          }
+          return med;
+        });
 
-                return medicamentosAtuais;
-            });
-        }, 60000);
+        if (JSON.stringify(listaAtualizada) !== JSON.stringify(medicamentosAtuais)) {
+          return listaAtualizada;
+        }
 
-        return () => clearInterval(intervalo);
-    }, []);
+        return medicamentosAtuais;
+      });
+    }, 60000);
+
+    return () => clearInterval(intervalo);
+  }, []);
 
   const closeModal = () => {
     setIsModalOpen(false);
@@ -133,19 +134,19 @@ export default function DashboardClient({ readOnly = false, idosoId }: { readOnl
   };
 
   const handleSave = async (
-    nomeOuTitulo: string, 
-    descricaoOuDosagem?: string | null, 
-    frequencia?: any, 
+    nomeOuTitulo: string,
+    descricaoOuDosagem?: string | null,
+    frequencia?: any,
     quantidade?: number
   ) => {
     if (!profile) return;
-    
+
     try {
       if (modalType === 'medicamento') {
         // AddMedicamentoForm passa: (nome, dosagem, frequencia, quantidade)
         const nome = nomeOuTitulo;
         const dosagem = descricaoOuDosagem;
-        
+
         // Garantir que frequencia seja um objeto válido
         let frequenciaLimpa: any = null;
         if (frequencia) {
@@ -170,14 +171,14 @@ export default function DashboardClient({ readOnly = false, idosoId }: { readOnl
             frequenciaLimpa.dias_da_semana = frequencia.dias_da_semana;
           }
         }
-        
+
         const medData = {
           nome: nome?.trim() || null,
           dosagem: dosagem?.trim() || null,
           frequencia: frequenciaLimpa,
           quantidade: quantidade || null,
         };
-        
+
         if (isEditing && currentItem) {
           await MedicamentosService.atualizarMedicamento((currentItem as Medicamento).id, medData);
         } else {
@@ -187,7 +188,7 @@ export default function DashboardClient({ readOnly = false, idosoId }: { readOnl
         // AddRotinaForm passa: (titulo, descricao, frequencia)
         const titulo = nomeOuTitulo;
         const descricao = descricaoOuDosagem;
-        
+
         // Garantir que frequencia seja um objeto válido
         let frequenciaLimpa: any = null;
         if (frequencia) {
@@ -212,13 +213,13 @@ export default function DashboardClient({ readOnly = false, idosoId }: { readOnl
             frequenciaLimpa.dias_da_semana = frequencia.dias_da_semana;
           }
         }
-        
+
         const rotinaData = {
           titulo: titulo?.trim() || null,
           descricao: descricao?.trim() || null,
           frequencia: frequenciaLimpa,
         };
-        
+
         if (isEditing && currentItem) {
           await RotinasService.atualizarRotina((currentItem as Rotina).id, rotinaData);
         } else {
@@ -248,7 +249,7 @@ export default function DashboardClient({ readOnly = false, idosoId }: { readOnl
         } catch (error) {
           console.error(`Erro ao excluir ${tipo}:`, error);
         } finally {
-          setConfirmDialog({ isOpen: false, title: '', message: '', onConfirm: () => {} });
+          setConfirmDialog({ isOpen: false, title: '', message: '', onConfirm: () => { } });
         }
       },
     });
@@ -259,13 +260,13 @@ export default function DashboardClient({ readOnly = false, idosoId }: { readOnl
     if (item.tipo === 'compromisso') return; // Compromissos não têm status
 
     const novoStatus = item.status === 'confirmado' ? 'pendente' : 'confirmado';
-    
+
     // Otimista
     setAgenda(prev => prev.map(a => a.id === item.id ? { ...a, status: novoStatus } : a));
 
     try {
       await atualizarStatusEvento(Number(item.id), novoStatus);
-      
+
       // Se for medicamento e foi confirmado, recarrega os medicamentos para atualizar a quantidade
       if (item.tipo === 'medicamento' && novoStatus === 'confirmado' && profile?.user_id) {
         const meds = await MedicamentosService.listarMedicamentos(profile.user_id);
@@ -283,26 +284,92 @@ export default function DashboardClient({ readOnly = false, idosoId }: { readOnl
     if (horario && horario < now) return styles.status_badge_late;
     return styles.status_badge;
   };
-  
+
   const getStatusText = (status: string, horario?: Date) => {
     if (status === 'confirmado') return 'Concluído';
     if (horario && horario < now) return 'Atrasado';
     return 'Pendente';
   }
 
-  const { medsHoje, medsHojeConcluidos, rotinasHoje, rotinasHojeConcluidas, alertasPendentes, dosesOmitidas, estoqueBaixo } = useMemo(() => {
-      const hoje = new Date();
-      const medsHoje = medicamentos.filter(m => m.data_agendada && new Date(m.data_agendada).toDateString() === hoje.toDateString());
-      const medsHojeConcluidos = medsHoje.filter(m => m.concluido).length;
-      
-      const rotinasHoje = rotinas.filter(r => r.data_agendada && new Date(r.data_agendada).toDateString() === hoje.toDateString());
-      const rotinasHojeConcluidas = rotinasHoje.filter(r => r.concluido).length;
+  const { medsHoje, medsHojeConcluidos, rotinasHoje, rotinasHojeConcluidas, alertasPendentes, dosesOmitidas, estoqueBaixo, agendaExata } = useMemo(() => {
+    const hoje = new Date();
 
-      const dosesOmitidas = agenda.filter(a => a.status === 'atrasado' || a.status === 'esquecido');
-      const estoqueBaixo = medicamentos.filter(m => m.quantidade != null && m.quantidade <= 3);
-      const alertasPendentes = dosesOmitidas.length + estoqueBaixo.length;
+    // 1. Calcular itens agendados para hoje baseados na frequência
+    const medsAgendadosHoje = medicamentos.filter(med => isScheduledForDate(med, hoje));
+    const rotinasAgendadasHoje = rotinas.filter(rot => isScheduledForDate(rot, hoje));
 
-      return { medsHoje, medsHojeConcluidos, rotinasHoje, rotinasHojeConcluidas, alertasPendentes, dosesOmitidas, estoqueBaixo };
+    // 2. Mapear eventos já existentes (histórico) para fácil acesso
+    const eventosMap = new Map();
+    agenda.forEach(item => {
+      if (item.tipo === 'medicamento' || item.tipo === 'rotina') {
+        // Chave: tipo-id_original
+        const key = `${item.tipo}-${(item.dadosOriginais as HistoricoEvento).evento_id}`;
+        eventosMap.set(key, item);
+      }
+    });
+
+    // 3. Construir listas completas (Calculados + Histórico)
+    // Se já existe no histórico, usa o status do histórico. Se não, é pendente.
+
+    const listaMedsHoje = medsAgendadosHoje.map(med => {
+      const key = `medicamento-${med.id}`;
+      const eventoExistente = eventosMap.get(key);
+
+      if (eventoExistente) {
+        return eventoExistente;
+      }
+
+      // Item calculado mas ainda não gerado no histórico
+      return {
+        id: `temp-med-${med.id}`,
+        tipo: 'medicamento',
+        titulo: med.nome,
+        horario: new Date(), // Horário padrão ou calcular baseado na frequência
+        status: 'pendente',
+        dadosOriginais: med
+      } as AgendaItem;
+    });
+
+    const listaRotinasHoje = rotinasAgendadasHoje.map(rot => {
+      const key = `rotina-${rot.id}`;
+      const eventoExistente = eventosMap.get(key);
+
+      if (eventoExistente) {
+        return eventoExistente;
+      }
+
+      return {
+        id: `temp-rot-${rot.id}`,
+        tipo: 'rotina',
+        titulo: rot.titulo,
+        horario: new Date(),
+        status: 'pendente',
+        dadosOriginais: rot
+      } as AgendaItem;
+    });
+
+    // Combinar com eventos extras que podem estar na agenda mas não na lista calculada (ex: pontuais não recorrentes?)
+    // Por enquanto, assumimos que a lista calculada + agenda cobre tudo.
+    // Mas precisamos garantir que não duplicamos se a agenda tiver algo que o calculo também trouxe.
+    // A lógica acima já prioriza a agenda (eventoExistente).
+
+    const medsHojeConcluidos = listaMedsHoje.filter(a => a.status === 'confirmado').length;
+    const rotinasHojeConcluidas = listaRotinasHoje.filter(a => a.status === 'confirmado').length;
+
+    const dosesOmitidas = agenda.filter(a => a.status === 'atrasado' || a.status === 'esquecido');
+    const estoqueBaixo = medicamentos.filter(m => m.quantidade != null && m.quantidade <= 3);
+    const alertasPendentes = dosesOmitidas.length + estoqueBaixo.length;
+
+    return {
+      medsHoje: listaMedsHoje,
+      medsHojeConcluidos,
+      rotinasHoje: listaRotinasHoje,
+      rotinasHojeConcluidas,
+      alertasPendentes,
+      dosesOmitidas,
+      estoqueBaixo,
+      agendaExata: [...listaMedsHoje, ...listaRotinasHoje].sort((a, b) => a.horario.getTime() - b.horario.getTime())
+    };
   }, [agenda, medicamentos, rotinas]);
 
 
@@ -370,6 +437,86 @@ export default function DashboardClient({ readOnly = false, idosoId }: { readOnl
             ))}
           </ul>
         )}
+      </div>
+
+      <div className={styles.agenda_columns}>
+        <div className={styles.agenda_column}>
+          <h3 className={styles.section_title}><FiClock /> Medicamentos do Dia</h3>
+          {agendaExata.filter(i => i.tipo === 'medicamento').length === 0 ? (
+            <p className={styles.empty_list}>Nenhum medicamento para hoje.</p>
+          ) : (
+            <ul className={styles.list}>
+              {agendaExata.filter(i => i.tipo === 'medicamento').map(item => (
+                <li key={item.id} className={`${styles.list_item} ${item.status === 'confirmado' ? styles.completed : ''}`}>
+                  <div className={styles.item_info}>
+                    <strong>{item.titulo}</strong>
+                    <span style={{ fontSize: '0.8em', color: '#666' }}>
+                      {item.horario.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                    </span>
+                  </div>
+                  <div className={styles.item_actions_hover}>
+                    {item.id.toString().startsWith('temp-') ? (
+                      <button
+                        className={styles.complete_btn}
+                        onClick={() => handleToggleAgendaStatus(item)}
+                        title="Marcar como concluído"
+                      >
+                        Concluir
+                      </button>
+                    ) : (
+                      <button
+                        onClick={() => handleToggleAgendaStatus(item)}
+                        className={`${styles.complete_btn} ${item.status === 'confirmado' ? styles.btn_completed : ''}`}
+                        title={item.status === 'confirmado' ? "Desmarcar" : "Concluir"}
+                      >
+                        {item.status === 'confirmado' ? "Desfazer" : "Concluir"}
+                      </button>
+                    )}
+                  </div>
+                </li>
+              ))}
+            </ul>
+          )}
+        </div>
+
+        <div className={styles.agenda_column}>
+          <h3 className={styles.section_title}><FiClock /> Rotinas do Dia</h3>
+          {agendaExata.filter(i => i.tipo === 'rotina').length === 0 ? (
+            <p className={styles.empty_list}>Nenhuma rotina para hoje.</p>
+          ) : (
+            <ul className={styles.list}>
+              {agendaExata.filter(i => i.tipo === 'rotina').map(item => (
+                <li key={item.id} className={`${styles.list_item} ${item.status === 'confirmado' ? styles.completed : ''}`}>
+                  <div className={styles.item_info}>
+                    <strong>{item.titulo}</strong>
+                    <span style={{ fontSize: '0.8em', color: '#666' }}>
+                      {item.horario.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                    </span>
+                  </div>
+                  <div className={styles.item_actions_hover}>
+                    {item.id.toString().startsWith('temp-') ? (
+                      <button
+                        className={styles.complete_btn}
+                        onClick={() => handleToggleAgendaStatus(item)}
+                        title="Marcar como concluído"
+                      >
+                        Concluir
+                      </button>
+                    ) : (
+                      <button
+                        onClick={() => handleToggleAgendaStatus(item)}
+                        className={`${styles.complete_btn} ${item.status === 'confirmado' ? styles.btn_completed : ''}`}
+                        title={item.status === 'confirmado' ? "Desmarcar" : "Concluir"}
+                      >
+                        {item.status === 'confirmado' ? "Desfazer" : "Concluir"}
+                      </button>
+                    )}
+                  </div>
+                </li>
+              ))}
+            </ul>
+          )}
+        </div>
       </div>
 
       {!readOnly && isModalOpen && (
