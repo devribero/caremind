@@ -15,7 +15,7 @@ import { ValidarOcrMedicamentos } from '@/components/features/ValidarOcrMedicame
 import { createClient } from '@/lib/supabase/client';
 import { toast } from '@/components/features/Toast';
 import { MedicamentosService } from '@/lib/supabase/services';
-import { listarEventosDoDia, atualizarStatusEvento } from '@/lib/supabase/services/historicoEventos';
+import { listarEventosDoDia, atualizarStatusEvento, criarOuAtualizarEvento } from '@/lib/supabase/services/historicoEventos';
 
 // Estilos
 import styles from './page.module.css';
@@ -299,21 +299,53 @@ export default function Remedios() {
     eventosDoDia.some(e => e.tipo_evento === 'medicamento' && e.evento_id === medId && e.status === 'pendente');
 
   const handleMarkMedicamentoDone = async (medId: number) => {
+    if (!targetProfileId) return;
+    
     const ev = eventosDoDia.find(e => e.tipo_evento === 'medicamento' && e.evento_id === medId && e.status === 'pendente');
-    if (!ev) return;
+    
     setMarking(prev => ({ ...prev, [medId]: true }));
     const prevEventos = eventosDoDia;
-    setEventosDoDia(prev => prev.map(e => e.id === ev.id ? { ...e, status: 'confirmado' } : e));
+    
+    // Atualização otimista
+    setEventosDoDia(prev => {
+      if (ev) {
+        return prev.map(e => e.id === ev.id ? { ...e, status: 'confirmado' } : e);
+      }
+      return prev;
+    });
+    
     try {
-      await atualizarStatusEvento(ev.id, 'confirmado');
+      if (!ev) {
+        // Se não existe evento, cria um novo usando a função de criar/atualizar
+        await criarOuAtualizarEvento(targetProfileId, 'medicamento', medId, 'confirmado');
+      } else {
+        // Atualiza o evento existente
+        await atualizarStatusEvento(ev.id, 'confirmado');
+      }
+      
       // Recarrega os medicamentos para atualizar a quantidade
       await fetchMedicamentos();
+      
+      // Recarrega eventos do dia para sincronizar
+      if (targetProfileId) {
+        const hoje = new Date();
+        const eventos = await listarEventosDoDia(targetProfileId, hoje);
+        setEventosDoDia(
+          eventos.map(e => ({
+            id: e.id,
+            tipo_evento: e.tipo_evento,
+            evento_id: e.evento_id,
+            status: e.status
+          }))
+        );
+      }
+      
       toast.success('Medicamento marcado como tomado');
     } catch (err) {
       setEventosDoDia(prevEventos);
       const errorMessage = err instanceof Error ? err.message : 'Falha ao atualizar evento';
       toast.error(errorMessage);
-      alert(errorMessage);
+      console.error('Erro ao marcar medicamento como tomado:', err);
     } finally {
       setMarking(prev => ({ ...prev, [medId]: false }));
     }

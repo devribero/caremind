@@ -3,7 +3,7 @@
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { useProfile } from '@/hooks/useProfile';
 import { CompromissosService, MedicamentosService, RotinasService } from '@/lib/supabase/services';
-import { listarEventosDoDia, atualizarStatusEvento } from '@/lib/supabase/services/historicoEventos';
+import { listarEventosDoDia, atualizarStatusEvento, criarOuAtualizarEvento } from '@/lib/supabase/services/historicoEventos';
 import { shouldResetMedicamento } from '@/lib/utils/medicamentoUtils';
 import { Tables } from '@/types/supabase';
 import { isScheduledForDate } from '@/lib/utils/scheduleUtils';
@@ -258,6 +258,7 @@ export default function DashboardClient({ readOnly = false, idosoId }: { readOnl
   const handleToggleAgendaStatus = async (item: AgendaItem) => {
     if (readOnly) return;
     if (item.tipo === 'compromisso') return; // Compromissos não têm status
+    if (!profile?.id) return;
 
     const novoStatus = item.status === 'confirmado' ? 'pendente' : 'confirmado';
 
@@ -265,13 +266,39 @@ export default function DashboardClient({ readOnly = false, idosoId }: { readOnl
     setAgenda(prev => prev.map(a => a.id === item.id ? { ...a, status: novoStatus } : a));
 
     try {
-      await atualizarStatusEvento(Number(item.id), novoStatus);
+      // Se o item é temporário (temp-), precisa criar o evento primeiro
+      if (item.id.toString().startsWith('temp-')) {
+        // Extrai o ID do item original dos dados
+        let eventoId: number;
+        if (item.tipo === 'medicamento') {
+          eventoId = (item.dadosOriginais as Medicamento).id;
+        } else if (item.tipo === 'rotina') {
+          eventoId = (item.dadosOriginais as Rotina).id;
+        } else {
+          throw new Error('Tipo de item inválido para criar evento');
+        }
+
+        // Cria ou atualiza o evento
+        await criarOuAtualizarEvento(
+          profile.id,
+          item.tipo,
+          eventoId,
+          novoStatus,
+          item.horario
+        );
+      } else {
+        // Item já existe no histórico, apenas atualiza
+        await atualizarStatusEvento(Number(item.id), novoStatus);
+      }
 
       // Se for medicamento e foi confirmado, recarrega os medicamentos para atualizar a quantidade
       if (item.tipo === 'medicamento' && novoStatus === 'confirmado' && profile?.user_id) {
         const meds = await MedicamentosService.listarMedicamentos(profile.user_id);
         setMedicamentos(meds);
       }
+
+      // Recarrega os dados para sincronizar a agenda
+      await carregarDados();
     } catch (error) {
       console.error("Erro ao atualizar status do evento:", error);
       // Reverter

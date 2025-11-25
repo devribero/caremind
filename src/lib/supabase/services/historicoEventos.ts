@@ -151,3 +151,80 @@ export const criarEvento = async (evento: Omit<HistoricoEvento, 'id' | 'created_
 
   return data as HistoricoEvento;
 };
+
+/**
+ * Cria ou atualiza um evento no histórico. 
+ * Se o evento já existe no dia, atualiza o status. Caso contrário, cria um novo.
+ */
+export const criarOuAtualizarEvento = async (
+  perfilId: string,
+  tipoEvento: 'medicamento' | 'rotina',
+  eventoId: number,
+  novoStatus: StatusEvento = 'confirmado',
+  dataEvento: Date = new Date()
+): Promise<HistoricoEvento> => {
+  const supabase = createClient();
+  
+  // Verifica se já existe um evento hoje para este item
+  const inicioDia = new Date(dataEvento);
+  inicioDia.setHours(0, 0, 0, 0);
+  
+  const fimDia = new Date(dataEvento);
+  fimDia.setHours(23, 59, 59, 999);
+
+  const { data: eventosExistentes, error: buscaError } = await supabase
+    .from('historico_eventos')
+    .select('id, tipo_evento, evento_id')
+    .eq('tipo_evento', tipoEvento)
+    .eq('evento_id', eventoId)
+    .eq('perfil_id', perfilId)
+    .gte('data_prevista', inicioDia.toISOString())
+    .lte('data_prevista', fimDia.toISOString())
+    .maybeSingle();
+
+  if (buscaError && buscaError.code !== 'PGRST116') {
+    console.error('Erro ao buscar evento existente:', buscaError);
+    throw buscaError;
+  }
+
+  // Se já existe, atualiza
+  if (eventosExistentes) {
+    return await atualizarStatusEvento(eventosExistentes.id, novoStatus);
+  }
+
+  // Se não existe, cria novo evento
+  const novoEvento: Omit<HistoricoEvento, 'id' | 'created_at'> = {
+    perfil_id: perfilId,
+    tipo_evento: tipoEvento,
+    evento_id: eventoId,
+    data_prevista: dataEvento.toISOString(),
+    status: novoStatus,
+    horario_programado: novoStatus === 'confirmado' ? new Date().toISOString() : null,
+    bem_estar_registrado: null,
+    id_evento_origem: null,
+  };
+
+  // Se for medicamento e estiver sendo confirmado, diminui a quantidade
+  if (novoStatus === 'confirmado' && tipoEvento === 'medicamento') {
+    const { data: medicamento, error: medError } = await supabase
+      .from('medicamentos')
+      .select('quantidade')
+      .eq('id', eventoId)
+      .single();
+
+    if (!medError && medicamento && medicamento.quantidade !== null && medicamento.quantidade > 0) {
+      const novaQuantidade = medicamento.quantidade - 1;
+      const { error: updateQuantidadeError } = await supabase
+        .from('medicamentos')
+        .update({ quantidade: novaQuantidade })
+        .eq('id', eventoId);
+
+      if (updateQuantidadeError) {
+        console.error('Erro ao atualizar quantidade do medicamento:', updateQuantidadeError);
+        // Não lança erro aqui, apenas loga
+      }
+    }
+  }
+
+  return await criarEvento(novoEvento);
+};

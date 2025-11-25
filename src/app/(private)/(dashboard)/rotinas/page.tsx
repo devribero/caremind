@@ -15,7 +15,7 @@ import { createClient } from '@/lib/supabase/client';
 import { useIdoso } from '@/contexts/IdosoContext';
 import { toast } from '@/components/features/Toast';
 import { RotinasService } from '@/lib/supabase/services';
-import { listarEventosDoDia, atualizarStatusEvento } from '@/lib/supabase/services/historicoEventos';
+import { listarEventosDoDia, atualizarStatusEvento, criarOuAtualizarEvento } from '@/lib/supabase/services/historicoEventos';
 import { Tables } from '@/types/supabase';
 
 // Tipos
@@ -233,11 +233,24 @@ export default function Rotinas() {
   const hasPendingForRotina = (rotinaId: number) =>
     eventosDoDia.some(e => e.tipo_evento === 'rotina' && Number(e.evento_id) === rotinaId && e.status === 'pendente');
 
-  const handleMarkRotinaDone = async (rotinaId: string) => {
+  const handleMarkRotinaDone = async (rotinaId: number) => {
     if (!targetPerfilId) return;
     
-    const ev = eventosDoDia.find(e => e.tipo_evento === 'rotina' && e.evento_id === rotinaId && e.status === 'pendente');
-    if (!ev) return;
+    const ev = eventosDoDia.find(e => e.tipo_evento === 'rotina' && Number(e.evento_id) === rotinaId && e.status === 'pendente');
+    if (!ev) {
+      // Se não existe evento, cria um novo usando a função de criar/atualizar
+      setMarking(prev => ({ ...prev, [rotinaId]: true }));
+      try {
+        await criarOuAtualizarEvento(targetPerfilId, 'rotina', rotinaId, 'confirmado');
+        await carregarDados(); // Recarrega para sincronizar
+      } catch (err) {
+        console.error('Erro ao marcar rotina como concluída:', err);
+        toast.error('Falha ao atualizar o status da rotina');
+      } finally {
+        setMarking(prev => ({ ...prev, [rotinaId]: false }));
+      }
+      return;
+    }
     
     setMarking(prev => ({ ...prev, [rotinaId]: true }));
     const prevEventos = [...eventosDoDia];
@@ -252,6 +265,9 @@ export default function Rotinas() {
           e.id === ev.id ? { ...e, status: 'confirmado' } : e
         )
       );
+      
+      // Recarrega dados para sincronizar
+      await carregarDados();
     } catch (err) {
       console.error('Erro ao marcar rotina como concluída:', err);
       setEventosDoDia(prevEventos);
