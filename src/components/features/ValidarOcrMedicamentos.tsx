@@ -151,8 +151,6 @@ export function ValidarOcrMedicamentos({
         .from('ocr_gerenciamento')
         .update({
           status: statusFinal,
-          medicamentos_count: sucesso,
-          error_message: erros.length > 0 ? JSON.stringify(erros) : null,
         })
         .eq('id', ocrId);
 
@@ -184,7 +182,6 @@ export function ValidarOcrMedicamentos({
         .from('ocr_gerenciamento')
         .update({
           status: 'CANCELADO',
-          error_message: 'Validação cancelada pelo usuário',
         })
         .eq('id', ocrId);
       onCancel();

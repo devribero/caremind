@@ -444,7 +444,7 @@ export default function Remedios() {
           try {
             const { data, error } = await supabase
               .from('ocr_gerenciamento')
-              .select('status, error_message, result_json, image_url')
+              .select('status, result_json, image_url')
               .eq('id', ocrId)
               .single();
               
@@ -497,7 +497,7 @@ export default function Remedios() {
             
             // Erros
             if (status === 'ERRO_PROCESSAMENTO' || status === 'ERRO_DATABASE') {
-              const errMsg = (data as any)?.error_message || 'Não foi possível encontrar medicamento na receita.';
+              const errMsg = 'Não foi possível encontrar medicamento na receita.';
               setOcrOverlay({ isVisible: true, status: 'error', errorMessage: errMsg });
               return;
             }
