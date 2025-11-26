@@ -46,20 +46,54 @@ interface AddMedicamentoFormProps {
 }
 
 export function AddMedicamentoForm({ onSave, onCancel, medicamento }: AddMedicamentoFormProps) {
-  const [nome, setNome] = useState('');
-  const [dosagem, setDosagem] = useState<string | null>(null);
-  const [quantidade, setQuantidade] = useState(30);
+  // Extrair valores iniciais do medicamento
+  const getInitialFrequenciaType = () => {
+    if (medicamento?.frequencia?.tipo) return medicamento.frequencia.tipo;
+    return 'diario';
+  };
+  
+  const getInitialHorarios = () => {
+    const freq = medicamento?.frequencia;
+    if (freq?.tipo === 'diario' && 'horarios' in freq && Array.isArray(freq.horarios)) {
+      return freq.horarios;
+    }
+    return [];
+  };
+  
+  const getInitialHoraInicio = () => {
+    const freq = medicamento?.frequencia;
+    if (!freq) return '';
+    if (freq.tipo === 'intervalo' && 'inicio' in freq) return freq.inicio || '';
+    if ((freq.tipo === 'dias_alternados' || freq.tipo === 'semanal') && 'horario' in freq) return freq.horario || '';
+    return '';
+  };
+
+  const [nome, setNome] = useState(medicamento?.nome || '');
+  const [dosagem, setDosagem] = useState<string | null>(medicamento?.dosagem || null);
+  const [quantidade, setQuantidade] = useState(medicamento?.quantidade || 30);
 
   const [tipoFrequencia, setTipoFrequencia] = useState<
     'diario' | 'intervalo' | 'dias_alternados' | 'semanal'
-  >('diario');
+  >(getInitialFrequenciaType() as any);
 
-  const [horarios, setHorarios] = useState<string[]>([]);
+  const [horarios, setHorarios] = useState<string[]>(getInitialHorarios());
   const [novoHorario, setNovoHorario] = useState('');
-  const [intervaloHoras, setIntervaloHoras] = useState(8);
-  const [horaInicio, setHoraInicio] = useState('');
-  const [intervaloDias, setIntervaloDias] = useState(2);
-  const [diasSemana, setDiasSemana] = useState<number[]>([]);
+  const [intervaloHoras, setIntervaloHoras] = useState(
+    medicamento?.frequencia?.tipo === 'intervalo' && 'intervalo_horas' in medicamento.frequencia 
+      ? medicamento.frequencia.intervalo_horas 
+      : 8
+  );
+  const [horaInicio, setHoraInicio] = useState(getInitialHoraInicio());
+  const [intervaloDias, setIntervaloDias] = useState(
+    medicamento?.frequencia?.tipo === 'dias_alternados' && 'intervalo_dias' in medicamento.frequencia 
+      ? medicamento.frequencia.intervalo_dias 
+      : 2
+  );
+  const [diasSemana, setDiasSemana] = useState<number[]>(
+    medicamento?.frequencia?.tipo === 'semanal' && 'dias_da_semana' in medicamento.frequencia 
+      ? medicamento.frequencia.dias_da_semana 
+      : []
+  );
 
   const [loading, setLoading] = useState(false);
   const [formErrors, setFormErrors] = useState<Record<string, string>>({});

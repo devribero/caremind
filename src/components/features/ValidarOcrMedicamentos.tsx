@@ -204,25 +204,33 @@ export function ValidarOcrMedicamentos({
   return (
     <div className={styles.container}>
       <div className={styles.header}>
-        <h2 className={styles.title}>Validar Leitura OCR</h2>
+        <h2 className={styles.title}>Confirmar Medicamentos</h2>
         <p className={styles.subtitle}>
-          Revise e corrija os medicamentos extraídos antes de salvar. Verifique especialmente dosagens (mg vs g, etc).
+          Verifique os dados extraídos e edite se necessário.
         </p>
       </div>
 
       <div className={styles.content}>
-        {/* Imagem original */}
-        <div className={styles.imageSection}>
-          <h3 className={styles.sectionTitle}>Imagem Original</h3>
-          <div className={styles.imageContainer}>
-            <img src={imageUrl} alt="Receita médica" className={styles.image} />
+        {/* Imagem original - colapsável */}
+        {imageUrl && (
+          <div className={styles.imageSection}>
+            <h3 className={styles.sectionTitle}>Receita</h3>
+            <div className={styles.imageContainer}>
+              <img 
+                src={imageUrl} 
+                alt="Receita médica" 
+                className={styles.image}
+                onClick={() => window.open(imageUrl, '_blank')}
+                title="Clique para ampliar"
+              />
+            </div>
           </div>
-        </div>
+        )}
 
         {/* Lista de medicamentos */}
         <div className={styles.medicamentosSection}>
           <h3 className={styles.sectionTitle}>
-            Medicamentos Extraídos ({medicamentos.length})
+            {medicamentos.length} medicamento(s) encontrado(s)
           </h3>
           
           {medicamentos.length === 0 ? (
@@ -236,24 +244,14 @@ export function ValidarOcrMedicamentos({
                   <div className={styles.medicamentoHeader}>
                     <div className={styles.medicamentoInfo}>
                       <h4 className={styles.medicamentoNome}>{med.nome || 'Nome não identificado'}</h4>
-                      {med.dosagem && (
-                        <p className={styles.medicamentoDosagem}>
-                          <strong>Dosagem:</strong> {med.dosagem}
-                        </p>
-                      )}
-                      {med.quantidade && (
-                        <p className={styles.medicamentoQuantidade}>
-                          <strong>Quantidade:</strong> {med.quantidade}
-                        </p>
-                      )}
-                      {med.confianca !== undefined && (
-                        <p className={styles.medicamentoConfianca}>
-                          <strong>Confiança OCR:</strong>{' '}
-                          <span className={med.confianca >= 70 ? styles.confiancaAlta : med.confianca >= 40 ? styles.confiancaMedia : styles.confiancaBaixa}>
-                            {med.confianca}%
-                          </span>
-                        </p>
-                      )}
+                      <div className={styles.medicamentoDetails}>
+                        {med.dosagem && (
+                          <span className={styles.medicamentoDosagem}>{med.dosagem}</span>
+                        )}
+                        {med.quantidade && (
+                          <span className={styles.medicamentoQuantidade}>Qtd: {med.quantidade}</span>
+                        )}
+                      </div>
                     </div>
                     <div className={styles.medicamentoActions}>
                       <button
@@ -264,14 +262,14 @@ export function ValidarOcrMedicamentos({
                         }}
                         aria-label="Editar medicamento"
                       >
-                        ✏️ Editar
+                        Editar
                       </button>
                       <button
                         className={styles.removeButton}
                         onClick={() => handleRemoveMedicamento(index)}
                         aria-label="Remover medicamento"
                       >
-                        🗑️ Remover
+                        ✕
                       </button>
                     </div>
                   </div>

@@ -6,38 +6,32 @@
 }
 
 .header {
-  padding: 0 0 16px 0;
-  margin-bottom: 16px;
+  padding: 0 0 12px 0;
+  margin-bottom: 12px;
   border-bottom: 1px solid #e5e7eb;
 }
 
 .title {
-  font-size: 20px;
+  font-size: 18px;
   font-weight: 700;
-  margin: 0 0 8px 0;
+  margin: 0 0 4px 0;
   color: #1f2937;
 }
 
 .subtitle {
-  font-size: 14px;
+  font-size: 13px;
   margin: 0;
   color: #6b7280;
-  line-height: 1.5;
+  line-height: 1.4;
 }
 
 .content {
   flex: 1;
   overflow-y: auto;
   padding: 0;
-  display: grid;
-  grid-template-columns: 1fr 1.5fr;
-  gap: 24px;
-}
-
-@media (max-width: 968px) {
-  .content {
-    grid-template-columns: 1fr;
-  }
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
 }
 
 .imageSection {
@@ -46,80 +40,94 @@
 }
 
 .sectionTitle {
-  font-size: 18px;
+  font-size: 14px;
   font-weight: 600;
-  margin: 0 0 16px 0;
-  color: #1f2937;
+  margin: 0 0 8px 0;
+  color: #374151;
 }
 
 .imageContainer {
   position: relative;
   border-radius: 8px;
   overflow: hidden;
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
   background: #f3f4f6;
+  max-height: 200px;
 }
 
 .image {
   width: 100%;
   height: auto;
   display: block;
-  max-height: 500px;
+  max-height: 200px;
   object-fit: contain;
+  cursor: pointer;
+}
+
+.image:hover {
+  opacity: 0.9;
 }
 
 .medicamentosSection {
   display: flex;
   flex-direction: column;
+  flex: 1;
 }
 
 .medicamentosList {
   display: flex;
   flex-direction: column;
-  gap: 16px;
+  gap: 8px;
 }
 
 .medicamentoCard {
-  border: 2px solid #e5e7eb;
+  border: 1px solid #e5e7eb;
   border-radius: 8px;
-  padding: 16px;
-  background: #f9fafb;
+  padding: 12px;
+  background: #fff;
   transition: all 0.2s;
 }
 
 .medicamentoCard:hover {
   border-color: #667eea;
-  box-shadow: 0 2px 8px rgba(102, 126, 234, 0.2);
+  box-shadow: 0 2px 6px rgba(102, 126, 234, 0.15);
 }
 
 .medicamentoHeader {
   display: flex;
   justify-content: space-between;
-  align-items: flex-start;
-  gap: 16px;
+  align-items: center;
+  gap: 12px;
 }
 
 .medicamentoInfo {
   flex: 1;
+  min-width: 0;
 }
 
 .medicamentoNome {
-  font-size: 18px;
+  font-size: 15px;
   font-weight: 600;
-  margin: 0 0 8px 0;
+  margin: 0;
   color: #1f2937;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.medicamentoDetails {
+  display: flex;
+  gap: 12px;
+  margin-top: 4px;
+  flex-wrap: wrap;
 }
 
 .medicamentoDosagem,
 .medicamentoQuantidade,
 .medicamentoConfianca {
-  font-size: 14px;
-  margin: 4px 0;
+  font-size: 12px;
+  margin: 0;
   color: #6b7280;
-}
-
-.medicamentoConfianca {
-  margin-top: 8px;
 }
 
 .confiancaAlta {
@@ -139,16 +147,16 @@
 
 .medicamentoActions {
   display: flex;
-  gap: 8px;
+  gap: 6px;
   flex-shrink: 0;
 }
 
 .editButton,
 .removeButton {
-  padding: 8px 12px;
+  padding: 6px 10px;
   border: none;
   border-radius: 6px;
-  font-size: 14px;
+  font-size: 12px;
   font-weight: 500;
   cursor: pointer;
   transition: all 0.2s;
@@ -165,12 +173,12 @@
 }
 
 .removeButton {
-  background: #ef4444;
-  color: white;
+  background: #fee2e2;
+  color: #dc2626;
 }
 
 .removeButton:hover {
-  background: #dc2626;
+  background: #fecaca;
 }
 
 .emptyState {
