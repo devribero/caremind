@@ -87,6 +87,11 @@ export const MedicamentosService = {
   async criarMedicamento(medicamento: MedicamentoInsert): Promise<Medicamento> {
     const supabase = createClient();
     
+    // Validação básica
+    if (!medicamento.nome?.trim()) {
+      throw new Error('Nome do medicamento é obrigatório');
+    }
+    
     // Se não tem perfil_id, buscar do user_id
     if (!medicamento.perfil_id && medicamento.user_id) {
       const { data: perfil } = await supabase
@@ -97,7 +102,13 @@ export const MedicamentosService = {
       
       if (perfil) {
         (medicamento as any).perfil_id = perfil.id;
+      } else {
+        throw new Error('Perfil não encontrado para o usuário');
       }
+    }
+    
+    if (!medicamento.perfil_id) {
+      throw new Error('Perfil é obrigatório para criar medicamento');
     }
     
     const { data, error } = await supabase
@@ -105,7 +116,19 @@ export const MedicamentosService = {
       .insert(medicamento)
       .select()
       .single();
-    if (error) throw error;
+    
+    if (error) {
+      console.error('Erro Supabase ao criar medicamento:', error);
+      if (error.code === '23505') {
+        throw new Error('Medicamento já existe');
+      } else if (error.code === '23503') {
+        throw new Error('Referência inválida (perfil não existe)');
+      } else if (error.code === '42501') {
+        throw new Error('Sem permissão para criar medicamento');
+      }
+      throw new Error(error.message || 'Erro ao salvar no banco de dados');
+    }
+    
     return data as Medicamento;
   },
 

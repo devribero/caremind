@@ -182,72 +182,67 @@ export function AddEditCompromissoForm({
         />
       </div>
 
-      <div className={`${styles.formGroup} ${formErrors.data_hora ? styles.hasError : ''}`} data-field="data_hora">
-        <label>
-          Data e Hora
-          {formErrors.data_hora && <span className={styles.errorText}> - {formErrors.data_hora}</span>}
-        </label>
-        <div className={styles.dateTimeWrapper}>
-          <div className={styles.dateField}>
-            <label htmlFor="data_compromisso" className={styles.subLabel}>Data</label>
-            <input
-              id="data_compromisso"
-              type="date"
-              value={dateValue}
-              onChange={(e) => {
-                syncDateTime(e.target.value, timeValue);
-                if (formErrors.data_hora) {
-                  setFormErrors(prev => ({ ...prev, data_hora: '' }));
-                }
-              }}
-              className={formErrors.data_hora ? styles.inputError : ''}
-            />
-          </div>
-          <div className={styles.timeField}>
-            <label htmlFor="hora_compromisso" className={styles.subLabel}>Horário</label>
-            <TimePicker
-              id="hora_compromisso"
-              value={timeValue}
-              onChange={(value) => syncDateTime(dateValue, value)}
-              className={styles.timePickerField}
-              ariaInvalid={!!formErrors.data_hora}
-              ariaDescribedBy={formErrors.data_hora ? 'data_hora-error' : undefined}
-            />
-          </div>
+      <div className={styles.formRow}>
+        <div className={`${styles.formGroup} ${styles.flexGrow} ${formErrors.data_hora ? styles.hasError : ''}`} data-field="data_hora">
+          <label htmlFor="data_compromisso">Data</label>
+          <input
+            id="data_compromisso"
+            type="date"
+            value={dateValue}
+            onChange={(e) => {
+              syncDateTime(e.target.value, timeValue);
+              if (formErrors.data_hora) {
+                setFormErrors(prev => ({ ...prev, data_hora: '' }));
+              }
+            }}
+            className={formErrors.data_hora ? styles.inputError : ''}
+          />
         </div>
-        {formErrors.data_hora && (
-          <div id="data_hora-error" className={styles.errorMessage}>
-            {formErrors.data_hora}
-          </div>
-        )}
+        <div className={`${styles.formGroup} ${formErrors.data_hora ? styles.hasError : ''}`}>
+          <label htmlFor="hora_compromisso">Horário</label>
+          <TimePicker
+            id="hora_compromisso"
+            value={timeValue}
+            onChange={(value) => syncDateTime(dateValue, value)}
+            className={styles.timePickerField}
+            ariaInvalid={!!formErrors.data_hora}
+            ariaDescribedBy={formErrors.data_hora ? 'data_hora-error' : undefined}
+          />
+        </div>
       </div>
+      {formErrors.data_hora && (
+        <div id="data_hora-error" className={styles.errorMessage} style={{ marginTop: '-12px', marginBottom: '16px' }}>
+          {formErrors.data_hora}
+        </div>
+      )}
 
-      <div className={styles.formGroup}>
-        <label htmlFor="local">Local (opcional)</label>
-        <input
-          id="local"
-          name="local"
-          type="text"
-          value={form.local ?? ''}
-          onChange={handleChange}
-          placeholder="Ex.: Hospital X, Clínica Y"
-        />
-      </div>
-
-      <div className={styles.formGroup}>
-        <label htmlFor="tipo">Tipo</label>
-        <select
-          id="tipo"
-          className={styles.select}
-          name="tipo"
-          value={form.tipo || 'consulta'}
-          onChange={handleChange}
-        >
-          <option value="consulta">Consulta</option>
-          <option value="exame">Exame</option>
-          <option value="procedimento">Procedimento</option>
-          <option value="outros">Outros</option>
-        </select>
+      <div className={styles.formRow}>
+        <div className={styles.formGroup}>
+          <label htmlFor="tipo">Tipo</label>
+          <select
+            id="tipo"
+            className={styles.select}
+            name="tipo"
+            value={form.tipo || 'consulta'}
+            onChange={handleChange}
+          >
+            <option value="consulta">Consulta</option>
+            <option value="exame">Exame</option>
+            <option value="procedimento">Procedimento</option>
+            <option value="outros">Outros</option>
+          </select>
+        </div>
+        <div className={`${styles.formGroup} ${styles.flexGrow}`}>
+          <label htmlFor="local">Local</label>
+          <input
+            id="local"
+            name="local"
+            type="text"
+            value={form.local ?? ''}
+            onChange={handleChange}
+            placeholder="Hospital, clínica..."
+          />
+        </div>
       </div>
 
       <div className={styles.formGroup}>

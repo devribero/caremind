@@ -182,6 +182,7 @@ export default function CompromissosPage() {
     return (
       <div className={styles.gridContainer}>
         {items
+          .filter((c) => c && c.id)
           .slice()
           .sort((a, b) => (a.data_hora ? new Date(a.data_hora).getTime() : 0) - (b.data_hora ? new Date(b.data_hora).getTime() : 0))
           .map((c) => (
@@ -190,7 +191,7 @@ export default function CompromissosPage() {
               compromisso={c}
               onEdit={() => openEditModal(c)}
               onDelete={() => handleDelete(c.id)}
-              isDeleting={deleting[c.id]}
+              isDeleting={deleting[c.id] ?? false}
             />
           ))}
       </div>

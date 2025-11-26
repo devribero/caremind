@@ -156,8 +156,10 @@ export function ValidarOcrMedicamentos({
 
       if (falha === 0) {
         toast.success(`${sucesso} medicamento(s) adicionado(s) com sucesso!`);
+      } else if (sucesso > 0) {
+        toast.warning(`${sucesso} adicionado(s), ${falha} falha(s): ${erros.join('; ')}`);
       } else {
-        toast.warning(`${sucesso} adicionado(s), ${falha} falha(s)`);
+        toast.error(`Falha ao adicionar medicamentos: ${erros.join('; ')}`);
       }
 
       onConfirm();
