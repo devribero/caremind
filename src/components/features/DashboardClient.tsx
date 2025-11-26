@@ -664,16 +664,12 @@ export default function DashboardClient({ readOnly = false, idosoId }: { readOnl
                         <h4>{item.titulo}</h4>
                       </div>
                       
-                      {item.tipo !== 'compromisso' && !readOnly && (
+                      {item.tipo !== 'compromisso' && !readOnly && item.status !== 'confirmado' && (
                         <button
                           onClick={() => handleToggleAgendaStatus(item)}
-                          className={`${styles.cardAction} ${item.status === 'confirmado' ? styles.done : ''}`}
+                          className={styles.cardAction}
                         >
-                          {item.status === 'confirmado' ? (
-                            <CheckCircle2 size={20} />
-                          ) : (
-                            <span>Concluir</span>
-                          )}
+                          Concluir
                         </button>
                       )}
                       
