@@ -6,7 +6,7 @@ import { useRouter } from 'next/navigation';
 // Componentes e hooks
 import { useAuth } from '@/contexts/AuthContext';
 import { useIdoso } from '@/contexts/IdosoContext';
-import { useProfile } from '@/hooks/useProfile';
+import { useProfileContext } from '@/contexts/ProfileContext';
 import { FullScreenLoader } from '@/components/features/FullScreenLoader';
 import { AddMedicamentoForm } from '@/components/features/forms/AddMedicamentoForm';
 import { Modal } from '@/components/features/Modal';
@@ -38,7 +38,7 @@ export default function Remedios() {
   const { user } = useAuth();
   const router = useRouter();
   const { idosoSelecionadoId, listaIdososVinculados } = useIdoso();
-  const { profile } = useProfile();
+  const { profile } = useProfileContext();
   const isFamiliar = user?.user_metadata?.account_type === 'familiar';
   // idosoSelecionadoId é o id do perfil, que agora é o mesmo que o user_id após nossa correção
   // Como o id do perfil agora é igual ao user_id, podemos usar diretamente

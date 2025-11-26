@@ -1,12 +1,12 @@
 import { useState, useCallback, ChangeEvent } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/contexts/AuthContext';
-import { useProfile } from './useProfile';
+import { useProfileContext } from '@/contexts/ProfileContext';
 import { createClient } from '@/lib/supabase/client';
 import { toast } from '@/components/features/Toast';
 
 export const useProfileManagement = () => {
-  const { profile, updateProfile, updateProfilePhoto, loading, error, refresh } = useProfile();
+  const { profile, updateProfile, updateProfilePhoto, loading, error, refresh } = useProfileContext();
   const { user, signOut } = useAuth();
   const router = useRouter();
   const supabase = createClient();

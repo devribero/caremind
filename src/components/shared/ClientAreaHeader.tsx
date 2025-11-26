@@ -4,13 +4,13 @@ import Link from "next/link";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/contexts/AuthContext";
-import { useProfile } from "@/hooks/useProfile";
+import { useProfileContext } from "@/contexts/ProfileContext";
 import styles from "./ClientAreaHeader.module.css";
 import { IoPersonCircleOutline } from "react-icons/io5";
 
 export function ClientAreaHeader() {
   const { user, signOut } = useAuth();
-  const { profile } = useProfile();
+  const { profile } = useProfileContext();
   const router = useRouter();
 
   const [isProfileOpen, setIsProfileOpen] = useState(false);

@@ -1,9 +1,16 @@
 // Arquivo: src/lib/supabase/client.ts
 'use client'; 
 
-import { createBrowserClient } from '@supabase/ssr';
+import { createBrowserClient, SupabaseClient } from '@supabase/ssr';
+
+// Singleton para evitar múltiplas instâncias do cliente
+let supabaseInstance: SupabaseClient | null = null;
 
 export function createClient() {
+  if (supabaseInstance) {
+    return supabaseInstance;
+  }
+
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
   const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
 
@@ -11,5 +18,6 @@ export function createClient() {
     throw new Error('Variáveis de ambiente do Supabase não configuradas');
   }
 
-  return createBrowserClient(supabaseUrl, supabaseAnonKey);
+  supabaseInstance = createBrowserClient(supabaseUrl, supabaseAnonKey);
+  return supabaseInstance;
 }

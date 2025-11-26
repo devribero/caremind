@@ -6,7 +6,7 @@ import styles from './page.module.css';
 
 // Componentes e hooks
 import { useAuth } from '@/contexts/AuthContext';
-import { useProfile } from '@/hooks/useProfile';
+import { useProfileContext } from '@/contexts/ProfileContext';
 import { FullScreenLoader } from '@/components/features/FullScreenLoader';
 import { AddRotinaForm } from '@/components/features/forms/AddRotinaForm';
 import { Modal } from '@/components/features/Modal';
@@ -26,7 +26,7 @@ export default function Rotinas() {
   // Hooks e estados
   const { user } = useAuth();
   const router = useRouter();
-  const { profile } = useProfile();
+  const { profile } = useProfileContext();
   const { idosoSelecionadoId, listaIdososVinculados } = useIdoso();
   const isFamiliar = user?.user_metadata?.account_type === 'familiar';
   const targetUserId = isFamiliar ? idosoSelecionadoId : user?.id;

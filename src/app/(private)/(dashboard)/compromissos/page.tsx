@@ -2,7 +2,8 @@
 
 import React, { useState, useEffect, useMemo } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
-import { useProfile } from '@/hooks/useProfile';
+import { useProfileContext } from '@/contexts/ProfileContext';
+import { useIdoso } from '@/contexts/IdosoContext';
 import { CompromissosService } from '@/lib/supabase/services';
 import { Modal } from '@/components/features/Modal';
 import { AddEditCompromissoForm, type Compromisso } from '@/components/features/modals/AddEditCompromissoModal';
@@ -16,7 +17,8 @@ type CompItem = Tables<'compromissos'>;
 
 export default function CompromissosPage() {
   const { user } = useAuth();
-  const { profile, idosoSelecionadoId, listaIdososVinculados } = useProfile();
+  const { profile } = useProfileContext();
+  const { idosoSelecionadoId, listaIdososVinculados } = useIdoso();
   const isFamiliar = profile?.tipo === 'familiar';
   const targetProfileId = isFamiliar ? idosoSelecionadoId : profile?.id;
 

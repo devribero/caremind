@@ -2,7 +2,7 @@
 import Link from "next/link";
 import Image from "next/image";
 import { useAuth } from "@/contexts/AuthContext";
-import { useProfile } from "@/hooks/useProfile";
+import { useProfileContext } from "@/contexts/ProfileContext";
 import { usePathname } from "next/navigation";
 import { useMemo } from "react";
 import { IoHomeOutline, IoBarChartOutline, IoClipboardOutline, IoMedkitOutline, IoPersonOutline, IoSettingsOutline, IoLogOutOutline, IoPeopleOutline, IoCalendarOutline } from "react-icons/io5";
@@ -11,7 +11,7 @@ import styles from "./SidebarDashboard.module.css";
 
 export default function SidebarDashboard({ collapsed }: { collapsed: boolean }) {
   const { user, signOut } = useAuth();
-  const { profile } = useProfile();
+  const { profile } = useProfileContext();
   const pathname = usePathname();
 
   const displayName = user?.user_metadata?.full_name || "";

@@ -1,12 +1,23 @@
-// src/hooks/useProfile.ts
+'use client';
 
-import { useState, useEffect, useCallback, useContext, useRef } from 'react';
+import { createContext, useContext, useState, useEffect, useCallback, ReactNode, useMemo, useRef } from 'react';
 import { ProfileService, ProfilePreview, ProfileUpsertData } from '@/lib/supabase/profileService';
 import { useAuth } from '@/contexts/AuthContext';
 
-// Hook para usar com userId específico (caso de uso especial)
-// ou quando o ProfileContext não está disponível
-export const useProfile = (userId?: string) => {
+interface ProfileContextType {
+  profile: ProfilePreview | null;
+  loading: boolean;
+  error: Error | null;
+  refresh: () => Promise<void>;
+  updateProfile: (updates: Partial<ProfileUpsertData> & { nome?: string }) => Promise<ProfilePreview | undefined>;
+  updateProfilePhoto: (photoUrl: string) => Promise<boolean>;
+  getMyElderly: () => Promise<ProfilePreview[]>;
+  getFamilyMembersOfElderly: (elderlyProfileId: string) => Promise<ProfilePreview[]>;
+}
+
+const ProfileContext = createContext<ProfileContextType | undefined>(undefined);
+
+export function ProfileProvider({ children }: { children: ReactNode }) {
   const { user: authUser } = useAuth();
   const [profile, setProfile] = useState<ProfilePreview | null>(null);
   const [loading, setLoading] = useState(true);
@@ -17,7 +28,7 @@ export const useProfile = (userId?: string) => {
   const lastFetchRef = useRef<number>(0);
   const MIN_FETCH_INTERVAL = 5000; // 5 segundos entre fetches
 
-  const targetUserId = userId || authUser?.id;
+  const targetUserId = authUser?.id;
 
   const fetchProfile = useCallback(async () => {
     if (!targetUserId) {
@@ -31,7 +42,7 @@ export const useProfile = (userId?: string) => {
       return;
     }
 
-    // Evita requisições muito frequentes (exceto na primeira vez)
+    // Evita requisições muito frequentes
     const now = Date.now();
     if (now - lastFetchRef.current < MIN_FETCH_INTERVAL && profile) {
       return;
@@ -41,6 +52,7 @@ export const useProfile = (userId?: string) => {
       fetchingRef.current = true;
       setLoading(true);
       setError(null);
+      
       const userProfile = await ProfileService.getProfile(targetUserId);
       setProfile(userProfile);
       lastFetchRef.current = Date.now();
@@ -61,7 +73,7 @@ export const useProfile = (userId?: string) => {
       setLoading(true);
 
       const updateData: ProfileUpsertData = {
-        user_id: targetUserId!,
+        user_id: targetUserId,
         nome: updates.nome ?? '',
         tipo: updates.tipo,
         data_nascimento: updates.data_nascimento ?? null,
@@ -78,7 +90,6 @@ export const useProfile = (userId?: string) => {
       });
 
       const updatedProfile = await ProfileService.upsertProfile(updateData);
-      
       setProfile(updatedProfile);
       lastFetchRef.current = Date.now();
       return updatedProfile;
@@ -102,7 +113,6 @@ export const useProfile = (userId?: string) => {
     return success;
   }, [targetUserId, fetchProfile]);
 
-  // Agora usamos o método correto: getMyElderly (só familiares logam)
   const getMyElderly = useCallback(async (): Promise<ProfilePreview[]> => {
     if (!targetUserId) return [];
 
@@ -114,7 +124,6 @@ export const useProfile = (userId?: string) => {
     }
   }, [targetUserId]);
 
-  // Se precisar buscar familiares de um idoso específico (ex: tela de detalhes)
   const getFamilyMembersOfElderly = useCallback(async (elderlyProfileId: string): Promise<ProfilePreview[]> => {
     try {
       return await ProfileService.getFamilyMembersOfElderly(elderlyProfileId);
@@ -124,6 +133,7 @@ export const useProfile = (userId?: string) => {
     }
   }, []);
 
+  // Fetch inicial quando o usuário muda
   useEffect(() => {
     if (targetUserId) {
       // Reset o controle de tempo para permitir fetch inicial
@@ -135,16 +145,29 @@ export const useProfile = (userId?: string) => {
     }
   }, [targetUserId]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  return {
+  const value = useMemo<ProfileContextType>(() => ({
     profile,
     loading,
     error,
     refresh: fetchProfile,
     updateProfile,
     updateProfilePhoto,
-    getMyElderly,                    // ← Novo nome (mais claro)
-    getFamilyMembersOfElderly,       // ← Para tela de detalhes do idoso
-  };
-};
+    getMyElderly,
+    getFamilyMembersOfElderly,
+  }), [profile, loading, error, fetchProfile, updateProfile, updateProfilePhoto, getMyElderly, getFamilyMembersOfElderly]);
 
-export type UseProfileReturn = ReturnType<typeof useProfile>;
+  return (
+    <ProfileContext.Provider value={value}>
+      {children}
+    </ProfileContext.Provider>
+  );
+}
+
+export function useProfileContext() {
+  const context = useContext(ProfileContext);
+  if (context === undefined) {
+    throw new Error('useProfileContext deve ser usado dentro de um ProfileProvider');
+  }
+  return context;
+}
+

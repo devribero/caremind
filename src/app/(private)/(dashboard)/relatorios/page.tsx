@@ -4,7 +4,7 @@ import { useState, useEffect, useMemo, useCallback } from 'react';
 import { Bar, Line, Doughnut } from 'react-chartjs-2';
 import { useAuth } from '@/contexts/AuthContext';
 import { useRouter } from 'next/navigation';
-import { useProfile } from '@/hooks/useProfile';
+import { useProfileContext } from '@/contexts/ProfileContext';
 import { useIdoso } from '@/contexts/IdosoContext';
 import { FullScreenLoader } from '@/components/features/FullScreenLoader';
 import { InsightsCard } from '@/components/features/relatorios/InsightsCard';
@@ -66,7 +66,7 @@ interface EventoHistorico {
 export default function Relatorios() {
   const { user } = useAuth();
   const router = useRouter();
-  const { profile } = useProfile();
+  const { profile } = useProfileContext();
   const { idosoSelecionadoId, listaIdososVinculados } = useIdoso();
   const [loading, setLoading] = useState(true);
   const [eventos, setEventos] = useState<EventoHistorico[]>([]);

@@ -32,29 +32,60 @@ export function Header({ isMenuOpen, onMenuToggle }: HeaderProps) {
     const isFamiliar = (accountTypeRaw || '').toString().toLowerCase() === 'familiar';
 
     // Atualiza a foto quando o usuário muda ou quando volta para a página
+    // Usa debounce e requestIdleCallback para evitar congelamento
     useEffect(() => {
-        const handleVisibilityChange = () => {
-            // Só atualiza se a aba ficou oculta por mais de 5 segundos
-            if (!document.hidden && Date.now() - (window as any).lastVisibilityChange > 5000) {
-                refresh();
+        let debounceTimer: NodeJS.Timeout | null = null;
+        let isRefreshing = false;
+
+        const debouncedRefresh = () => {
+            if (isRefreshing) return;
+            
+            if (debounceTimer) {
+                clearTimeout(debounceTimer);
             }
-            (window as any).lastVisibilityChange = Date.now();
+            
+            debounceTimer = setTimeout(() => {
+                isRefreshing = true;
+                // Usa requestIdleCallback para não bloquear a UI
+                if ('requestIdleCallback' in window) {
+                    (window as any).requestIdleCallback(() => {
+                        refresh().finally(() => { isRefreshing = false; });
+                    }, { timeout: 2000 });
+                } else {
+                    // Fallback para browsers que não suportam requestIdleCallback
+                    setTimeout(() => {
+                        refresh().finally(() => { isRefreshing = false; });
+                    }, 100);
+                }
+            }, 300);
+        };
+
+        const handleVisibilityChange = () => {
+            const now = Date.now();
+            const lastChange = (window as any).lastVisibilityChange || 0;
+            
+            // Só atualiza se a aba ficou oculta por mais de 30 segundos
+            // e evita múltiplas atualizações seguidas
+            if (!document.hidden && (now - lastChange > 30000)) {
+                debouncedRefresh();
+            }
+            (window as any).lastVisibilityChange = now;
         };
 
         const handleStorageChange = (e: StorageEvent) => {
             if (e.key === 'profileUpdated') {
-                refresh();
+                debouncedRefresh();
                 localStorage.removeItem('profileUpdated');
             }
         };
 
         const handleProfilePhotoUpdate = () => {
-            refresh();
+            debouncedRefresh();
         };
 
-        // Só força refresh inicial se não houver foto em cache
-        if (!profile?.foto_usuario) {
-            refresh();
+        // Inicializa o timestamp se não existir
+        if (!(window as any).lastVisibilityChange) {
+            (window as any).lastVisibilityChange = Date.now();
         }
 
         document.addEventListener('visibilitychange', handleVisibilityChange);
@@ -62,6 +93,9 @@ export function Header({ isMenuOpen, onMenuToggle }: HeaderProps) {
         window.addEventListener('profilePhotoUpdated', handleProfilePhotoUpdate);
 
         return () => {
+            if (debounceTimer) {
+                clearTimeout(debounceTimer);
+            }
             document.removeEventListener('visibilitychange', handleVisibilityChange);
             window.removeEventListener('storage', handleStorageChange);
             window.removeEventListener('profilePhotoUpdated', handleProfilePhotoUpdate);

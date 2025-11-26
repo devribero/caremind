@@ -3,7 +3,7 @@
 import { createContext, useContext, useEffect, useMemo, useState, ReactNode, useCallback } from 'react';
 import { createClient } from '@/lib/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
-import { useProfile } from '@/hooks/useProfile';
+import { useProfileContext } from '@/contexts/ProfileContext';
 import { listarIdososVinculados } from '@/lib/supabase/services/vinculos';
 
 export type IdosoResumo = {
@@ -23,7 +23,7 @@ const IdosoContext = createContext<IdosoContextType | undefined>(undefined);
 
 export function IdosoProvider({ children }: { children: ReactNode }) {
   const { user } = useAuth();
-  const { profile } = useProfile();
+  const { profile } = useProfileContext();
   const supabase = useMemo(() => createClient(), []);
 
   const [loading, setLoading] = useState(false);

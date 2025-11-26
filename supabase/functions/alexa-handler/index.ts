@@ -1,8 +1,8 @@
 // supabase/functions/alexa-handler/index.ts
-// VERSÃO 5: Busca correta via vinculos_familiares
+// VERSÃO 6: Resumo do dia + confirmações
 
 import { serve } from 'https://deno.land/std@0.168.0/http/server.ts';
-import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
+import { createClient, SupabaseClient } from 'https://esm.sh/@supabase/supabase-js@2';
 
 const SUPABASE_URL = Deno.env.get('SUPABASE_URL')!;
 const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
@@ -18,7 +18,88 @@ function buildAlexaResponse(speechText: string, sessionAttributes: any = {}, sho
   };
 }
 
-console.log('[FUNCTION:START] alexa-handler v5 (vinculos_familiares) inicializada');
+/**
+ * Gera o resumo do dia para um perfil específico
+ * Consulta historico_eventos para o dia atual (fuso -03:00)
+ */
+async function gerarResumoDoDia(supabaseClient: SupabaseClient, perfilId: string): Promise<string> {
+  try {
+    // Calcula início e fim do dia no fuso horário de Brasília (-03:00)
+    const agora = new Date();
+    
+    // Início do dia em UTC (considerando -03:00)
+    const inicioDiaLocal = new Date(agora);
+    inicioDiaLocal.setHours(0, 0, 0, 0);
+    const inicioDiaUTC = new Date(inicioDiaLocal.getTime() + (3 * 60 * 60 * 1000)); // +3h para compensar -03:00
+    
+    // Fim do dia em UTC (considerando -03:00)  
+    const fimDiaLocal = new Date(agora);
+    fimDiaLocal.setHours(23, 59, 59, 999);
+    const fimDiaUTC = new Date(fimDiaLocal.getTime() + (3 * 60 * 60 * 1000)); // +3h para compensar -03:00
+
+    // Busca todos os eventos do dia para o perfil
+    const { data: eventos, error } = await supabaseClient
+      .from('historico_eventos')
+      .select('id, titulo, status, data_prevista, tipo_evento')
+      .eq('perfil_id', perfilId)
+      .gte('data_prevista', inicioDiaUTC.toISOString())
+      .lte('data_prevista', fimDiaUTC.toISOString())
+      .order('data_prevista', { ascending: true });
+
+    if (error) {
+      console.error('[gerarResumoDoDia] Erro ao buscar eventos:', error.message);
+      return '';
+    }
+
+    // Se não houver eventos hoje
+    if (!eventos || eventos.length === 0) {
+      return 'Não há nada agendado para hoje.';
+    }
+
+    // Conta eventos por status
+    const totalEventos = eventos.length;
+    const confirmados = eventos.filter((e: any) => e.status === 'confirmado').length;
+    const pendentes = eventos.filter((e: any) => e.status === 'pendente').length;
+
+    // Se tudo estiver confirmado
+    if (pendentes === 0 && confirmados > 0) {
+      const tarefasPalavra = confirmados === 1 ? 'tarefa' : 'tarefas';
+      return `Parabéns! Todas as ${confirmados} ${tarefasPalavra} de hoje já foram realizadas.`;
+    }
+
+    // Se houver pendências, encontra o próximo evento pendente
+    const proximoPendente = eventos.find((e: any) => e.status === 'pendente');
+    
+    if (proximoPendente) {
+      // Formata o horário do próximo evento
+      const dataEvento = new Date(proximoPendente.data_prevista);
+      const horaLocal = new Date(dataEvento.getTime() - (3 * 60 * 60 * 1000)); // Converte UTC para -03:00
+      const horaFormatada = horaLocal.toLocaleTimeString('pt-BR', { 
+        hour: '2-digit', 
+        minute: '2-digit',
+        hour12: false 
+      });
+      
+      const nomeEvento = proximoPendente.titulo || 'Evento';
+      const concluidasPalavra = confirmados === 1 ? 'concluída' : 'concluídas';
+      const pendentesPalavra = pendentes === 1 ? 'pendente' : 'pendentes';
+      
+      if (confirmados > 0) {
+        return `Resumo para hoje: ${confirmados} ${concluidasPalavra} e ${pendentes} ${pendentesPalavra}. O próximo item é ${nomeEvento} às ${horaFormatada}.`;
+      } else {
+        return `Resumo para hoje: ${pendentes} ${pendentesPalavra}. O próximo item é ${nomeEvento} às ${horaFormatada}.`;
+      }
+    }
+
+    // Fallback: apenas mostra contagem
+    return `Hoje há ${totalEventos} eventos programados.`;
+  } catch (err) {
+    console.error('[gerarResumoDoDia] Erro:', err);
+    return '';
+  }
+}
+
+console.log('[FUNCTION:START] alexa-handler v6 (resumo do dia) inicializada');
 
 serve(async (req) => {
   if (req.method === 'OPTIONS') return new Response('ok');
@@ -157,7 +238,17 @@ serve(async (req) => {
 
       if (perfisEncontrados.length === 1) {
         sessionAttributes.perfil_atual = perfisEncontrados[0];
-        speechText = `Olá. Acessando o perfil de ${perfisEncontrados[0].nome}. O que deseja confirmar?`;
+        
+        // Gera resumo do dia para o perfil único
+        const supabaseAdmin = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
+        const resumoDia = await gerarResumoDoDia(supabaseAdmin, perfisEncontrados[0].id);
+        
+        if (resumoDia) {
+          speechText = `Olá! Acessando o perfil de ${perfisEncontrados[0].nome}. ${resumoDia} O que deseja fazer?`;
+        } else {
+          speechText = `Olá! Acessando o perfil de ${perfisEncontrados[0].nome}. O que deseja confirmar?`;
+        }
+        console.log(`[${requestId}] 📊 Resumo do dia gerado para ${perfisEncontrados[0].nome}`);
       } else {
         const nomes = perfisEncontrados.map((p: any) => p.nome).join(', ');
         sessionAttributes.aguardando_selecao = true;
@@ -188,8 +279,17 @@ serve(async (req) => {
       if (perfilEscolhido) {
         sessionAttributes.perfil_atual = perfilEscolhido;
         sessionAttributes.aguardando_selecao = false;
-        speechText = `Certo, ${perfilEscolhido.nome} selecionado. Pode confirmar dizendo "já tomei".`;
-        console.log(`[${requestId}] ✅ Perfil selecionado: ${perfilEscolhido.nome}`);
+        
+        // Gera resumo do dia para o perfil selecionado
+        const supabaseAdmin = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
+        const resumoDia = await gerarResumoDoDia(supabaseAdmin, perfilEscolhido.id);
+        
+        if (resumoDia) {
+          speechText = `Certo, ${perfilEscolhido.nome} selecionado. ${resumoDia}`;
+        } else {
+          speechText = `Certo, ${perfilEscolhido.nome} selecionado. Pode confirmar dizendo "já tomei".`;
+        }
+        console.log(`[${requestId}] ✅ Perfil selecionado: ${perfilEscolhido.nome} - Resumo gerado`);
       } else {
         const nomes = perfisEncontrados.map((p: any) => p.nome).join(', ');
         speechText = `Não achei ${nomeFalado}. Tenho aqui: ${nomes}. Qual deles?`;

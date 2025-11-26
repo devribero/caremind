@@ -3,7 +3,7 @@
 import { useEffect, useState, forwardRef, useImperativeHandle } from 'react';
 import Image from 'next/image';
 import { useAuth } from '@/contexts/AuthContext';
-import { useProfile } from '@/hooks/useProfile';
+import { useProfileContext } from '@/contexts/ProfileContext';
 import { listarIdososVinculados, deletarVinculo } from '@/lib/supabase/services/vinculos';
 import { toast } from '@/components/features/Toast';
 import EditIdosoModal from '@/components/features/modals/EditIdosoModal';
@@ -25,7 +25,7 @@ type ViewMode = 'grid' | 'list';
 
 function GerenciarIdososVinculadosImpl(_props: {}, ref: React.Ref<GerenciarIdososVinculadosRef>) {
   const { user } = useAuth();
-  const { profile } = useProfile();
+  const { profile } = useProfileContext();
   const [idosos, setIdosos] = useState<IdosoItem[]>([]);
   const [loading, setLoading] = useState(false);
   const [editingIdoso, setEditingIdoso] = useState<IdosoItem | null>(null);
