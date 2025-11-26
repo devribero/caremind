@@ -215,73 +215,6 @@ export default function Relatorios() {
     fetchEventos();
   }, [user, router, targetProfileId, isFamiliar, dataInicio, dataFim, tipoSelecionado, applyTick, supabase]);
 
-  // Função para calcular estatísticas por período
-  const calcularEstatisticas = (dias: number) => {
-    const dataLimite = new Date();
-    dataLimite.setDate(dataLimite.getDate() - dias);
-
-    const eventosRecentes = eventos.filter(evento =>
-      new Date(evento.data_prevista) >= dataLimite
-    );
-
-    const total = eventosRecentes.length;
-    const tomados = eventosRecentes.filter(e =>
-      e.status === 'Tomado' || e.status === 'Realizado' || e.status === 'Confirmado'
-    ).length;
-    const perdidos = eventosRecentes.filter(e =>
-      e.status === 'Não tomado' || e.status === 'Perdido' || e.status === 'Atrasado'
-    ).length;
-
-    return {
-      total,
-      tomados,
-      perdidos
-    };
-  };
-
-  const stats7Dias = useMemo(() => calcularEstatisticas(7), [eventos]);
-  const stats30Dias = useMemo(() => calcularEstatisticas(30), [eventos]);
-
-  // Dados do gráfico semanal
-  const chartData = useMemo(() => {
-    const daysOfWeek = ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb'];
-    const hoje = new Date();
-    const seteDiasAtras = new Date(hoje);
-    seteDiasAtras.setDate(hoje.getDate() - 7);
-
-    // Inicializar contadores por dia da semana
-    const dailyStats = daysOfWeek.map(() => ({ total: 0, realizados: 0 }));
-
-    // Filtrar eventos dos últimos 7 dias
-    const eventosUltimos7Dias = eventos.filter(evento => {
-      const dataEvento = new Date(evento.data_prevista);
-      return dataEvento >= seteDiasAtras && dataEvento <= hoje;
-    });
-
-    // Contar eventos por dia da semana
-    eventosUltimos7Dias.forEach(evento => {
-      const data = new Date(evento.data_prevista);
-      const dayIndex = data.getDay();
-      dailyStats[dayIndex].total++;
-
-      if (evento.status === 'Tomado' || evento.status === 'Realizado' || evento.status === 'Confirmado') {
-        dailyStats[dayIndex].realizados++;
-      }
-    });
-
-    return {
-      labels: daysOfWeek,
-      datasets: [{
-        label: 'Realizados (%)',
-        data: dailyStats.map(day =>
-          day.total > 0 ? Math.round((day.realizados / day.total) * 100) : 0
-        ),
-        backgroundColor: '#0400BA',
-        borderRadius: 6,
-        barThickness: 20,
-      }]
-    };
-  }, [eventos]);
 
   // Função para formatar data
   const formatarData = (dataString: string) => {
@@ -395,49 +328,6 @@ export default function Relatorios() {
     },
   }), []);
 
-  const comparativoTipoData = useMemo(() => {
-    const resumo = analytics?.graficos.resumo_por_tipo;
-    if (!resumo) return null;
-    return {
-      labels: ['Medicamentos', 'Rotinas'],
-      datasets: [
-        {
-          label: 'Adesão (%)',
-          data: [
-            resumo.medicamento?.percentual ?? 0,
-            resumo.rotina?.percentual ?? 0,
-          ],
-          backgroundColor: ['#04BA82', '#0400BA'],
-          borderRadius: 6,
-        },
-      ],
-    };
-  }, [analytics]);
-
-  const comparativoTipoOptions = useMemo(() => ({
-    responsive: true,
-    maintainAspectRatio: false,
-    plugins: {
-      legend: { display: false },
-      tooltip: {
-        callbacks: {
-          label: (ctx: any) => `${ctx.parsed.y ?? ctx.parsed.x}%`,
-        },
-      },
-    },
-    scales: {
-      x: {
-        beginAtZero: true,
-        max: 100,
-        ticks: {
-          callback: (value: number) => `${value}%`,
-        },
-      },
-      y: {
-        grid: { display: false },
-      },
-    },
-  }), []);
 
   const adesaoDoughnutData = useMemo(() => {
     if (!analytics) return null;
@@ -532,7 +422,7 @@ export default function Relatorios() {
       // ========== SEÇÃO: RESUMO GERAL ==========
       doc.setFontSize(14);
       doc.setTextColor(4, 0, 186);
-      doc.text('📊 Resumo Geral', margin, yPos);
+      doc.text('RESUMO GERAL', margin, yPos);
       yPos += 10;
 
       // Cards de KPIs em grid
@@ -596,7 +486,7 @@ export default function Relatorios() {
       // ========== SEÇÃO: GRÁFICO DE ADESÃO ==========
       doc.setFontSize(14);
       doc.setTextColor(4, 0, 186);
-      doc.text('📈 Adesão Geral', margin, yPos);
+      doc.text('ADESAO GERAL', margin, yPos);
       yPos += 8;
 
       // Desenhar círculo de progresso
@@ -618,7 +508,7 @@ export default function Relatorios() {
       if (analytics.graficos.tendencia_diaria?.length) {
         doc.setFontSize(14);
         doc.setTextColor(4, 0, 186);
-        doc.text('📉 Tendência de Adesão Diária', margin, yPos);
+        doc.text('TENDENCIA DE ADESAO DIARIA', margin, yPos);
         yPos += 8;
 
         const tendData = analytics.graficos.tendencia_diaria;
@@ -684,7 +574,7 @@ export default function Relatorios() {
 
         doc.setFontSize(14);
         doc.setTextColor(4, 0, 186);
-        doc.text('🕐 Performance por Turno', margin, yPos);
+        doc.text('PERFORMANCE POR TURNO', margin, yPos);
         yPos += 10;
 
         const turnoLabels = ['Manhã', 'Tarde', 'Noite'];
@@ -759,7 +649,7 @@ export default function Relatorios() {
 
         doc.setFontSize(14);
         doc.setTextColor(4, 0, 186);
-        doc.text('💊 Medicamentos vs Rotinas', margin, yPos);
+        doc.text('MEDICAMENTOS VS ROTINAS', margin, yPos);
         yPos += 10;
 
         const tipoLabels = ['Medicamentos', 'Rotinas'];
@@ -802,7 +692,7 @@ export default function Relatorios() {
 
       doc.setFontSize(14);
       doc.setTextColor(4, 0, 186);
-      doc.text('📅 Acompanhamento Semanal', margin, yPos);
+      doc.text('ACOMPANHAMENTO SEMANAL', margin, yPos);
       yPos += 8;
 
       const daysOfWeek = ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb'];
@@ -852,7 +742,7 @@ export default function Relatorios() {
 
       doc.setFontSize(14);
       doc.setTextColor(4, 0, 186);
-      doc.text('📋 Detalhamento de Eventos', margin, yPos);
+      doc.text('DETALHAMENTO DE EVENTOS', margin, yPos);
       yPos += 8;
 
       const tableData = eventos.map(e => [
@@ -979,12 +869,12 @@ export default function Relatorios() {
         <div id="relatorio-print-container" className={styles.printContainer}>
           {analytics && (
             <>
-              <InsightsCard analytics={analytics} />
+              {/* Cards de Resumo - Simplificados */}
               <div className={styles.summaryGrid}>
+                {/* Card Principal: Adesão */}
                 <div className={`${styles.reportCard} ${styles.donutCard}`}>
                   <div className={styles.cardTitleRow}>
-                    <h2 className={styles.cardTitle}>Adesão Geral</h2>
-                    <span className={styles.cardSubtitle}>Período selecionado</span>
+                    <h2 className={styles.cardTitle}>Taxa de Adesão</h2>
                   </div>
                   <div className={styles.donutWrapper} id="chart-adesao">
                     {adesaoDoughnutData ? (
@@ -993,99 +883,104 @@ export default function Relatorios() {
                       <span>Sem dados</span>
                     )}
                     <div className={styles.donutCenter}>
-                      <strong>{analytics.kpis.taxa_adesao_total?.toFixed(1)}%</strong>
-                      <span>Adesão</span>
+                      <strong>{analytics.kpis.taxa_adesao_total?.toFixed(0)}%</strong>
+                      <span>concluídos</span>
                     </div>
                   </div>
                 </div>
 
+                {/* Card: Resumo Numérico */}
                 <div className={styles.reportCard}>
-                  <h2 className={styles.cardTitle}>Total de Atividades</h2>
-                  <p className={styles.kpiValue}>{analytics.kpis.total_eventos}</p>
-                  <p className={styles.kpiLabel}>Eventos agendados</p>
-                  <div className={styles.kpiSplit}>
-                    <div>
-                      <span>Confirmados</span>
-                      <strong>{analytics.kpis.total_confirmados}</strong>
+                  <h2 className={styles.cardTitle}>Resumo do Período</h2>
+                  <div className={styles.statsGrid}>
+                    <div className={styles.statItem}>
+                      <span className={styles.statValue}>{analytics.kpis.total_eventos}</span>
+                      <span className={styles.statLabel}>Total</span>
                     </div>
-                    <div>
-                      <span>Em aberto</span>
-                      <strong>{analytics.kpis.total_eventos - analytics.kpis.total_confirmados}</strong>
+                    <div className={styles.statItem}>
+                      <span className={`${styles.statValue} ${styles.statSuccess}`}>{analytics.kpis.total_confirmados}</span>
+                      <span className={styles.statLabel}>Concluídos</span>
                     </div>
-                  </div>
-                </div>
-
-                <div className={`${styles.reportCard} ${styles.alertCard}`}>
-                  <h2 className={styles.cardTitle}>Alertas & Esquecimentos</h2>
-                  <p className={styles.kpiValueDanger}>{analytics.kpis.total_esquecidos}</p>
-                  <p className={styles.kpiLabel}>Eventos pendentes ou atrasados</p>
-                  <div className={styles.kpiSplit}>
-                    <div>
-                      <span>Índice de esquecimento</span>
-                      <strong>{analytics.kpis.indice_esquecimento}</strong>
+                    <div className={styles.statItem}>
+                      <span className={`${styles.statValue} ${styles.statDanger}`}>{analytics.kpis.total_esquecidos}</span>
+                      <span className={styles.statLabel}>Pendentes</span>
                     </div>
-                    <div>
-                      <span>Pontualidade média</span>
-                      <strong>
+                    <div className={styles.statItem}>
+                      <span className={styles.statValue}>
                         {analytics.kpis.pontualidade_media_minutos !== null
-                          ? `${analytics.kpis.pontualidade_media_minutos} min`
+                          ? `${analytics.kpis.pontualidade_media_minutos > 0 ? '+' : ''}${analytics.kpis.pontualidade_media_minutos}min`
                           : '—'}
-                      </strong>
+                      </span>
+                      <span className={styles.statLabel}>Pontualidade</span>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Card: Por Tipo */}
+                <div className={styles.reportCard}>
+                  <h2 className={styles.cardTitle}>Por Categoria</h2>
+                  <div className={styles.categoryList}>
+                    <div className={styles.categoryItem}>
+                      <span className={styles.categoryIcon}>💊</span>
+                      <div className={styles.categoryInfo}>
+                        <span className={styles.categoryName}>Medicamentos</span>
+                        <div className={styles.progressBar}>
+                          <div 
+                            className={styles.progressFill} 
+                            style={{ width: `${analytics.kpis.taxa_adesao_medicamentos || 0}%` }}
+                          />
+                        </div>
+                      </div>
+                      <span className={styles.categoryPercent}>{(analytics.kpis.taxa_adesao_medicamentos || 0).toFixed(0)}%</span>
+                    </div>
+                    <div className={styles.categoryItem}>
+                      <span className={styles.categoryIcon}>📋</span>
+                      <div className={styles.categoryInfo}>
+                        <span className={styles.categoryName}>Rotinas</span>
+                        <div className={styles.progressBar}>
+                          <div 
+                            className={`${styles.progressFill} ${styles.progressSecondary}`}
+                            style={{ width: `${analytics.kpis.taxa_adesao_rotinas || 0}%` }}
+                          />
+                        </div>
+                      </div>
+                      <span className={styles.categoryPercent}>{(analytics.kpis.taxa_adesao_rotinas || 0).toFixed(0)}%</span>
                     </div>
                   </div>
                 </div>
               </div>
 
-              <div className={styles.chartRow}>
-                <div className={styles.chartContainer}>
-                  <h2 className={styles.chartTitle}>Tendência de Adesão</h2>
-                  <h3 className={styles.chartSubtitle}>Acompanhe se o cuidado está melhorando</h3>
-                  <div className={styles.chartBody} id="chart-tendencia">
-                    {tendenciaChartData ? (
-                      <Line options={tendenciaChartOptions} data={tendenciaChartData} />
-                    ) : (
-                      <p>Sem dados suficientes para o período selecionado.</p>
-                    )}
-                  </div>
-                </div>
-
-                <div className={styles.chartContainer}>
-                  <h2 className={styles.chartTitle}>Performance por Turno</h2>
-                  <h3 className={styles.chartSubtitle}>Identifique horários críticos</h3>
-                  <div className={styles.chartBody} id="chart-turnos">
-                    {turnosChartData ? (
-                      <Bar options={turnosChartOptions} data={turnosChartData} />
-                    ) : (
-                      <p>Sem dados suficientes para o período selecionado.</p>
-                    )}
-                  </div>
+              {/* Gráfico Principal: Evolução Diária */}
+              <div className={styles.chartContainer}>
+                <h2 className={styles.chartTitle}>Evolução da Adesão</h2>
+                <h3 className={styles.chartSubtitle}>Acompanhe o progresso ao longo do período</h3>
+                <div className={styles.chartBody} id="chart-tendencia">
+                  {tendenciaChartData ? (
+                    <Line options={tendenciaChartOptions} data={tendenciaChartData} />
+                  ) : (
+                    <p className={styles.noData}>Sem dados suficientes para o período selecionado.</p>
+                  )}
                 </div>
               </div>
 
+              {/* Gráfico Secundário: Por Turno */}
               <div className={styles.chartContainer}>
-                <h2 className={styles.chartTitle}>Comparativo Medicamentos vs Rotinas</h2>
-                <h3 className={styles.chartSubtitle}>Onde o idoso precisa de mais suporte?</h3>
-                <div className={styles.chartBody} id="chart-comparativo">
-                  {comparativoTipoData ? (
-                    <Bar options={comparativoTipoOptions} data={comparativoTipoData} />
+                <h2 className={styles.chartTitle}>Desempenho por Horário</h2>
+                <h3 className={styles.chartSubtitle}>Identifique os melhores e piores horários</h3>
+                <div className={styles.chartBody} id="chart-turnos">
+                  {turnosChartData ? (
+                    <Bar options={turnosChartOptions} data={turnosChartData} />
                   ) : (
-                    <p>Sem dados suficientes para o período selecionado.</p>
+                    <p className={styles.noData}>Sem dados suficientes para o período selecionado.</p>
                   )}
                 </div>
               </div>
             </>
           )}
 
-          <div className={styles.chartContainer}>
-            <h2 className={styles.chartTitle}>Acompanhamento Semanal</h2>
-            <h3 className={styles.chartSubtitle}>Porcentagem de eventos realizados por dia da semana</h3>
-            <div style={{ height: '300px' }} id="chart-semanal">
-              <Bar options={chartOptions} data={chartData} />
-            </div>
-          </div>
-
+          {/* Tabela de Eventos */}
           <div className={styles.reportContainer}>
-            <h2 className={styles.cardTitle}>Detalhamento de Eventos</h2>
+            <h2 className={styles.cardTitle}>Histórico Detalhado</h2>
             <div className={styles.tableWrapper}>
               <table className={styles.historyTable}>
                 <thead>
@@ -1103,17 +998,23 @@ export default function Relatorios() {
                       <tr key={evento.id}>
                         <td>{formatarData(evento.data_prevista)}</td>
                         <td>{formatarHora(evento.data_prevista)}</td>
-                        <td>{evento.tipo}</td>
-                        <td>{evento.nome}</td>
-                        <td className={getStatusClassName(evento.status)}>
-                          {evento.status}
+                        <td>
+                          <span className={styles.tipoBadge} data-tipo={evento.tipo.toLowerCase()}>
+                            {evento.tipo === 'Medicamento' ? '💊' : '📋'} {evento.tipo}
+                          </span>
+                        </td>
+                        <td className={styles.nomeCell}>{evento.nome}</td>
+                        <td>
+                          <span className={`${styles.statusBadge} ${getStatusClassName(evento.status)}`}>
+                            {evento.status}
+                          </span>
                         </td>
                       </tr>
                     ))
                     : (
                       <tr>
-                        <td colSpan={5} style={{ textAlign: 'center', padding: '20px' }}>
-                          Nenhum evento encontrado. Os eventos serão registrados automaticamente quando você adicionar medicamentos ou rotinas.
+                        <td colSpan={5} className={styles.emptyTable}>
+                          Nenhum evento encontrado no período selecionado.
                         </td>
                       </tr>
                     )}

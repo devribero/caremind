@@ -400,6 +400,141 @@
   font-weight: 600;
 }
 
+/* Novos estilos para cards simplificados */
+.statsGrid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 16px;
+}
+
+.statItem {
+  text-align: center;
+  padding: 12px 8px;
+  background: #f8fafc;
+  border-radius: 8px;
+}
+
+.statValue {
+  display: block;
+  font-size: 24px;
+  font-weight: 700;
+  color: #1e293b;
+}
+
+.statSuccess {
+  color: #10b981;
+}
+
+.statDanger {
+  color: #ef4444;
+}
+
+.statLabel {
+  font-size: 12px;
+  color: #64748b;
+  margin-top: 4px;
+}
+
+/* Lista de categorias */
+.categoryList {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.categoryItem {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.categoryIcon {
+  font-size: 24px;
+}
+
+.categoryInfo {
+  flex: 1;
+}
+
+.categoryName {
+  display: block;
+  font-size: 14px;
+  font-weight: 500;
+  color: #374151;
+  margin-bottom: 6px;
+}
+
+.progressBar {
+  height: 8px;
+  background: #e5e7eb;
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.progressFill {
+  height: 100%;
+  background: #0400BA;
+  border-radius: 4px;
+  transition: width 0.3s ease;
+}
+
+.progressSecondary {
+  background: #10b981;
+}
+
+.categoryPercent {
+  font-size: 16px;
+  font-weight: 600;
+  color: #0400BA;
+  min-width: 45px;
+  text-align: right;
+}
+
+/* Badges de status e tipo */
+.tipoBadge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 13px;
+  color: #64748b;
+}
+
+.statusBadge {
+  display: inline-block;
+  padding: 4px 10px;
+  border-radius: 12px;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.statusBadge.statusTomado {
+  background: #dcfce7;
+  color: #16a34a;
+}
+
+.statusBadge.statusPerdido {
+  background: #fef2f2;
+  color: #dc2626;
+}
+
+.nomeCell {
+  font-weight: 500;
+  color: #1e293b;
+}
+
+.emptyTable {
+  text-align: center;
+  padding: 40px 20px !important;
+  color: #94a3b8;
+}
+
+.noData {
+  color: #94a3b8;
+  font-size: 14px;
+  text-align: center;
+  padding: 40px 0;
+}
+
 /* Responsive design */
 @media (max-width: 768px) {
   .content {
