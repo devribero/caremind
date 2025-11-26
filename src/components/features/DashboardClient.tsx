@@ -14,7 +14,19 @@ import { ConfirmDialog } from './ConfirmDialog';
 import { AddMedicamentoForm } from './forms/AddMedicamentoForm';
 import { AddRotinaForm } from './forms/AddRotinaForm';
 import { useLoading } from '@/contexts/LoadingContext';
-import { Pill, Activity, AlertTriangle, Calendar, CheckCircle2, Clock, Plus } from 'lucide-react';
+import { 
+  Pill, 
+  Activity, 
+  AlertTriangle, 
+  CheckCircle2, 
+  Clock, 
+  Plus,
+  ChevronLeft,
+  ChevronRight,
+  AlertCircle,
+  Sparkles,
+  Package
+} from 'lucide-react';
 
 // Tipos
 type Medicamento = Tables<'medicamentos'>;
@@ -33,6 +45,33 @@ type AgendaItem = {
 
 type FilterType = 'todos' | 'medicamento' | 'rotina';
 
+// Helpers de data
+const addDays = (date: Date, days: number): Date => {
+  const result = new Date(date);
+  result.setDate(result.getDate() + days);
+  return result;
+};
+
+const isSameDay = (date1: Date, date2: Date): boolean => {
+  return date1.getFullYear() === date2.getFullYear() &&
+    date1.getMonth() === date2.getMonth() &&
+    date1.getDate() === date2.getDate();
+};
+
+const formatDateLabel = (date: Date, today: Date): string => {
+  if (isSameDay(date, today)) return 'Hoje';
+  if (isSameDay(date, addDays(today, -1))) return 'Ontem';
+  if (isSameDay(date, addDays(today, 1))) return 'Amanhã';
+  return date.toLocaleDateString('pt-BR', { weekday: 'long', day: 'numeric', month: 'long' });
+};
+
+const getGreeting = (): string => {
+  const hour = new Date().getHours();
+  if (hour < 12) return 'Bom dia';
+  if (hour < 18) return 'Boa tarde';
+  return 'Boa noite';
+};
+
 export default function DashboardClient({ readOnly = false, idosoId }: { readOnly?: boolean; idosoId?: string }): React.ReactElement {
   const { profile } = useProfile(idosoId);
   const { setIsLoading } = useLoading();
@@ -41,6 +80,7 @@ export default function DashboardClient({ readOnly = false, idosoId }: { readOnl
   const [medicamentos, setMedicamentos] = useState<Medicamento[]>([]);
   const [rotinas, setRotinas] = useState<Rotina[]>([]);
   const [activeFilter, setActiveFilter] = useState<FilterType>('todos');
+  const [selectedDate, setSelectedDate] = useState<Date>(new Date());
 
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [modalType, setModalType] = useState<'medicamento' | 'rotina'>('medicamento');
@@ -49,17 +89,19 @@ export default function DashboardClient({ readOnly = false, idosoId }: { readOnl
 
   const [confirmDialog, setConfirmDialog] = useState({ isOpen: false, title: '', message: '', onConfirm: () => { } });
 
+  const today = useMemo(() => new Date(), []);
   const now = useMemo(() => new Date(), []);
+  const isToday = isSameDay(selectedDate, today);
 
-  const carregarDados = useCallback(async (showLoader = false) => {
+  const carregarDados = useCallback(async (showLoader = false, date?: Date) => {
     if (!profile?.id) return;
 
     if (showLoader) setIsLoading(true);
     
     try {
-      const hoje = new Date();
+      const targetDate = date || selectedDate;
       const [eventos, compromissos, meds, rots] = await Promise.all([
-        listarEventosDoDia(profile.id, hoje),
+        listarEventosDoDia(profile.id, targetDate),
         CompromissosService.listarCompromissos(profile.id),
         MedicamentosService.listarMedicamentos(profile.user_id),
         RotinasService.listarRotinas(profile.user_id),
@@ -74,14 +116,16 @@ export default function DashboardClient({ readOnly = false, idosoId }: { readOnl
         dadosOriginais: e,
       }));
 
-      const agendaCompromissos = compromissos.map(c => ({
-        id: c.id,
-        tipo: 'compromisso' as const,
-        titulo: c.titulo,
-        horario: new Date(c.data_hora!),
-        status: 'pendente' as const,
-        dadosOriginais: c,
-      }));
+      const agendaCompromissos = compromissos
+        .filter(c => c.data_hora && isSameDay(new Date(c.data_hora), targetDate))
+        .map(c => ({
+          id: c.id,
+          tipo: 'compromisso' as const,
+          titulo: c.titulo,
+          horario: new Date(c.data_hora!),
+          status: 'pendente' as const,
+          dadosOriginais: c,
+        }));
 
       const agendaCompleta = [...agendaEventos, ...agendaCompromissos].sort(
         (a, b) => a.horario.getTime() - b.horario.getTime()
@@ -96,11 +140,11 @@ export default function DashboardClient({ readOnly = false, idosoId }: { readOnl
     } finally {
       if (showLoader) setIsLoading(false);
     }
-  }, [profile, setIsLoading]);
+  }, [profile, setIsLoading, selectedDate]);
 
   useEffect(() => {
-    carregarDados();
-  }, [carregarDados]);
+    carregarDados(false, selectedDate);
+  }, [selectedDate, profile?.id]);
 
   useEffect(() => {
     const intervalo = setInterval(() => {
@@ -122,6 +166,14 @@ export default function DashboardClient({ readOnly = false, idosoId }: { readOnl
 
     return () => clearInterval(intervalo);
   }, []);
+
+  const navigateDate = (direction: 'prev' | 'next') => {
+    setSelectedDate(prev => addDays(prev, direction === 'next' ? 1 : -1));
+  };
+
+  const goToToday = () => {
+    setSelectedDate(new Date());
+  };
 
   const closeModal = () => {
     setIsModalOpen(false);
@@ -225,7 +277,7 @@ export default function DashboardClient({ readOnly = false, idosoId }: { readOnl
           await RotinasService.criarRotina({ ...rotinaData, user_id: profile.user_id });
         }
       }
-      await carregarDados(true);
+      await carregarDados(true, selectedDate);
       closeModal();
     } catch (error) {
       console.error(`Erro ao salvar ${modalType}:`, error);
@@ -269,37 +321,42 @@ export default function DashboardClient({ readOnly = false, idosoId }: { readOnl
         setMedicamentos(meds);
       }
 
-      await carregarDados(false);
+      await carregarDados(false, selectedDate);
     } catch (error) {
       console.error("Erro ao atualizar status do evento:", error);
       setAgenda(prev => prev.map(a => a.id === item.id ? { ...a, status: item.status } : a));
     }
   };
 
-  const { medsHoje, medsHojeConcluidos, rotinasHoje, rotinasHojeConcluidas, alertasPendentes, dosesOmitidas, estoqueBaixo, agendaExata } = useMemo(() => {
-    const hoje = new Date();
-
+  // Calcular dados da agenda
+  const { 
+    agendaExata, 
+    eventosAtrasados, 
+    proximoEvento, 
+    totalConcluidos, 
+    estoqueBaixo 
+  } = useMemo(() => {
     const getHorarioFromFrequencia = (frequencia: any): Date => {
       const agora = new Date();
       if (!frequencia) return agora;
 
       if (frequencia.horarios?.length > 0) {
         const [hora, minuto] = frequencia.horarios[0].split(':').map(Number);
-        const horario = new Date(hoje);
+        const horario = new Date(selectedDate);
         horario.setHours(hora, minuto, 0, 0);
         return horario;
       }
 
       if (frequencia.tipo === 'intervalo' && frequencia.inicio) {
         const [hora, minuto] = frequencia.inicio.split(':').map(Number);
-        const horario = new Date(hoje);
+        const horario = new Date(selectedDate);
         horario.setHours(hora, minuto, 0, 0);
         return horario;
       }
 
       if (frequencia.horario) {
         const [hora, minuto] = frequencia.horario.split(':').map(Number);
-        const horario = new Date(hoje);
+        const horario = new Date(selectedDate);
         horario.setHours(hora, minuto, 0, 0);
         return horario;
       }
@@ -307,18 +364,21 @@ export default function DashboardClient({ readOnly = false, idosoId }: { readOnl
       return agora;
     };
 
-    const medsAgendadosHoje = medicamentos.filter(med => isScheduledForDate(med, hoje));
-    const rotinasAgendadasHoje = rotinas.filter(rot => isScheduledForDate(rot, hoje));
+    const medsAgendados = medicamentos.filter(med => isScheduledForDate(med, selectedDate));
+    const rotinasAgendadas = rotinas.filter(rot => isScheduledForDate(rot, selectedDate));
 
     const eventosMap = new Map();
     agenda.forEach(item => {
       if (item.tipo === 'medicamento' || item.tipo === 'rotina') {
-        const key = `${item.tipo}-${(item.dadosOriginais as HistoricoEvento).evento_id}`;
-        eventosMap.set(key, item);
+        const eventoId = (item.dadosOriginais as HistoricoEvento).evento_id;
+        if (eventoId) {
+          const key = `${item.tipo}-${eventoId}`;
+          eventosMap.set(key, item);
+        }
       }
     });
 
-    const listaMedsHoje = medsAgendadosHoje.map(med => {
+    const listaMeds = medsAgendados.map(med => {
       const key = `medicamento-${med.id}`;
       const eventoExistente = eventosMap.get(key);
 
@@ -336,7 +396,7 @@ export default function DashboardClient({ readOnly = false, idosoId }: { readOnl
       } as AgendaItem;
     });
 
-    const listaRotinasHoje = rotinasAgendadasHoje.map(rot => {
+    const listaRotinas = rotinasAgendadas.map(rot => {
       const key = `rotina-${rot.id}`;
       const eventoExistente = eventosMap.get(key);
 
@@ -354,26 +414,34 @@ export default function DashboardClient({ readOnly = false, idosoId }: { readOnl
       } as AgendaItem;
     });
 
-    const medsHojeConcluidos = listaMedsHoje.filter(a => a.status === 'confirmado').length;
-    const rotinasHojeConcluidas = listaRotinasHoje.filter(a => a.status === 'confirmado').length;
-
-    const dosesOmitidas = agenda.filter(a => a.status === 'atrasado' || a.status === 'esquecido');
-    const estoqueBaixo = medicamentos.filter(m => m.quantidade != null && m.quantidade <= 3);
-    const alertasPendentes = dosesOmitidas.length + estoqueBaixo.length;
+    const todosEventos = [...listaMeds, ...listaRotinas].sort((a, b) => a.horario.getTime() - b.horario.getTime());
+    
+    // Eventos atrasados: pendentes com horário passado (apenas se for hoje)
+    const atrasados = isToday 
+      ? todosEventos.filter(e => e.status === 'pendente' && e.horario < now)
+      : [];
+    
+    // Próximo evento: primeiro pendente com horário futuro (apenas se for hoje)
+    const proximo = isToday 
+      ? todosEventos.find(e => e.status === 'pendente' && e.horario >= now)
+      : null;
+    
+    // Total concluídos
+    const concluidos = todosEventos.filter(e => e.status === 'confirmado').length;
+    
+    // Estoque baixo
+    const estoqueBaixoList = medicamentos.filter(m => m.quantidade != null && m.quantidade <= 3);
 
     return {
-      medsHoje: listaMedsHoje,
-      medsHojeConcluidos,
-      rotinasHoje: listaRotinasHoje,
-      rotinasHojeConcluidas,
-      alertasPendentes,
-      dosesOmitidas,
-      estoqueBaixo,
-      agendaExata: [...listaMedsHoje, ...listaRotinasHoje].sort((a, b) => a.horario.getTime() - b.horario.getTime())
+      agendaExata: todosEventos,
+      eventosAtrasados: atrasados,
+      proximoEvento: proximo,
+      totalConcluidos: concluidos,
+      estoqueBaixo: estoqueBaixoList
     };
-  }, [agenda, medicamentos, rotinas]);
+  }, [agenda, medicamentos, rotinas, selectedDate, isToday, now]);
 
-  // Filtrar agenda baseado no filtro ativo
+  // Filtrar agenda
   const agendaFiltrada = useMemo(() => {
     if (activeFilter === 'todos') return agendaExata;
     return agendaExata.filter(item => item.tipo === activeFilter);
@@ -381,100 +449,171 @@ export default function DashboardClient({ readOnly = false, idosoId }: { readOnl
 
   const getItemStatus = (item: AgendaItem) => {
     if (item.status === 'confirmado') return 'done';
-    if (item.horario < now) return 'late';
+    if (isToday && item.horario < now) return 'late';
     return 'pending';
   };
 
+  const userName = profile?.nome?.split(' ')[0] || 'Usuário';
+
   return (
     <div className={styles.dashboard}>
-      {/* Cards de Resumo */}
-      <div className={styles.statsGrid}>
-        <div className={styles.statCard}>
-          <div className={styles.statIcon} data-type="medicamento">
-            <Pill size={24} />
-          </div>
-          <div className={styles.statContent}>
-            <span className={styles.statValue}>{medsHojeConcluidos}/{medsHoje.length}</span>
-            <span className={styles.statLabel}>Medicamentos</span>
-            <div className={styles.progressBar}>
-              <div 
-                className={styles.progressFill} 
-                style={{ width: `${medsHoje.length ? (medsHojeConcluidos / medsHoje.length) * 100 : 0}%` }} 
-              />
-            </div>
-          </div>
-          {!readOnly && (
-            <button className={styles.statAddBtn} onClick={() => openModal('medicamento')} title="Adicionar medicamento">
-              <Plus size={16} />
-            </button>
-          )}
+      {/* Header com Saudação e Navegação de Data */}
+      <header className={styles.header}>
+        <div className={styles.greeting}>
+          <h1>{getGreeting()}, <span>{userName}</span>!</h1>
+          <p>Acompanhe sua agenda de saúde</p>
         </div>
+        
+        <div className={styles.dateNav}>
+          <button 
+            className={styles.dateNavBtn} 
+            onClick={() => navigateDate('prev')}
+            aria-label="Dia anterior"
+          >
+            <ChevronLeft size={20} />
+          </button>
+          
+          <button 
+            className={styles.dateLabel}
+            onClick={goToToday}
+            title="Voltar para hoje"
+          >
+            {formatDateLabel(selectedDate, today)}
+          </button>
+          
+          <button 
+            className={styles.dateNavBtn} 
+            onClick={() => navigateDate('next')}
+            aria-label="Próximo dia"
+          >
+            <ChevronRight size={20} />
+          </button>
+        </div>
+      </header>
 
-        <div className={styles.statCard}>
-          <div className={styles.statIcon} data-type="rotina">
-            <Activity size={24} />
-          </div>
-          <div className={styles.statContent}>
-            <span className={styles.statValue}>{rotinasHojeConcluidas}/{rotinasHoje.length}</span>
-            <span className={styles.statLabel}>Rotinas</span>
-            <div className={styles.progressBar}>
-              <div 
-                className={styles.progressFill} 
-                data-type="rotina"
-                style={{ width: `${rotinasHoje.length ? (rotinasHojeConcluidas / rotinasHoje.length) * 100 : 0}%` }} 
-              />
+      {/* Hero Section - Card de Destaque */}
+      <section className={styles.heroSection}>
+        {eventosAtrasados.length > 0 ? (
+          // Card de Alerta - Eventos Atrasados
+          <div className={styles.heroCard} data-type="alert">
+            <div className={styles.heroIcon}>
+              <AlertCircle size={32} />
+            </div>
+            <div className={styles.heroContent}>
+              <h2>Atenção!</h2>
+              <p>{eventosAtrasados.length} {eventosAtrasados.length === 1 ? 'evento atrasado' : 'eventos atrasados'}</p>
+              <ul className={styles.alertList}>
+                {eventosAtrasados.slice(0, 3).map(e => (
+                  <li key={e.id}>
+                    {e.tipo === 'medicamento' ? <Pill size={14} /> : <Activity size={14} />}
+                    <span>{e.titulo}</span>
+                    <span className={styles.alertTime}>
+                      {e.horario.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                    </span>
+                  </li>
+                ))}
+                {eventosAtrasados.length > 3 && (
+                  <li className={styles.alertMore}>+{eventosAtrasados.length - 3} mais</li>
+                )}
+              </ul>
             </div>
           </div>
-          {!readOnly && (
-            <button className={styles.statAddBtn} onClick={() => openModal('rotina')} title="Adicionar rotina">
-              <Plus size={16} />
-            </button>
-          )}
-        </div>
+        ) : proximoEvento ? (
+          // Card de Próximo Evento
+          <div className={styles.heroCard} data-type="next">
+            <div className={styles.heroIcon}>
+              <Clock size={32} />
+            </div>
+            <div className={styles.heroContent}>
+              <span className={styles.heroLabel}>Próximo</span>
+              <h2>{proximoEvento.titulo}</h2>
+              <p>
+                {proximoEvento.tipo === 'medicamento' ? <Pill size={16} /> : <Activity size={16} />}
+                às {proximoEvento.horario.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+              </p>
+            </div>
+            {!readOnly && (
+              <button 
+                className={styles.heroAction}
+                onClick={() => handleToggleAgendaStatus(proximoEvento)}
+              >
+                Concluir agora
+              </button>
+            )}
+          </div>
+        ) : (
+          // Card de Tudo em Dia
+          <div className={styles.heroCard} data-type="success">
+            <div className={styles.heroIcon}>
+              <Sparkles size={32} />
+            </div>
+            <div className={styles.heroContent}>
+              <h2>Tudo em dia!</h2>
+              <p>
+                {agendaExata.length === 0 
+                  ? 'Nenhuma tarefa agendada para este dia'
+                  : 'Todas as tarefas foram concluídas'}
+              </p>
+            </div>
+          </div>
+        )}
+      </section>
 
-        <div className={styles.statCard} data-alert={alertasPendentes > 0}>
-          <div className={styles.statIcon} data-type="alerta">
-            <AlertTriangle size={24} />
-          </div>
-          <div className={styles.statContent}>
-            <span className={styles.statValue}>{alertasPendentes}</span>
-            <span className={styles.statLabel}>Alertas</span>
-            <div className={styles.alertDetails}>
-              {dosesOmitidas.length > 0 && <span>{dosesOmitidas.length} omitidos</span>}
-              {estoqueBaixo.length > 0 && <span>{estoqueBaixo.length} estoques baixos</span>}
-            </div>
-          </div>
+      {/* Stats Compactos */}
+      <section className={styles.statsRow}>
+        <div className={styles.statBadge} data-type="done">
+          <CheckCircle2 size={16} />
+          <span>{totalConcluidos} Concluídos</span>
         </div>
-      </div>
+        
+        <div className={styles.statBadge} data-type="total">
+          <Clock size={16} />
+          <span>{agendaExata.length} Total</span>
+        </div>
+        
+        {estoqueBaixo.length > 0 && (
+          <div className={styles.statBadge} data-type="warning">
+            <Package size={16} />
+            <span>{estoqueBaixo.length} Estoque baixo</span>
+          </div>
+        )}
+
+        {!readOnly && (
+          <div className={styles.addButtons}>
+            <button onClick={() => openModal('medicamento')} title="Adicionar medicamento">
+              <Plus size={14} />
+              <Pill size={14} />
+            </button>
+            <button onClick={() => openModal('rotina')} title="Adicionar rotina">
+              <Plus size={14} />
+              <Activity size={14} />
+            </button>
+          </div>
+        )}
+      </section>
 
       {/* Agenda Principal */}
-      <div className={styles.agendaContainer}>
+      <section className={styles.agendaSection}>
         <div className={styles.agendaHeader}>
-          <div className={styles.agendaTitle}>
-            <Calendar size={20} />
-            <h2>Agenda do Dia</h2>
-          </div>
+          <h3>Agenda</h3>
           
-          {/* Filter Chips */}
-          <div className={styles.filterChips}>
+          <div className={styles.filterTabs}>
             <button 
-              className={`${styles.filterChip} ${activeFilter === 'todos' ? styles.active : ''}`}
+              className={activeFilter === 'todos' ? styles.active : ''}
               onClick={() => setActiveFilter('todos')}
             >
               Todos
             </button>
             <button 
-              className={`${styles.filterChip} ${activeFilter === 'medicamento' ? styles.active : ''}`}
+              className={activeFilter === 'medicamento' ? styles.active : ''}
               onClick={() => setActiveFilter('medicamento')}
-              data-type="medicamento"
             >
               <Pill size={14} />
               Medicamentos
             </button>
             <button 
-              className={`${styles.filterChip} ${activeFilter === 'rotina' ? styles.active : ''}`}
+              className={activeFilter === 'rotina' ? styles.active : ''}
               onClick={() => setActiveFilter('rotina')}
-              data-type="rotina"
             >
               <Activity size={14} />
               Rotinas
@@ -482,82 +621,77 @@ export default function DashboardClient({ readOnly = false, idosoId }: { readOnl
           </div>
         </div>
 
-        {/* Timeline */}
         {agendaFiltrada.length === 0 ? (
           <div className={styles.emptyState}>
             <div className={styles.emptyIcon}>
-              <CheckCircle2 size={64} strokeWidth={1} />
+              <CheckCircle2 size={56} strokeWidth={1.5} />
             </div>
-            <h3>Tudo em dia!</h3>
+            <h4>Nenhum evento</h4>
             <p>
               {activeFilter === 'todos' 
-                ? 'Nenhuma tarefa agendada para hoje. Aproveite o dia!' 
-                : `Nenhum${activeFilter === 'medicamento' ? ' medicamento' : 'a rotina'} agendad${activeFilter === 'medicamento' ? 'o' : 'a'} para hoje.`}
+                ? 'Não há tarefas agendadas para este dia'
+                : `Não há ${activeFilter === 'medicamento' ? 'medicamentos' : 'rotinas'} agendados`}
             </p>
-            {!readOnly && (
-              <div className={styles.emptyActions}>
-                <button onClick={() => openModal('medicamento')} className={styles.emptyBtn}>
-                  <Pill size={16} /> Adicionar Medicamento
-                </button>
-                <button onClick={() => openModal('rotina')} className={styles.emptyBtn}>
-                  <Activity size={16} /> Adicionar Rotina
-                </button>
-              </div>
-            )}
           </div>
         ) : (
           <div className={styles.timeline}>
-            {agendaFiltrada.map(item => {
+            {agendaFiltrada.map((item, index) => {
               const status = getItemStatus(item);
+              const showTimeDivider = index === 0 || 
+                item.horario.getHours() !== agendaFiltrada[index - 1].horario.getHours();
+              
               return (
-                <div 
-                  key={item.id} 
-                  className={`${styles.timelineItem} ${styles[status]}`}
-                  data-type={item.tipo}
-                >
-                  <div className={styles.timelineTime}>
-                    <Clock size={12} />
-                    <span>{item.horario.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
-                  </div>
+                <React.Fragment key={item.id}>
+                  {showTimeDivider && (
+                    <div className={styles.timeDivider}>
+                      <span>{item.horario.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
+                    </div>
+                  )}
                   
-                  <div className={styles.timelineCard}>
-                    <div className={styles.timelineIndicator} data-type={item.tipo} />
+                  <div className={`${styles.timelineItem} ${styles[status]}`} data-type={item.tipo}>
+                    <div className={styles.timelineLine} />
+                    <div className={styles.timelineDot} data-type={item.tipo} />
                     
-                    <div className={styles.timelineContent}>
-                      <div className={styles.timelineInfo}>
-                        <span className={styles.timelineType}>
-                          {item.tipo === 'medicamento' ? <Pill size={14} /> : <Activity size={14} />}
+                    <div className={styles.timelineCard}>
+                      <div className={styles.cardIcon} data-type={item.tipo}>
+                        {item.tipo === 'medicamento' ? <Pill size={18} /> : <Activity size={18} />}
+                      </div>
+                      
+                      <div className={styles.cardContent}>
+                        <span className={styles.cardType}>
                           {item.tipo === 'medicamento' ? 'Medicamento' : 'Rotina'}
                         </span>
                         <h4>{item.titulo}</h4>
                       </div>
                       
-                      <div className={styles.timelineActions}>
-                        {item.tipo !== 'compromisso' && !readOnly && (
-                          <button
-                            onClick={() => handleToggleAgendaStatus(item)}
-                            className={`${styles.statusBtn} ${item.status === 'confirmado' ? styles.completed : ''}`}
-                          >
-                            {item.status === 'confirmado' ? (
-                              <>
-                                <CheckCircle2 size={16} />
-                                Concluído
-                              </>
-                            ) : (
-                              'Concluir'
-                            )}
-                          </button>
-                        )}
-                      </div>
+                      {item.tipo !== 'compromisso' && !readOnly && (
+                        <button
+                          onClick={() => handleToggleAgendaStatus(item)}
+                          className={`${styles.cardAction} ${item.status === 'confirmado' ? styles.done : ''}`}
+                        >
+                          {item.status === 'confirmado' ? (
+                            <CheckCircle2 size={20} />
+                          ) : (
+                            <span>Concluir</span>
+                          )}
+                        </button>
+                      )}
+                      
+                      {item.status === 'confirmado' && (
+                        <div className={styles.cardCheck}>
+                          <CheckCircle2 size={20} />
+                        </div>
+                      )}
                     </div>
                   </div>
-                </div>
+                </React.Fragment>
               );
             })}
           </div>
         )}
-      </div>
+      </section>
 
+      {/* Modais */}
       {!readOnly && isModalOpen && (
         <Modal isOpen={isModalOpen} onClose={closeModal} title={`${isEditing ? 'Editar' : 'Adicionar'} ${modalType}`}>
           {modalType === 'medicamento' ? (

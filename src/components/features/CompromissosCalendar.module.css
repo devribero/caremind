@@ -45,7 +45,7 @@
 
 /* Visualização de Mês - Calendário */
 .monthView {
-  max-width: 400px;
+  max-width: 100%;
   margin: 0 auto;
 }
 
@@ -112,15 +112,17 @@
 /* Tiles (dias) */
 .calendar :global(.react-calendar__tile) {
   position: relative;
-  height: 44px;
+  height: 60px;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: flex-start;
-  padding: 6px 4px;
-  border-radius: 8px;
+  padding: 8px 4px;
+  border-radius: 10px;
   transition: all 0.15s;
-  font-size: 0.85rem;
+  font-size: 1rem;
+  font-weight: 500;
+  color: #1f2937 !important;
   background: transparent;
   border: none;
 }
@@ -148,7 +150,7 @@
 }
 
 .calendar :global(.react-calendar__month-view__days__day--neighboringMonth) {
-  color: #d1d5db;
+  color: #9ca3af !important;
 }
 
 /* Conteúdo dentro do tile (indicadores) */

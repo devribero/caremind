@@ -1,6 +1,7 @@
 'use client';
 
 import { Modal } from './Modal';
+import { AlertTriangle, Info } from 'lucide-react';
 import styles from './ConfirmDialog.module.css';
 
 interface ConfirmDialogProps {
@@ -12,6 +13,7 @@ interface ConfirmDialogProps {
   onConfirm: () => void;
   onCancel: () => void;
   danger?: boolean;
+  isLoading?: boolean;
 }
 
 export function ConfirmDialog({
@@ -22,27 +24,48 @@ export function ConfirmDialog({
   cancelText = 'Cancelar',
   onConfirm,
   onCancel,
-  danger = true
+  danger = true,
+  isLoading = false
 }: ConfirmDialogProps) {
   if (!isOpen) return null;
 
+  const handleConfirm = () => {
+    if (!isLoading) {
+      onConfirm();
+    }
+  };
+
+  const handleCancel = () => {
+    if (!isLoading) {
+      onCancel();
+    }
+  };
+
   return (
-    <Modal isOpen={isOpen} onClose={onCancel} title={title}>
+    <Modal isOpen={isOpen} onClose={handleCancel} title={title}>
       <div className={styles.dialogContent}>
+        <div className={styles.iconWrapper}>
+          <div className={`${styles.iconCircle} ${danger ? styles.danger : styles.info}`}>
+            {danger ? <AlertTriangle size={28} /> : <Info size={28} />}
+          </div>
+        </div>
         <p className={styles.message}>{message}</p>
         <div className={styles.buttons}>
           <button 
-            onClick={onCancel}
+            onClick={handleCancel}
             className={`${styles.button} ${styles.cancelButton}`}
+            disabled={isLoading}
+            type="button"
           >
             {cancelText}
           </button>
           <button
-            onClick={onConfirm}
+            onClick={handleConfirm}
             className={`${styles.button} ${danger ? styles.dangerButton : styles.confirmButton}`}
-            autoFocus
+            disabled={isLoading}
+            type="button"
           >
-            {confirmText}
+            {isLoading ? 'Aguarde...' : confirmText}
           </button>
         </div>
       </div>

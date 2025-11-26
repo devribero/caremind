@@ -241,7 +241,6 @@ export default function CompromissosPage() {
               selectedDate={selectedDate}
               onDateChange={(date) => {
                 setSelectedDate(date);
-                setViewMode('list');
               }}
               onCompromissoClick={(comp) => openEditModal(comp)}
             />
