@@ -1,5 +1,5 @@
 // supabase/functions/alexa-handler/index.ts
-// VERSÃO 7: Resumo do dia com fuso horário GMT-3 robusto
+// VERSÃO ULTIMATE: Interceptação inteligente + Feedback próximo passo + GMT-3
 
 import { serve } from 'https://deno.land/std@0.168.0/http/server.ts';
 import { createClient, SupabaseClient } from 'https://esm.sh/@supabase/supabase-js@2';
@@ -7,20 +7,31 @@ import { createClient, SupabaseClient } from 'https://esm.sh/@supabase/supabase-
 const SUPABASE_URL = Deno.env.get('SUPABASE_URL')!;
 const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
 
+// Palavras que indicam confirmação (não são nomes de pessoas)
+const PALAVRAS_CONFIRMACAO = [
+  'tomei', 'já tomei', 'pronto', 'feito', 'sim', 'ok', 'confirmado', 
+  'confirmar', 'confirma', 'fiz', 'já fiz', 'certo', 'beleza', 'pode', 
+  'tá bom', 'ta bom', 'pode confirmar', 'confirmo'
+];
+
+/**
+ * Verifica se uma frase contém palavras de confirmação
+ */
+function ehPalavraDeConfirmacao(texto: string): boolean {
+  if (!texto) return false;
+  const textoLower = texto.toLowerCase().trim();
+  return PALAVRAS_CONFIRMACAO.some(p => textoLower.includes(p));
+}
+
 /**
  * Calcula o início e fim do dia atual no fuso horário GMT-3 (Brasil)
  * Retorna timestamps em ISO (UTC) para usar nas queries do Supabase
  */
-function getHojeGMT3(): { inicioDia: string; fimDia: string } {
+function getHojeGMT3(): { inicioDia: string; fimDia: string; agoraUTC: string } {
   const agora = new Date();
-  
-  // Offset GMT-3 em milissegundos (3 horas = 3 * 60 * 60 * 1000)
   const offsetGMT3 = 3 * 60 * 60 * 1000;
-  
-  // Hora atual em GMT-3
   const agoraGMT3 = new Date(agora.getTime() - offsetGMT3);
   
-  // Início do dia em GMT-3 (00:00:00.000)
   const inicioDiaGMT3 = new Date(Date.UTC(
     agoraGMT3.getUTCFullYear(),
     agoraGMT3.getUTCMonth(),
@@ -28,7 +39,6 @@ function getHojeGMT3(): { inicioDia: string; fimDia: string } {
     0, 0, 0, 0
   ));
   
-  // Fim do dia em GMT-3 (23:59:59.999)
   const fimDiaGMT3 = new Date(Date.UTC(
     agoraGMT3.getUTCFullYear(),
     agoraGMT3.getUTCMonth(),
@@ -36,13 +46,13 @@ function getHojeGMT3(): { inicioDia: string; fimDia: string } {
     23, 59, 59, 999
   ));
   
-  // Converte de volta para UTC (adiciona o offset de 3 horas)
   const inicioDiaUTC = new Date(inicioDiaGMT3.getTime() + offsetGMT3);
   const fimDiaUTC = new Date(fimDiaGMT3.getTime() + offsetGMT3);
   
   return {
     inicioDia: inicioDiaUTC.toISOString(),
-    fimDia: fimDiaUTC.toISOString()
+    fimDia: fimDiaUTC.toISOString(),
+    agoraUTC: agora.toISOString()
   };
 }
 
@@ -61,8 +71,42 @@ function formatarHoraGMT3(isoString: string): string {
 }
 
 /**
+ * Busca o próximo evento pendente do dia (para feedback encadeado)
+ */
+async function buscarProximoPendente(
+  supabaseClient: SupabaseClient, 
+  perfilId: string,
+  excluirEventoId?: number
+): Promise<{ titulo: string; hora: string } | null> {
+  const { inicioDia, fimDia } = getHojeGMT3();
+  
+  let query = supabaseClient
+    .from('historico_eventos')
+    .select('id, titulo, data_prevista')
+    .eq('perfil_id', perfilId)
+    .eq('status', 'pendente')
+    .gte('data_prevista', inicioDia)
+    .lte('data_prevista', fimDia)
+    .order('data_prevista', { ascending: true })
+    .limit(1);
+  
+  if (excluirEventoId) {
+    query = query.neq('id', excluirEventoId);
+  }
+  
+  const { data, error } = await query.single();
+  
+  if (error || !data) return null;
+  
+  return {
+    titulo: data.titulo || 'Tarefa',
+    hora: formatarHoraGMT3(data.data_prevista)
+  };
+}
+
+/**
  * Gera o resumo do dia para um perfil específico
- * Consulta historico_eventos para o dia atual (GMT-3)
+ * Separa atrasados dos futuros para melhor UX
  */
 async function gerarResumoDoDia(
   supabaseClient: SupabaseClient, 
@@ -70,11 +114,10 @@ async function gerarResumoDoDia(
   nome: string
 ): Promise<string> {
   try {
-    const { inicioDia, fimDia } = getHojeGMT3();
+    const { inicioDia, fimDia, agoraUTC } = getHojeGMT3();
     
     console.log(`[gerarResumoDoDia] Buscando eventos de ${inicioDia} até ${fimDia} para ${nome}`);
 
-    // Busca todos os eventos do dia para o perfil
     const { data: eventos, error } = await supabaseClient
       .from('historico_eventos')
       .select('id, titulo, status, data_prevista, tipo_evento')
@@ -84,55 +127,184 @@ async function gerarResumoDoDia(
       .order('data_prevista', { ascending: true });
 
     if (error) {
-      console.error('[gerarResumoDoDia] Erro ao buscar eventos:', error.message);
-      return `Olá ${nome}. Não consegui verificar suas tarefas de hoje.`;
+      console.error('[gerarResumoDoDia] Erro:', error.message);
+      return `Olá ${nome}. Não consegui verificar suas tarefas.`;
     }
 
-    // Se não houver eventos hoje
     if (!eventos || eventos.length === 0) {
-      return `Olá ${nome}. Não há nada agendado para hoje.`;
+      return `Olá ${nome}. Não há nada agendado para hoje. Aproveite o dia!`;
     }
 
-    // Separa eventos por status
     const confirmados = eventos.filter((e: any) => e.status === 'confirmado');
     const pendentes = eventos.filter((e: any) => e.status === 'pendente');
     
+    // Separa pendentes em atrasados e futuros
+    const atrasados = pendentes.filter((e: any) => new Date(e.data_prevista) < new Date(agoraUTC));
+    const futuros = pendentes.filter((e: any) => new Date(e.data_prevista) >= new Date(agoraUTC));
+
     const qtdConfirmados = confirmados.length;
-    const qtdPendentes = pendentes.length;
+    const qtdAtrasados = atrasados.length;
+    const qtdFuturos = futuros.length;
 
-    // Se tudo estiver confirmado
-    if (qtdPendentes === 0 && qtdConfirmados > 0) {
-      const tarefasPalavra = qtdConfirmados === 1 ? 'tarefa' : 'tarefas';
-      return `Olá ${nome}. Parabéns! Você já completou todas as ${qtdConfirmados} ${tarefasPalavra} de hoje.`;
+    // Tudo confirmado
+    if (pendentes.length === 0 && qtdConfirmados > 0) {
+      return `Olá ${nome}. Parabéns! Você completou todas as ${qtdConfirmados} tarefas de hoje!`;
     }
 
-    // Se houver pendências
-    if (qtdPendentes > 0) {
-      // Lista os títulos dos pendentes (máximo 3 para não ficar muito longo)
-      const titulosPendentes = pendentes
-        .slice(0, 3)
-        .map((e: any) => e.titulo || 'Tarefa')
-        .join(', ');
-      
-      const maisItens = qtdPendentes > 3 ? ` e mais ${qtdPendentes - 3}` : '';
-      
-      if (qtdConfirmados > 0) {
-        const feitasPalavra = qtdConfirmados === 1 ? 'feita' : 'feitas';
-        const faltamPalavra = qtdPendentes === 1 ? 'falta' : 'faltam';
-        return `Olá ${nome}. Você já fez ${qtdConfirmados} ${feitasPalavra} hoje, mas ainda ${faltamPalavra} ${qtdPendentes}: ${titulosPendentes}${maisItens}.`;
-      } else {
-        const faltamPalavra = qtdPendentes === 1 ? 'falta' : 'faltam';
-        const tarefaPalavra = qtdPendentes === 1 ? 'tarefa' : 'tarefas';
-        return `Olá ${nome}. Ainda ${faltamPalavra} ${qtdPendentes} ${tarefaPalavra} para hoje: ${titulosPendentes}${maisItens}.`;
-      }
+    let resposta = `Olá ${nome}. `;
+
+    // Alerta de atrasados primeiro (prioridade)
+    if (qtdAtrasados > 0) {
+      const titulosAtrasados = atrasados.slice(0, 2).map((e: any) => e.titulo || 'Tarefa').join(' e ');
+      const maisAtrasados = qtdAtrasados > 2 ? ` e mais ${qtdAtrasados - 2}` : '';
+      resposta += `Atenção! Você tem ${qtdAtrasados} ${qtdAtrasados === 1 ? 'item atrasado' : 'itens atrasados'}: ${titulosAtrasados}${maisAtrasados}. `;
     }
 
-    // Fallback
-    return `Olá ${nome}. Hoje há ${eventos.length} eventos programados.`;
+    // Status geral
+    if (qtdConfirmados > 0) {
+      resposta += `Já fez ${qtdConfirmados} ${qtdConfirmados === 1 ? 'tarefa' : 'tarefas'}. `;
+    }
+
+    // Próximos futuros
+    if (qtdFuturos > 0 && qtdAtrasados === 0) {
+      const proximo = futuros[0];
+      const horaProximo = formatarHoraGMT3(proximo.data_prevista);
+      resposta += `O próximo é ${proximo.titulo || 'Tarefa'} às ${horaProximo}.`;
+    } else if (qtdFuturos > 0) {
+      resposta += `Ainda ${qtdFuturos === 1 ? 'falta' : 'faltam'} ${qtdFuturos} para mais tarde.`;
+    }
+
+    return resposta.trim();
   } catch (err) {
     console.error('[gerarResumoDoDia] Erro:', err);
     return `Olá ${nome}. Ocorreu um erro ao buscar suas tarefas.`;
   }
+}
+
+/**
+ * Executa a lógica de confirmação de evento
+ * Suporta confirmação específica (por nome) ou genérica (mais antigo)
+ */
+async function executarConfirmacao(
+  supabaseClient: SupabaseClient,
+  perfilAtual: any,
+  sessionAttributes: any,
+  requestId: string,
+  nomeEventoSlot?: string // Slot opcional do nome do evento (ex: "Dipirona")
+): Promise<string> {
+  const { inicioDia, fimDia, agoraUTC } = getHojeGMT3();
+  
+  const nomeEvento = nomeEventoSlot?.trim() || '';
+  const buscaEspecifica = nomeEvento.length > 0;
+  
+  console.log(`[${requestId}] Buscando eventos para: ${perfilAtual.nome} ${buscaEspecifica ? `(específico: "${nomeEvento}")` : '(mais antigo)'}`);
+
+  let evento: any = null;
+  let eventoError: any = null;
+
+  if (buscaEspecifica) {
+    // CENÁRIO A: Usuário falou o nome do evento (ex: "já tomei a Dipirona")
+    const { data, error } = await supabaseClient
+      .from('historico_eventos')
+      .select('*')
+      .eq('perfil_id', perfilAtual.id)
+      .eq('status', 'pendente')
+      .gte('data_prevista', inicioDia)
+      .lte('data_prevista', fimDia)
+      .ilike('titulo', `%${nomeEvento}%`)
+      .order('data_prevista', { ascending: true })
+      .limit(1)
+      .single();
+    
+    evento = data;
+    eventoError = error;
+
+    // Se não encontrou o evento específico, sugere alternativa
+    if (eventoError || !evento) {
+      console.log(`[${requestId}] ❌ Evento "${nomeEvento}" não encontrado`);
+      
+      // Busca o próximo pendente para sugerir
+      const proximoDisponivel = await buscarProximoPendente(supabaseClient, perfilAtual.id);
+      
+      if (proximoDisponivel) {
+        return `Não encontrei "${nomeEvento}" pendente para hoje. Você quis dizer ${proximoDisponivel.titulo} das ${proximoDisponivel.hora}?`;
+      } else {
+        return `Não encontrei "${nomeEvento}" pendente para hoje. Não há mais tarefas pendentes!`;
+      }
+    }
+  } else {
+    // CENÁRIO B: Usuário não falou nome (ex: "já tomei") - pega o mais antigo
+    const { data, error } = await supabaseClient
+      .from('historico_eventos')
+      .select('*')
+      .eq('perfil_id', perfilAtual.id)
+      .eq('status', 'pendente')
+      .gte('data_prevista', inicioDia)
+      .lte('data_prevista', fimDia)
+      .order('data_prevista', { ascending: true })
+      .limit(1)
+      .single();
+    
+    evento = data;
+    eventoError = error;
+  }
+
+  if (eventoError || !evento) {
+    console.log(`[${requestId}] ℹ️ Nenhum evento pendente hoje`);
+    return `${perfilAtual.nome} não tem nenhuma tarefa pendente para hoje. Parabéns!`;
+  }
+
+  const horaEvento = formatarHoraGMT3(evento.data_prevista);
+  const ehFuturo = new Date(evento.data_prevista) > new Date(agoraUTC);
+  
+  console.log(`[${requestId}] 📋 Evento: ${evento.titulo} às ${horaEvento} (${ehFuturo ? 'futuro' : 'atrasado/atual'})`);
+
+  // Se for medicamento, decrementa estoque
+  if (evento.tipo_evento === 'medicamento' && evento.evento_id) {
+    const { data: med } = await supabaseClient
+      .from('medicamentos')
+      .select('quantidade')
+      .eq('id', evento.evento_id)
+      .single();
+
+    if (med && med.quantidade !== null && med.quantidade > 0) {
+      await supabaseClient
+        .from('medicamentos')
+        .update({ quantidade: med.quantidade - 1 })
+        .eq('id', evento.evento_id);
+      console.log(`[${requestId}] 💊 Estoque: ${med.quantidade} → ${med.quantidade - 1}`);
+    }
+  }
+
+  // Atualiza status para confirmado
+  const { error: updateError } = await supabaseClient
+    .from('historico_eventos')
+    .update({
+      status: 'confirmado',
+      horario_programado: new Date().toISOString()
+    })
+    .eq('id', evento.id);
+
+  if (updateError) {
+    console.error(`[${requestId}] ❌ Erro ao confirmar:`, updateError.message);
+    return 'Tive um problema ao confirmar. Tente novamente.';
+  }
+
+  console.log(`[${requestId}] ✅ Evento confirmado!`);
+
+  // Monta resposta com feedback do próximo passo
+  let resposta = `Confirmado! ${evento.titulo} das ${horaEvento} foi marcado.`;
+
+  // Busca próximo pendente para encadeamento
+  const proximo = await buscarProximoPendente(supabaseClient, perfilAtual.id, evento.id);
+  
+  if (proximo) {
+    resposta += ` O próximo é ${proximo.titulo} às ${proximo.hora}.`;
+  } else {
+    resposta += ` Não há mais nada pendente para hoje!`;
+  }
+
+  return resposta;
 }
 
 function buildAlexaResponse(speechText: string, sessionAttributes: any = {}, shouldEndSession = false) {
@@ -146,7 +318,7 @@ function buildAlexaResponse(speechText: string, sessionAttributes: any = {}, sho
   };
 }
 
-console.log('[FUNCTION:START] alexa-handler v7 (GMT-3 robusto) inicializada');
+console.log('[FUNCTION:START] alexa-handler ULTIMATE inicializada');
 
 serve(async (req) => {
   if (req.method === 'OPTIONS') return new Response('ok');
@@ -160,10 +332,11 @@ serve(async (req) => {
     console.log(`\n[${requestId}] ─────── REQUISIÇÃO ALEXA ───────`);
     console.log(`[${requestId}] Request Type: ${body.request?.type}`);
     console.log(`[${requestId}] Intent: ${body.request?.intent?.name || 'N/A'}`);
+    console.log(`[${requestId}] Session Attributes:`, JSON.stringify(sessionAttributes));
 
     if (!amazonAccessToken) {
       return new Response(
-        JSON.stringify(buildAlexaResponse('Por favor, vincule sua conta do Caremind no app Alexa.')),
+        JSON.stringify(buildAlexaResponse('Por favor, vincule sua conta do Caremind no app Alexa.', sessionAttributes)),
         { headers: { 'Content-Type': 'application/json' } }
       );
     }
@@ -176,7 +349,6 @@ serve(async (req) => {
     if (!perfisEncontrados) {
       console.log(`[${requestId}] Cache vazio - Buscando perfis...`);
 
-      // A) Quem é o usuário Amazon?
       const amazonProfileRes = await fetch("https://api.amazon.com/user/profile", {
         headers: { Authorization: `Bearer ${amazonAccessToken}` }
       });
@@ -184,7 +356,7 @@ serve(async (req) => {
       if (!amazonProfileRes.ok) {
         console.log(`[${requestId}] ❌ Token Amazon inválido`);
         return new Response(
-          JSON.stringify(buildAlexaResponse('Sessão expirada. Revincule a skill.')),
+          JSON.stringify(buildAlexaResponse('Sessão expirada. Revincule a skill.', sessionAttributes)),
           { headers: { 'Content-Type': 'application/json' } }
         );
       }
@@ -193,7 +365,6 @@ serve(async (req) => {
       const amazonUserId = amazonProfile.user_id;
       console.log(`[${requestId}] Amazon User ID: ${amazonUserId.slice(0, 20)}...`);
 
-      // B) Busca o user_id do Cuidador na tabela user_integrations
       const { data: integracao, error: intError } = await supabaseAdmin
         .from('user_integrations')
         .select('user_id')
@@ -204,16 +375,13 @@ serve(async (req) => {
       if (intError || !integracao) {
         console.log(`[${requestId}] ❌ Integração não encontrada`);
         return new Response(
-          JSON.stringify(buildAlexaResponse('Conta Caremind não encontrada. Conecte pelo site.')),
+          JSON.stringify(buildAlexaResponse('Conta Caremind não encontrada. Conecte pelo site.', sessionAttributes)),
           { headers: { 'Content-Type': 'application/json' } }
         );
       }
 
       const idCuidador = integracao.user_id;
-      console.log(`[${requestId}] ID Cuidador (Supabase): ${idCuidador}`);
-
-      // C) Busca os vínculos na tabela vinculos_familiares (id_familiar -> id_idoso)
-      console.log(`[${requestId}] Buscando vínculos para cuidador: ${idCuidador}`);
+      console.log(`[${requestId}] ID Cuidador: ${idCuidador}`);
 
       const { data: vinculos, error: erroVinculos } = await supabaseAdmin
         .from('vinculos_familiares')
@@ -221,34 +389,28 @@ serve(async (req) => {
         .eq('id_familiar', idCuidador);
 
       if (erroVinculos) {
-        console.error(`[${requestId}] ❌ Erro ao buscar vínculos:`, erroVinculos.message);
+        console.error(`[${requestId}] ❌ Erro vínculos:`, erroVinculos.message);
       }
 
       let listaPerfis: any[] = [];
 
       if (vinculos && vinculos.length > 0) {
-        console.log(`[${requestId}] ✅ Encontrados ${vinculos.length} vínculos`);
-
-        // Extrai os IDs dos idosos
+        console.log(`[${requestId}] ✅ ${vinculos.length} vínculos encontrados`);
         const idsIdosos = vinculos.map((v: any) => v.id_idoso);
-        console.log(`[${requestId}] IDs dos idosos:`, idsIdosos);
 
-        // D) Busca os nomes na tabela perfis
         const { data: dadosIdosos, error: erroPerfis } = await supabaseAdmin
           .from('perfis')
           .select('id, nome')
           .in('id', idsIdosos);
 
         if (erroPerfis) {
-          console.error(`[${requestId}] ❌ Erro ao buscar perfis:`, erroPerfis.message);
+          console.error(`[${requestId}] ❌ Erro perfis:`, erroPerfis.message);
         }
 
         listaPerfis = dadosIdosos || [];
-        console.log(`[${requestId}] Perfis encontrados:`, listaPerfis.map(p => p.nome));
+        console.log(`[${requestId}] Perfis:`, listaPerfis.map(p => p.nome));
       } else {
-        console.log(`[${requestId}] ⚠️ Nenhum vínculo encontrado, tentando perfil próprio...`);
-
-        // Fallback: tenta ver se o próprio usuário tem um perfil
+        console.log(`[${requestId}] ⚠️ Sem vínculos, tentando perfil próprio...`);
         const { data: meuPerfil } = await supabaseAdmin
           .from('perfis')
           .select('id, nome')
@@ -256,14 +418,14 @@ serve(async (req) => {
 
         if (meuPerfil && meuPerfil.length > 0) {
           listaPerfis = meuPerfil;
-          console.log(`[${requestId}] ✅ Perfil próprio encontrado:`, listaPerfis.map(p => p.nome));
+          console.log(`[${requestId}] ✅ Perfil próprio:`, listaPerfis.map(p => p.nome));
         }
       }
 
       if (listaPerfis.length === 0) {
         console.log(`[${requestId}] ❌ Nenhum idoso encontrado`);
         return new Response(
-          JSON.stringify(buildAlexaResponse('Não encontrei idosos vinculados à sua conta.')),
+          JSON.stringify(buildAlexaResponse('Não encontrei idosos vinculados à sua conta.', sessionAttributes)),
           { headers: { 'Content-Type': 'application/json' } }
         );
       }
@@ -271,13 +433,13 @@ serve(async (req) => {
       perfisEncontrados = listaPerfis;
       sessionAttributes.perfis_cache = listaPerfis;
     } else {
-      console.log(`[${requestId}] 📦 Usando cache (${perfisEncontrados.length} perfis)`);
+      console.log(`[${requestId}] 📦 Cache: ${perfisEncontrados.length} perfis`);
     }
 
     // --- 2. LÓGICA DE INTENÇÕES ---
-
     const requestType = body.request.type;
     const intentName = body.request.intent?.name;
+    const slotNome = body.request.intent?.slots?.nome?.value || '';
     let speechText = 'Não entendi.';
 
     // --> ABERTURA (LaunchRequest)
@@ -285,18 +447,14 @@ serve(async (req) => {
       console.log(`[${requestId}] 🚀 LaunchRequest - ${perfisEncontrados.length} perfis`);
 
       if (perfisEncontrados.length === 1) {
-        // Seleciona automaticamente o único perfil
         const perfil = perfisEncontrados[0];
         sessionAttributes.perfil_atual = perfil;
-        
-        // Gera resumo do dia
         speechText = await gerarResumoDoDia(supabaseAdmin, perfil.id, perfil.nome);
         console.log(`[${requestId}] 📊 Resumo gerado para ${perfil.nome}`);
       } else {
-        // Lista os nomes para o usuário escolher
         const nomes = perfisEncontrados.map((p: any) => p.nome).join(', ');
         sessionAttributes.aguardando_selecao = true;
-        speechText = `Olá! Encontrei ${perfisEncontrados.length} perfis: ${nomes}. Qual deles você quer acessar?`;
+        speechText = `Olá! Encontrei ${perfisEncontrados.length} perfis: ${nomes}. Qual você quer acessar?`;
       }
       
       return new Response(
@@ -305,12 +463,38 @@ serve(async (req) => {
       );
     }
 
-    // --> SELEÇÃO DE PERFIL (SelecionarPerfilIntent)
+    // --> SELEÇÃO DE PERFIL (com interceptação de confirmação)
     if (intentName === 'SelecionarPerfilIntent') {
-      const nomeFalado = body.request.intent.slots?.nome?.value;
-      console.log(`[${requestId}] 👤 SelecionarPerfilIntent - Nome: "${nomeFalado}"`);
+      console.log(`[${requestId}] 👤 SelecionarPerfilIntent - Slot: "${slotNome}"`);
 
-      if (!nomeFalado) {
+      // REDE DE SEGURANÇA: Intercepta palavras de confirmação
+      if (ehPalavraDeConfirmacao(slotNome)) {
+        console.log(`[${requestId}] 🔄 INTERCEPTADO! "${slotNome}" é confirmação, não nome.`);
+        
+        // Usa perfil da sessão ou auto-seleciona se só tem 1
+        let perfilAtual = sessionAttributes.perfil_atual;
+        if (!perfilAtual && perfisEncontrados.length === 1) {
+          perfilAtual = perfisEncontrados[0];
+          sessionAttributes.perfil_atual = perfilAtual;
+          console.log(`[${requestId}] Auto-selecionado: ${perfilAtual.nome}`);
+        }
+
+        if (!perfilAtual) {
+          const nomes = perfisEncontrados.map((p: any) => p.nome).join(', ');
+          sessionAttributes.aguardando_selecao = true;
+          speechText = `Para qual idoso você quer confirmar? ${nomes}.`;
+        } else {
+          speechText = await executarConfirmacao(supabaseAdmin, perfilAtual, sessionAttributes, requestId);
+        }
+
+        return new Response(
+          JSON.stringify(buildAlexaResponse(speechText, sessionAttributes, false)),
+          { headers: { 'Content-Type': 'application/json' } }
+        );
+      }
+
+      // Fluxo normal: busca perfil pelo nome
+      if (!slotNome) {
         return new Response(
           JSON.stringify(buildAlexaResponse('Não entendi o nome. Por favor, repita.', sessionAttributes)),
           { headers: { 'Content-Type': 'application/json' } }
@@ -318,20 +502,18 @@ serve(async (req) => {
       }
 
       const perfilEscolhido = perfisEncontrados.find((p: any) =>
-        p.nome.toLowerCase().includes(nomeFalado.toLowerCase())
+        p.nome.toLowerCase().includes(slotNome.toLowerCase())
       );
 
       if (perfilEscolhido) {
         sessionAttributes.perfil_atual = perfilEscolhido;
         sessionAttributes.aguardando_selecao = false;
-        
-        // Gera resumo do dia para o perfil selecionado
         speechText = await gerarResumoDoDia(supabaseAdmin, perfilEscolhido.id, perfilEscolhido.nome);
-        console.log(`[${requestId}] ✅ Perfil selecionado: ${perfilEscolhido.nome} - Resumo gerado`);
+        console.log(`[${requestId}] ✅ Perfil selecionado: ${perfilEscolhido.nome}`);
       } else {
         const nomes = perfisEncontrados.map((p: any) => p.nome).join(', ');
-        speechText = `Não encontrei ${nomeFalado}. Os perfis disponíveis são: ${nomes}. Qual deles?`;
-        console.log(`[${requestId}] ❌ Perfil não encontrado: "${nomeFalado}"`);
+        speechText = `Não encontrei ${slotNome}. Os perfis são: ${nomes}. Qual deles?`;
+        console.log(`[${requestId}] ❌ Perfil não encontrado: "${slotNome}"`);
       }
 
       return new Response(
@@ -340,13 +522,15 @@ serve(async (req) => {
       );
     }
 
-    // --> CONFIRMAÇÃO DE EVENTO (ConfirmarEventoIntent)
+    // --> CONFIRMAÇÃO DE EVENTO
     if (intentName === 'ConfirmarEventoIntent') {
-      console.log(`[${requestId}] ✅ ConfirmarEventoIntent`);
+      // Extrai o slot nomeEvento (ex: "já tomei a Dipirona" -> "Dipirona")
+      const slotNomeEvento = body.request.intent?.slots?.nomeEvento?.value || '';
+      console.log(`[${requestId}] ✅ ConfirmarEventoIntent - nomeEvento: "${slotNomeEvento || '(vazio)'}"`);
 
+      // Hierarquia: sessão > auto-seleção > perguntar
       let perfilAtual = sessionAttributes.perfil_atual;
-
-      // Auto-seleção se só tem 1 perfil
+      
       if (!perfilAtual && perfisEncontrados.length === 1) {
         perfilAtual = perfisEncontrados[0];
         sessionAttributes.perfil_atual = perfilAtual;
@@ -354,71 +538,17 @@ serve(async (req) => {
       }
 
       if (!perfilAtual) {
-        sessionAttributes.aguardando_selecao = true;
         const nomes = perfisEncontrados.map((p: any) => p.nome).join(', ');
-        console.log(`[${requestId}] ⚠️ Aguardando seleção de perfil`);
+        sessionAttributes.aguardando_selecao = true;
+        console.log(`[${requestId}] ⚠️ Aguardando seleção`);
         return new Response(
           JSON.stringify(buildAlexaResponse(`Para qual idoso? Diga o nome: ${nomes}.`, sessionAttributes)),
           { headers: { 'Content-Type': 'application/json' } }
         );
       }
 
-      // Busca o evento pendente mais antigo de HOJE (GMT-3)
-      const { inicioDia, fimDia } = getHojeGMT3();
-      console.log(`[${requestId}] Buscando eventos pendentes de HOJE (${inicioDia} a ${fimDia}) para: ${perfilAtual.nome}`);
-
-      const { data: evento, error: eventoError } = await supabaseAdmin
-        .from('historico_eventos')
-        .select('*')
-        .eq('perfil_id', perfilAtual.id)
-        .eq('status', 'pendente')
-        .gte('data_prevista', inicioDia)
-        .lte('data_prevista', fimDia)
-        .order('data_prevista', { ascending: true })
-        .limit(1)
-        .single();
-
-      if (eventoError || !evento) {
-        console.log(`[${requestId}] ℹ️ Nenhum evento pendente hoje`);
-        speechText = `${perfilAtual.nome} não tem nenhuma tarefa pendente para hoje. Parabéns!`;
-      } else {
-        console.log(`[${requestId}] 📋 Evento encontrado: ${evento.titulo} (${evento.tipo_evento})`);
-
-        // Se for medicamento, decrementa o estoque
-        if (evento.tipo_evento === 'medicamento' && evento.evento_id) {
-          const { data: med } = await supabaseAdmin
-            .from('medicamentos')
-            .select('quantidade')
-            .eq('id', evento.evento_id)
-            .single();
-
-          if (med && med.quantidade !== null && med.quantidade > 0) {
-            await supabaseAdmin
-              .from('medicamentos')
-              .update({ quantidade: med.quantidade - 1 })
-              .eq('id', evento.evento_id);
-            console.log(`[${requestId}] 💊 Estoque: ${med.quantidade} → ${med.quantidade - 1}`);
-          }
-        }
-
-        // Atualiza status para confirmado
-        const { error: updateError } = await supabaseAdmin
-          .from('historico_eventos')
-          .update({
-            status: 'confirmado',
-            horario_programado: new Date().toISOString()
-          })
-          .eq('id', evento.id);
-
-        if (updateError) {
-          console.error(`[${requestId}] ❌ Erro ao confirmar:`, updateError.message);
-          speechText = 'Tive um problema ao confirmar. Tente novamente.';
-        } else {
-          console.log(`[${requestId}] ✅ Evento confirmado!`);
-          const horaEvento = formatarHoraGMT3(evento.data_prevista);
-          speechText = `Pronto! Marquei "${evento.titulo}" das ${horaEvento} como confirmado para ${perfilAtual.nome}.`;
-        }
-      }
+      // Passa o slot nomeEvento para a função de confirmação
+      speechText = await executarConfirmacao(supabaseAdmin, perfilAtual, sessionAttributes, requestId, slotNomeEvento);
 
       return new Response(
         JSON.stringify(buildAlexaResponse(speechText, sessionAttributes, false)),
@@ -429,20 +559,19 @@ serve(async (req) => {
     // --> INTENTS PADRÃO DA AMAZON
     if (intentName === 'AMAZON.HelpIntent') {
       console.log(`[${requestId}] ❓ HelpIntent`);
-      speechText = 'Você pode dizer o nome do idoso para ver o resumo do dia, ou dizer "já tomei" para confirmar uma tarefa.';
+      speechText = 'Você pode dizer o nome do idoso para ver o resumo, ou dizer "tomei" para confirmar uma tarefa.';
     } else if (intentName === 'AMAZON.StopIntent' || intentName === 'AMAZON.CancelIntent') {
-      console.log(`[${requestId}] 👋 Stop/CancelIntent`);
-      speechText = 'Até mais! Cuide-se.';
+      console.log(`[${requestId}] 👋 Stop/Cancel`);
       return new Response(
-        JSON.stringify(buildAlexaResponse(speechText, {}, true)),
+        JSON.stringify(buildAlexaResponse('Até mais! Cuide-se.', {}, true)),
         { headers: { 'Content-Type': 'application/json' } }
       );
     } else if (intentName === 'AMAZON.FallbackIntent') {
-      console.log(`[${requestId}] 🔄 FallbackIntent`);
-      speechText = 'Não entendi. Tente dizer "abrir care mind" ou o nome do idoso.';
+      console.log(`[${requestId}] 🔄 Fallback`);
+      speechText = 'Não entendi. Diga "abrir care mind" ou o nome do idoso.';
     } else if (speechText === 'Não entendi.') {
       console.log(`[${requestId}] ⚠️ Intent desconhecida:`, intentName);
-      speechText = 'Não reconheci esse comando. Diga "ajuda" para ver o que posso fazer.';
+      speechText = 'Não reconheci esse comando. Diga "ajuda" para ver opções.';
     }
 
     return new Response(
@@ -453,9 +582,8 @@ serve(async (req) => {
   } catch (error) {
     console.error('[ERRO FATAL]', error);
     return new Response(
-      JSON.stringify(buildAlexaResponse('Desculpe, ocorreu um erro técnico. Tente novamente.')),
+      JSON.stringify(buildAlexaResponse('Desculpe, ocorreu um erro. Tente novamente.')),
       { headers: { 'Content-Type': 'application/json' } }
     );
   }
 });
-
