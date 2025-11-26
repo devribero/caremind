@@ -10,7 +10,6 @@ import { FullScreenLoader } from '@/components/features/FullScreenLoader';
 import { InsightsCard } from '@/components/features/relatorios/InsightsCard';
 import { createClient } from '@/lib/supabase/client';
 import { toast } from '@/components/features/Toast';
-import html2canvas from 'html2canvas';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import { Download } from 'lucide-react';
@@ -475,9 +474,40 @@ export default function Relatorios() {
       const margin = 14;
       let yPos = 20;
 
+      // Função auxiliar para desenhar barra horizontal
+      const drawHorizontalBar = (x: number, y: number, width: number, height: number, value: number, maxValue: number, color: [number, number, number]) => {
+        const barWidth = (value / maxValue) * width;
+        doc.setFillColor(230, 230, 230);
+        doc.roundedRect(x, y, width, height, 2, 2, 'F');
+        doc.setFillColor(...color);
+        doc.roundedRect(x, y, barWidth, height, 2, 2, 'F');
+      };
+
+      // Função auxiliar para desenhar donut/círculo de progresso
+      const drawProgressCircle = (centerX: number, centerY: number, radius: number, percentage: number, color: [number, number, number]) => {
+        // Círculo de fundo
+        doc.setDrawColor(220, 220, 220);
+        doc.setLineWidth(4);
+        doc.circle(centerX, centerY, radius, 'S');
+        
+        // Arco de progresso (simulado com múltiplos segmentos)
+        doc.setDrawColor(...color);
+        doc.setLineWidth(4);
+        const segments = Math.floor((percentage / 100) * 36);
+        for (let i = 0; i < segments; i++) {
+          const angle1 = (i * 10 - 90) * (Math.PI / 180);
+          const angle2 = ((i + 1) * 10 - 90) * (Math.PI / 180);
+          const x1 = centerX + radius * Math.cos(angle1);
+          const y1 = centerY + radius * Math.sin(angle1);
+          const x2 = centerX + radius * Math.cos(angle2);
+          const y2 = centerY + radius * Math.sin(angle2);
+          doc.line(x1, y1, x2, y2);
+        }
+      };
+
       // Cabeçalho
       doc.setFontSize(22);
-      doc.setTextColor(4, 0, 186); // #0400BA
+      doc.setTextColor(4, 0, 186);
       doc.text('Relatório de Saúde - Caremind', margin, yPos);
       yPos += 10;
 
@@ -491,95 +521,339 @@ export default function Relatorios() {
         yPos += 5;
       }
       doc.text(`Período: ${formatarData(dataInicio)} a ${formatarData(dataFim)}`, margin, yPos);
-      yPos += 15;
+      yPos += 12;
 
-      // Resumo (KPIs)
+      // Linha separadora
+      doc.setDrawColor(4, 0, 186);
+      doc.setLineWidth(0.5);
+      doc.line(margin, yPos, pageWidth - margin, yPos);
+      yPos += 10;
+
+      // ========== SEÇÃO: RESUMO GERAL ==========
       doc.setFontSize(14);
-      doc.setTextColor(0);
-      doc.text('Resumo Geral', margin, yPos);
+      doc.setTextColor(4, 0, 186);
+      doc.text('📊 Resumo Geral', margin, yPos);
+      yPos += 10;
+
+      // Cards de KPIs em grid
+      const cardWidth = (pageWidth - margin * 3) / 2;
+      const cardHeight = 28;
+
+      // Card 1: Taxa de Adesão
+      doc.setFillColor(248, 248, 255);
+      doc.roundedRect(margin, yPos, cardWidth, cardHeight, 3, 3, 'F');
+      doc.setFontSize(9);
+      doc.setTextColor(100);
+      doc.text('Taxa de Adesão Total', margin + 5, yPos + 8);
+      doc.setFontSize(18);
+      doc.setTextColor(4, 0, 186);
+      doc.text(`${analytics.kpis.taxa_adesao_total.toFixed(1)}%`, margin + 5, yPos + 22);
+
+      // Card 2: Total de Eventos
+      doc.setFillColor(248, 248, 255);
+      doc.roundedRect(margin * 2 + cardWidth, yPos, cardWidth, cardHeight, 3, 3, 'F');
+      doc.setFontSize(9);
+      doc.setTextColor(100);
+      doc.text('Total de Eventos', margin * 2 + cardWidth + 5, yPos + 8);
+      doc.setFontSize(18);
+      doc.setTextColor(4, 0, 186);
+      doc.text(`${analytics.kpis.total_eventos}`, margin * 2 + cardWidth + 5, yPos + 22);
+
+      yPos += cardHeight + 5;
+
+      // Card 3: Confirmados
+      doc.setFillColor(232, 255, 243);
+      doc.roundedRect(margin, yPos, cardWidth, cardHeight, 3, 3, 'F');
+      doc.setFontSize(9);
+      doc.setTextColor(100);
+      doc.text('Eventos Confirmados', margin + 5, yPos + 8);
+      doc.setFontSize(18);
+      doc.setTextColor(4, 186, 130);
+      doc.text(`${analytics.kpis.total_confirmados}`, margin + 5, yPos + 22);
+
+      // Card 4: Esquecidos
+      doc.setFillColor(255, 240, 240);
+      doc.roundedRect(margin * 2 + cardWidth, yPos, cardWidth, cardHeight, 3, 3, 'F');
+      doc.setFontSize(9);
+      doc.setTextColor(100);
+      doc.text('Esquecidos/Pendentes', margin * 2 + cardWidth + 5, yPos + 8);
+      doc.setFontSize(18);
+      doc.setTextColor(220, 53, 69);
+      doc.text(`${analytics.kpis.total_esquecidos}`, margin * 2 + cardWidth + 5, yPos + 22);
+
+      yPos += cardHeight + 10;
+
+      // Card extra: Pontualidade e Índice de Esquecimento
+      doc.setFillColor(248, 248, 255);
+      doc.roundedRect(margin, yPos, pageWidth - margin * 2, 20, 3, 3, 'F');
+      doc.setFontSize(9);
+      doc.setTextColor(100);
+      doc.text(`Índice de Esquecimento: ${analytics.kpis.indice_esquecimento}`, margin + 5, yPos + 12);
+      doc.text(`Pontualidade Média: ${analytics.kpis.pontualidade_media_minutos !== null ? analytics.kpis.pontualidade_media_minutos + ' min' : '—'}`, pageWidth / 2 + 10, yPos + 12);
+
+      yPos += 30;
+
+      // ========== SEÇÃO: GRÁFICO DE ADESÃO ==========
+      doc.setFontSize(14);
+      doc.setTextColor(4, 0, 186);
+      doc.text('📈 Adesão Geral', margin, yPos);
       yPos += 8;
 
-      doc.setFontSize(11);
-      doc.setTextColor(50);
+      // Desenhar círculo de progresso
+      const circleX = pageWidth / 2;
+      const circleY = yPos + 25;
+      drawProgressCircle(circleX, circleY, 18, analytics.kpis.taxa_adesao_total, [4, 0, 186]);
+      
+      // Texto no centro
+      doc.setFontSize(14);
+      doc.setTextColor(4, 0, 186);
+      doc.text(`${analytics.kpis.taxa_adesao_total.toFixed(1)}%`, circleX, circleY + 2, { align: 'center' });
+      doc.setFontSize(8);
+      doc.setTextColor(100);
+      doc.text('Adesão', circleX, circleY + 8, { align: 'center' });
 
-      // Grid de KPIs simulado com texto
-      const kpiX1 = margin;
-      const kpiX2 = pageWidth / 2 + margin;
+      yPos += 55;
 
-      doc.text(`• Taxa de Adesão Total: ${analytics.kpis.taxa_adesao_total.toFixed(1)}%`, kpiX1, yPos);
-      doc.text(`• Total de Eventos: ${analytics.kpis.total_eventos}`, kpiX2, yPos);
-      yPos += 6;
+      // ========== SEÇÃO: TENDÊNCIA DIÁRIA ==========
+      if (analytics.graficos.tendencia_diaria?.length) {
+        doc.setFontSize(14);
+        doc.setTextColor(4, 0, 186);
+        doc.text('📉 Tendência de Adesão Diária', margin, yPos);
+        yPos += 8;
 
-      doc.text(`• Confirmados: ${analytics.kpis.total_confirmados}`, kpiX1, yPos);
-      doc.text(`• Esquecidos/Pendentes: ${analytics.kpis.total_esquecidos}`, kpiX2, yPos);
-      yPos += 6;
+        const tendData = analytics.graficos.tendencia_diaria;
+        const chartWidth = pageWidth - margin * 2;
+        const chartHeight = 40;
+        const maxVal = 100;
 
-      doc.text(`• Índice de Esquecimento: ${analytics.kpis.indice_esquecimento}`, kpiX1, yPos);
-      doc.text(`• Pontualidade Média: ${analytics.kpis.pontualidade_media_minutos ? analytics.kpis.pontualidade_media_minutos + ' min' : '—'}`, kpiX2, yPos);
+        // Eixos
+        doc.setDrawColor(200);
+        doc.setLineWidth(0.3);
+        doc.line(margin, yPos + chartHeight, margin + chartWidth, yPos + chartHeight); // X
+        doc.line(margin, yPos, margin, yPos + chartHeight); // Y
 
-      yPos += 15;
+        // Escala Y
+        doc.setFontSize(7);
+        doc.setTextColor(150);
+        for (let i = 0; i <= 4; i++) {
+          const val = (i * 25);
+          const posY = yPos + chartHeight - (val / maxVal) * chartHeight;
+          doc.text(`${val}%`, margin - 2, posY + 1, { align: 'right' });
+          doc.setDrawColor(230);
+          doc.line(margin, posY, margin + chartWidth, posY);
+        }
 
-      // Função auxiliar para adicionar gráficos
-      const addChartToPdf = async (elementId: string, title: string) => {
-        const element = document.getElementById(elementId);
-        if (element) {
-          // Verificar se cabe na página
-          if (yPos > 220) {
-            doc.addPage();
-            yPos = 20;
+        // Desenhar linha e pontos
+        const stepX = chartWidth / (tendData.length - 1 || 1);
+        doc.setDrawColor(4, 0, 186);
+        doc.setLineWidth(0.8);
+
+        for (let i = 0; i < tendData.length; i++) {
+          const x = margin + i * stepX;
+          const y = yPos + chartHeight - (tendData[i].percentual / maxVal) * chartHeight;
+
+          if (i > 0) {
+            const prevX = margin + (i - 1) * stepX;
+            const prevY = yPos + chartHeight - (tendData[i - 1].percentual / maxVal) * chartHeight;
+            doc.line(prevX, prevY, x, y);
           }
 
-          doc.setFontSize(12);
-          doc.setTextColor(0);
-          doc.text(title, margin, yPos);
-          yPos += 5;
+          // Ponto
+          doc.setFillColor(4, 0, 186);
+          doc.circle(x, y, 1.5, 'F');
 
-          try {
-            const canvas = await html2canvas(element, {
-              scale: 2,
-              logging: false,
-              useCORS: true,
-              backgroundColor: '#ffffff'
-            });
-            const imgData = canvas.toDataURL('image/png');
-
-            // Reduzir tamanho da imagem (max 140mm ou 70% da largura)
-            const maxWidth = 140;
-            const imgWidth = Math.min(maxWidth, pageWidth - (margin * 2));
-            const imgHeight = (canvas.height * imgWidth) / canvas.width;
-            const xPos = (pageWidth - imgWidth) / 2; // Centralizar
-
-            // Se a imagem for muito alta e não couber, nova página
-            if (yPos + imgHeight > 280) {
-              doc.addPage();
-              yPos = 20;
-              doc.text(title + ' (cont.)', margin, yPos);
-              yPos += 5;
-            }
-
-            doc.addImage(imgData, 'PNG', xPos, yPos, imgWidth, imgHeight);
-            yPos += imgHeight + 10;
-          } catch (e) {
-            console.warn(`Erro ao capturar gráfico ${elementId}`, e);
+          // Label X
+          if (i % Math.ceil(tendData.length / 7) === 0 || tendData.length <= 7) {
+            doc.setFontSize(6);
+            doc.setTextColor(100);
+            const dateLabel = new Intl.DateTimeFormat('pt-BR', { day: '2-digit', month: '2-digit' }).format(new Date(tendData[i].data));
+            doc.text(dateLabel, x, yPos + chartHeight + 5, { align: 'center' });
           }
         }
-      };
 
-      // Capturar Gráficos
-      await addChartToPdf('chart-adesao', 'Adesão Geral');
-      await addChartToPdf('chart-tendencia', 'Tendência de Adesão');
-      await addChartToPdf('chart-comparativo', 'Medicamentos vs Rotinas');
-      await addChartToPdf('chart-semanal', 'Acompanhamento Semanal');
+        yPos += chartHeight + 15;
+      }
 
-      // Tabela de Eventos
-      if (yPos > 240) {
+      // ========== SEÇÃO: PERFORMANCE POR TURNO ==========
+      const turnos = analytics.graficos.performance_turnos;
+      if (turnos) {
+        if (yPos > 200) {
+          doc.addPage();
+          yPos = 20;
+        }
+
+        doc.setFontSize(14);
+        doc.setTextColor(4, 0, 186);
+        doc.text('🕐 Performance por Turno', margin, yPos);
+        yPos += 10;
+
+        const turnoLabels = ['Manhã', 'Tarde', 'Noite'];
+        const turnoKeys: ('manha' | 'tarde' | 'noite')[] = ['manha', 'tarde', 'noite'];
+        const barHeight = 12;
+        const maxTurno = Math.max(
+          ...turnoKeys.map(k => (turnos[k]?.confirmados ?? 0) + (turnos[k]?.esquecidos ?? 0)),
+          1
+        );
+
+        turnoKeys.forEach((key, idx) => {
+          const confirmados = turnos[key]?.confirmados ?? 0;
+          const esquecidos = turnos[key]?.esquecidos ?? 0;
+          const total = confirmados + esquecidos;
+
+          doc.setFontSize(10);
+          doc.setTextColor(50);
+          doc.text(turnoLabels[idx], margin, yPos + 8);
+
+          const barX = margin + 25;
+          const barWidth = pageWidth - margin * 2 - 60;
+
+          // Barra de fundo
+          doc.setFillColor(230, 230, 230);
+          doc.roundedRect(barX, yPos, barWidth, barHeight, 2, 2, 'F');
+
+          // Barra confirmados
+          if (confirmados > 0) {
+            const confWidth = (confirmados / maxTurno) * barWidth;
+            doc.setFillColor(4, 0, 186);
+            doc.roundedRect(barX, yPos, confWidth, barHeight, 2, 2, 'F');
+          }
+
+          // Barra esquecidos
+          if (esquecidos > 0) {
+            const confWidth = (confirmados / maxTurno) * barWidth;
+            const esqWidth = (esquecidos / maxTurno) * barWidth;
+            doc.setFillColor(220, 53, 69);
+            doc.roundedRect(barX + confWidth, yPos, esqWidth, barHeight, 2, 2, 'F');
+          }
+
+          // Valores
+          doc.setFontSize(8);
+          doc.setTextColor(100);
+          doc.text(`${confirmados} conf. / ${esquecidos} esq.`, barX + barWidth + 3, yPos + 8);
+
+          yPos += barHeight + 5;
+        });
+
+        // Legenda
+        yPos += 3;
+        doc.setFillColor(4, 0, 186);
+        doc.rect(margin, yPos, 8, 4, 'F');
+        doc.setFontSize(8);
+        doc.setTextColor(100);
+        doc.text('Confirmados', margin + 10, yPos + 3);
+
+        doc.setFillColor(220, 53, 69);
+        doc.rect(margin + 45, yPos, 8, 4, 'F');
+        doc.text('Esquecidos', margin + 55, yPos + 3);
+
+        yPos += 15;
+      }
+
+      // ========== SEÇÃO: COMPARATIVO MEDICAMENTOS VS ROTINAS ==========
+      const resumoTipo = analytics.graficos.resumo_por_tipo;
+      if (resumoTipo) {
+        if (yPos > 220) {
+          doc.addPage();
+          yPos = 20;
+        }
+
+        doc.setFontSize(14);
+        doc.setTextColor(4, 0, 186);
+        doc.text('💊 Medicamentos vs Rotinas', margin, yPos);
+        yPos += 10;
+
+        const tipoLabels = ['Medicamentos', 'Rotinas'];
+        const tipoKeys: ('medicamento' | 'rotina')[] = ['medicamento', 'rotina'];
+        const tipoColors: [number, number, number][] = [[4, 186, 130], [4, 0, 186]];
+
+        tipoKeys.forEach((key, idx) => {
+          const percentual = resumoTipo[key]?.percentual ?? 0;
+          const total = resumoTipo[key]?.total ?? 0;
+          const confirmados = resumoTipo[key]?.confirmados ?? 0;
+
+          doc.setFontSize(10);
+          doc.setTextColor(50);
+          doc.text(tipoLabels[idx], margin, yPos + 8);
+
+          const barX = margin + 35;
+          const barWidth = pageWidth - margin * 2 - 70;
+
+          drawHorizontalBar(barX, yPos, barWidth, 10, percentual, 100, tipoColors[idx]);
+
+          doc.setFontSize(9);
+          doc.setTextColor(...tipoColors[idx]);
+          doc.text(`${percentual.toFixed(1)}%`, barX + barWidth + 3, yPos + 7);
+
+          doc.setFontSize(7);
+          doc.setTextColor(150);
+          doc.text(`(${confirmados}/${total})`, barX + barWidth + 18, yPos + 7);
+
+          yPos += 18;
+        });
+
+        yPos += 5;
+      }
+
+      // ========== SEÇÃO: ACOMPANHAMENTO SEMANAL ==========
+      if (yPos > 180) {
         doc.addPage();
         yPos = 20;
       }
 
       doc.setFontSize(14);
-      doc.text('Detalhamento de Eventos', margin, yPos);
-      yPos += 5;
+      doc.setTextColor(4, 0, 186);
+      doc.text('📅 Acompanhamento Semanal', margin, yPos);
+      yPos += 8;
+
+      const daysOfWeek = ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb'];
+      const weeklyData = chartData.datasets[0].data;
+      const barWidth = (pageWidth - margin * 2 - 30) / 7;
+      const maxBarHeight = 40;
+
+      // Eixo Y
+      doc.setFontSize(7);
+      doc.setTextColor(150);
+      for (let i = 0; i <= 4; i++) {
+        const val = i * 25;
+        const posY = yPos + maxBarHeight - (val / 100) * maxBarHeight;
+        doc.text(`${val}%`, margin - 2, posY + 1, { align: 'right' });
+        doc.setDrawColor(230);
+        doc.setLineWidth(0.2);
+        doc.line(margin, posY, pageWidth - margin, posY);
+      }
+
+      // Barras
+      daysOfWeek.forEach((day, idx) => {
+        const x = margin + 5 + idx * barWidth;
+        const value = weeklyData[idx] as number;
+        const barH = (value / 100) * maxBarHeight;
+
+        doc.setFillColor(4, 0, 186);
+        doc.roundedRect(x + 2, yPos + maxBarHeight - barH, barWidth - 6, barH, 2, 2, 'F');
+
+        // Label dia
+        doc.setFontSize(8);
+        doc.setTextColor(100);
+        doc.text(day, x + barWidth / 2 - 2, yPos + maxBarHeight + 6);
+
+        // Valor
+        if (value > 0) {
+          doc.setFontSize(7);
+          doc.setTextColor(4, 0, 186);
+          doc.text(`${value}%`, x + barWidth / 2 - 2, yPos + maxBarHeight - barH - 2);
+        }
+      });
+
+      yPos += maxBarHeight + 20;
+
+      // ========== TABELA DE EVENTOS ==========
+      doc.addPage();
+      yPos = 20;
+
+      doc.setFontSize(14);
+      doc.setTextColor(4, 0, 186);
+      doc.text('📋 Detalhamento de Eventos', margin, yPos);
+      yPos += 8;
 
       const tableData = eventos.map(e => [
         formatarData(e.data_prevista),
@@ -603,12 +877,25 @@ export default function Relatorios() {
           3: { cellWidth: 'auto' },
           4: { cellWidth: 30 }
         },
-        didDrawPage: (data) => {
-          // Adicionar rodapé em cada página da tabela
+        didParseCell: (data) => {
+          // Colorir status
+          if (data.column.index === 4 && data.section === 'body') {
+            const status = data.cell.raw as string;
+            if (['Tomado', 'Realizado', 'Confirmado'].includes(status)) {
+              data.cell.styles.textColor = [4, 186, 130];
+              data.cell.styles.fontStyle = 'bold';
+            } else if (['Não tomado', 'Perdido', 'Atrasado'].includes(status)) {
+              data.cell.styles.textColor = [220, 53, 69];
+              data.cell.styles.fontStyle = 'bold';
+            }
+          }
+        },
+        didDrawPage: () => {
+          // Rodapé
           const pageCount = doc.internal.pages.length - 1;
           doc.setFontSize(8);
           doc.setTextColor(150);
-          doc.text(`Página ${pageCount}`, pageWidth - margin - 10, 290);
+          doc.text(`Caremind - Página ${pageCount}`, pageWidth - margin - 25, 287);
         }
       });
 
@@ -620,7 +907,7 @@ export default function Relatorios() {
     } finally {
       setIsExporting(false);
     }
-  }, [isExporting, analytics, eventos, selectedElderName, dataInicio, dataFim]);
+  }, [isExporting, analytics, eventos, selectedElderName, dataInicio, dataFim, chartData]);
 
   if (loading) {
     return (

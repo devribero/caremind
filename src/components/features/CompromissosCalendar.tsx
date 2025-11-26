@@ -31,7 +31,7 @@ export default function CompromissosCalendar({
   const compromissosPorData = useMemo(() => {
     const map = new Map<string, Compromisso[]>();
     compromissos.forEach((comp) => {
-      if (comp.data_hora) {
+      if (comp && comp.data_hora) {
         const date = new Date(comp.data_hora);
         const dateKey = `${date.getFullYear()}-${date.getMonth()}-${date.getDate()}`;
         if (!map.has(dateKey)) {
