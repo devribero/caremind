@@ -5,7 +5,7 @@ import Calendar from 'react-calendar';
 import 'react-calendar/dist/Calendar.css';
 import styles from './CompromissosCalendar.module.css';
 import { Tables } from '@/types/supabase';
-import { format, startOfWeek, endOfWeek, eachDayOfInterval, isSameDay, isSameMonth, startOfMonth, endOfMonth } from 'date-fns';
+import { format, startOfWeek, endOfWeek, eachDayOfInterval, isSameDay } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 
 type Compromisso = Tables<'compromissos'>;
@@ -43,161 +43,121 @@ export default function CompromissosCalendar({
     return map;
   }, [compromissos]);
 
+  const getDateKey = (date: Date) => `${date.getFullYear()}-${date.getMonth()}-${date.getDate()}`;
+
   // Função para marcar dias com compromissos
   const tileContent = ({ date, view }: { date: Date; view: string }) => {
-    if (view === 'month') {
-      const dateKey = `${date.getFullYear()}-${date.getMonth()}-${date.getDate()}`;
-      const compromissosDoDia = compromissosPorData.get(dateKey) || [];
-      
-      if (compromissosDoDia.length > 0) {
-        const concluidos = compromissosDoDia.filter(c => c.concluido).length;
-        const pendentes = compromissosDoDia.length - concluidos;
-        
-        return (
-          <div className={styles.tileContent}>
-            {pendentes > 0 && (
-              <span className={styles.dotPendente} title={`${pendentes} pendente(s)`}>
-                {pendentes}
-              </span>
-            )}
-            {concluidos > 0 && (
-              <span className={styles.dotConcluido} title={`${concluidos} concluído(s)`}>
-                {concluidos}
-              </span>
-            )}
-          </div>
-        );
-      }
-    }
-    return null;
+    if (view !== 'month') return null;
+    
+    const compromissosDoDia = compromissosPorData.get(getDateKey(date)) || [];
+    if (compromissosDoDia.length === 0) return null;
+
+    const concluidos = compromissosDoDia.filter(c => c.concluido).length;
+    const pendentes = compromissosDoDia.length - concluidos;
+
+    return (
+      <div className={styles.tileContent}>
+        {pendentes > 0 && (
+          <span className={styles.dotPendente}>{pendentes}</span>
+        )}
+        {concluidos > 0 && (
+          <span className={styles.dotConcluido}>{concluidos}</span>
+        )}
+      </div>
+    );
   };
 
   // Função para destacar dias com compromissos
   const tileClassName = ({ date, view }: { date: Date; view: string }) => {
-    if (view === 'month') {
-      const dateKey = `${date.getFullYear()}-${date.getMonth()}-${date.getDate()}`;
-      const compromissosDoDia = compromissosPorData.get(dateKey) || [];
-      
-      if (compromissosDoDia.length > 0) {
-        const temPendentes = compromissosDoDia.some(c => !c.concluido);
-        return temPendentes ? styles.dayWithPendentes : styles.dayWithConcluidos;
-      }
-    }
-    return null;
+    if (view !== 'month') return null;
+    
+    const compromissosDoDia = compromissosPorData.get(getDateKey(date)) || [];
+    if (compromissosDoDia.length === 0) return null;
+
+    const temPendentes = compromissosDoDia.some(c => !c.concluido);
+    return temPendentes ? styles.dayWithPendentes : styles.dayWithConcluidos;
   };
 
   // Compromissos do dia selecionado
   const compromissosDoDiaSelecionado = useMemo(() => {
     if (!selectedDate) return [];
-    const dateKey = `${selectedDate.getFullYear()}-${selectedDate.getMonth()}-${selectedDate.getDate()}`;
-    return compromissosPorData.get(dateKey) || [];
+    return compromissosPorData.get(getDateKey(selectedDate)) || [];
   }, [selectedDate, compromissosPorData]);
 
   // Compromissos da semana atual
   const compromissosDaSemana = useMemo(() => {
-    if (viewMode !== 'week' || !currentDate) return [];
     const weekStart = startOfWeek(currentDate, { weekStartsOn: 1 });
     const weekEnd = endOfWeek(currentDate, { weekStartsOn: 1 });
     const weekDays = eachDayOfInterval({ start: weekStart, end: weekEnd });
-    
-    return weekDays.map(day => {
-      const dateKey = `${day.getFullYear()}-${day.getMonth()}-${day.getDate()}`;
-      return {
-        date: day,
-        compromissos: compromissosPorData.get(dateKey) || []
-      };
-    });
-  }, [viewMode, currentDate, compromissosPorData]);
 
-  // Compromissos do mês atual
-  const compromissosDoMes = useMemo(() => {
-    if (viewMode !== 'month' || !currentDate) return [];
-    const monthStart = startOfMonth(currentDate);
-    const monthEnd = endOfMonth(currentDate);
-    const monthDays = eachDayOfInterval({ start: monthStart, end: monthEnd });
-    
-    return monthDays.map(day => {
-      const dateKey = `${day.getFullYear()}-${day.getMonth()}-${day.getDate()}`;
-      return {
-        date: day,
-        compromissos: compromissosPorData.get(dateKey) || []
-      };
-    });
-  }, [viewMode, currentDate, compromissosPorData]);
+    return weekDays.map(day => ({
+      date: day,
+      compromissos: compromissosPorData.get(getDateKey(day)) || []
+    }));
+  }, [currentDate, compromissosPorData]);
 
   const handleDateClick = (date: Date) => {
     setCurrentDate(date);
     onDateChange(date);
-    if (viewMode === 'month') {
-      setViewMode('day');
-    }
   };
 
   const navigateDate = (direction: 'prev' | 'next') => {
     const newDate = new Date(currentDate);
+    const delta = direction === 'next' ? 1 : -1;
+
     if (viewMode === 'day') {
-      newDate.setDate(newDate.getDate() + (direction === 'next' ? 1 : -1));
+      newDate.setDate(newDate.getDate() + delta);
     } else if (viewMode === 'week') {
-      newDate.setDate(newDate.getDate() + (direction === 'next' ? 7 : -7));
+      newDate.setDate(newDate.getDate() + (delta * 7));
     } else {
-      newDate.setMonth(newDate.getMonth() + (direction === 'next' ? 1 : -1));
+      newDate.setMonth(newDate.getMonth() + delta);
     }
+    
     setCurrentDate(newDate);
+    onDateChange(newDate);
+  };
+
+  const renderCompromissoItem = (comp: Compromisso) => {
+    const dataHora = new Date(comp.data_hora!);
+    const isPassado = dataHora < new Date();
+
+    return (
+      <div
+        key={comp.id}
+        className={`${styles.compromissoItem} ${comp.concluido ? styles.concluido : ''} ${isPassado && !comp.concluido ? styles.passado : ''}`}
+        onClick={() => onCompromissoClick?.(comp)}
+      >
+        <div className={styles.compromissoHeader}>
+          <span className={styles.compromissoTime}>
+            {dataHora.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}
+          </span>
+          {comp.concluido && <span className={styles.badgeConcluido}>✓</span>}
+          {isPassado && !comp.concluido && <span className={styles.badgePassado}>!</span>}
+        </div>
+        <h4 className={styles.compromissoTitulo}>{comp.titulo}</h4>
+        {comp.descricao && <p className={styles.compromissoDescricao}>{comp.descricao}</p>}
+        {comp.local && <p className={styles.compromissoLocal}>📍 {comp.local}</p>}
+      </div>
+    );
   };
 
   const renderDayView = () => {
-    if (!selectedDate) return null;
-    
+    const dateToShow = selectedDate || currentDate;
+
     return (
       <div className={styles.dayView}>
         <div className={styles.dayHeader}>
           <button onClick={() => navigateDate('prev')} className={styles.navButton}>‹</button>
           <h2 className={styles.dayTitle}>
-            {format(selectedDate, "EEEE, d 'de' MMMM 'de' yyyy", { locale: ptBR })}
+            {format(dateToShow, "EEEE, d 'de' MMMM", { locale: ptBR })}
           </h2>
           <button onClick={() => navigateDate('next')} className={styles.navButton}>›</button>
         </div>
-        <div className={styles.compromissosList}>
+        <div className={styles.compromissosGrid}>
           {compromissosDoDiaSelecionado.length > 0 ? (
-            <div className={styles.compromissosGrid}>
-              {compromissosDoDiaSelecionado
-                .sort((a, b) => {
-                  const timeA = new Date(a.data_hora!).getTime();
-                  const timeB = new Date(b.data_hora!).getTime();
-                  return timeA - timeB;
-                })
-                .map((comp) => {
-                  const dataHora = new Date(comp.data_hora!);
-                  const isPassado = dataHora < new Date();
-                  
-                  return (
-                    <div
-                      key={comp.id}
-                      className={`${styles.compromissoItem} ${comp.concluido ? styles.concluido : ''} ${isPassado && !comp.concluido ? styles.passado : ''}`}
-                      onClick={() => onCompromissoClick?.(comp)}
-                    >
-                      <div className={styles.compromissoHeader}>
-                        <span className={styles.compromissoTime}>
-                          {dataHora.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}
-                        </span>
-                        {comp.concluido && (
-                          <span className={styles.badgeConcluido}>✓ Concluído</span>
-                        )}
-                        {isPassado && !comp.concluido && (
-                          <span className={styles.badgePassado}>Atrasado</span>
-                        )}
-                      </div>
-                      <h4 className={styles.compromissoTitulo}>{comp.titulo}</h4>
-                      {comp.descricao && (
-                        <p className={styles.compromissoDescricao}>{comp.descricao}</p>
-                      )}
-                      {comp.local && (
-                        <p className={styles.compromissoLocal}>📍 {comp.local}</p>
-                      )}
-                    </div>
-                  );
-                })}
-            </div>
+            compromissosDoDiaSelecionado
+              .sort((a, b) => new Date(a.data_hora!).getTime() - new Date(b.data_hora!).getTime())
+              .map(renderCompromissoItem)
           ) : (
             <div className={styles.emptyDay}>
               <p>Nenhum compromisso neste dia</p>
@@ -208,95 +168,75 @@ export default function CompromissosCalendar({
     );
   };
 
-  const renderWeekView = () => {
-    return (
-      <div className={styles.weekView}>
-        <div className={styles.weekHeader}>
-          <button onClick={() => navigateDate('prev')} className={styles.navButton}>‹</button>
-          <h2 className={styles.weekTitle}>
-            {format(compromissosDaSemana[0]?.date || currentDate, 'd MMM', { locale: ptBR })} - {format(compromissosDaSemana[compromissosDaSemana.length - 1]?.date || currentDate, 'd MMM yyyy', { locale: ptBR })}
-          </h2>
-          <button onClick={() => navigateDate('next')} className={styles.navButton}>›</button>
-        </div>
-        <div className={styles.weekGrid}>
-          {compromissosDaSemana.map(({ date, compromissos }) => {
-            const isToday = isSameDay(date, new Date());
-            const isSelected = selectedDate && isSameDay(date, selectedDate);
-            
-            return (
-              <div
-                key={date.toISOString()}
-                className={`${styles.weekDay} ${isToday ? styles.today : ''} ${isSelected ? styles.selected : ''}`}
-                onClick={() => handleDateClick(date)}
-              >
-                <div className={styles.weekDayHeader}>
-                  <span className={styles.weekDayName}>
-                    {format(date, 'EEE', { locale: ptBR })}
-                  </span>
-                  <span className={styles.weekDayNumber}>{format(date, 'd')}</span>
-                  {compromissos.length > 0 && (
-                    <span className={styles.weekDayCount}>{compromissos.length}</span>
-                  )}
-                </div>
-                <div className={styles.weekDayCompromissos}>
-                  {compromissos.slice(0, 3).map((comp) => {
-                    const dataHora = new Date(comp.data_hora!);
-                    return (
-                      <div
-                        key={comp.id}
-                        className={`${styles.weekCompromissoItem} ${comp.concluido ? styles.concluido : ''}`}
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          onCompromissoClick?.(comp);
-                        }}
-                      >
-                        <span className={styles.weekCompromissoTime}>
-                          {format(dataHora, 'HH:mm')}
-                        </span>
-                        <span className={styles.weekCompromissoTitle}>{comp.titulo}</span>
-                      </div>
-                    );
-                  })}
-                  {compromissos.length > 3 && (
-                    <div className={styles.weekMoreCompromissos}>
-                      +{compromissos.length - 3} mais
-                    </div>
-                  )}
-                </div>
-              </div>
-            );
-          })}
-        </div>
+  const renderWeekView = () => (
+    <div className={styles.weekView}>
+      <div className={styles.weekHeader}>
+        <button onClick={() => navigateDate('prev')} className={styles.navButton}>‹</button>
+        <h2 className={styles.weekTitle}>
+          {format(compromissosDaSemana[0].date, 'd MMM', { locale: ptBR })} - {format(compromissosDaSemana[6].date, 'd MMM', { locale: ptBR })}
+        </h2>
+        <button onClick={() => navigateDate('next')} className={styles.navButton}>›</button>
       </div>
-    );
-  };
+      <div className={styles.weekGrid}>
+        {compromissosDaSemana.map(({ date, compromissos: comps }) => {
+          const isToday = isSameDay(date, new Date());
+          const isSelected = selectedDate && isSameDay(date, selectedDate);
 
-  const renderMonthView = () => {
-    return (
-      <div className={styles.monthView}>
-        <Calendar
-          onChange={(value) => {
-            if (value instanceof Date) {
-              handleDateClick(value);
-            } else if (Array.isArray(value) && value[0] instanceof Date) {
-              handleDateClick(value[0]);
-            }
-          }}
-          value={selectedDate}
-          tileContent={tileContent}
-          tileClassName={tileClassName}
-          className={styles.calendar}
-          locale="pt-BR"
-          calendarType="iso8601"
-          onClickDay={handleDateClick}
-        />
+          return (
+            <div
+              key={date.toISOString()}
+              className={`${styles.weekDay} ${isToday ? styles.today : ''} ${isSelected ? styles.selected : ''}`}
+              onClick={() => handleDateClick(date)}
+            >
+              <div className={styles.weekDayHeader}>
+                <span className={styles.weekDayName}>{format(date, 'EEE', { locale: ptBR })}</span>
+                <span className={styles.weekDayNumber}>{format(date, 'd')}</span>
+                {comps.length > 0 && <span className={styles.weekDayCount}>{comps.length}</span>}
+              </div>
+              <div className={styles.weekDayCompromissos}>
+                {comps.slice(0, 2).map((comp) => (
+                  <div
+                    key={comp.id}
+                    className={`${styles.weekCompromissoItem} ${comp.concluido ? styles.concluido : ''}`}
+                    onClick={(e) => { e.stopPropagation(); onCompromissoClick?.(comp); }}
+                  >
+                    <span className={styles.weekCompromissoTime}>{format(new Date(comp.data_hora!), 'HH:mm')}</span>
+                    <span className={styles.weekCompromissoTitle}>{comp.titulo}</span>
+                  </div>
+                ))}
+                {comps.length > 2 && (
+                  <div className={styles.weekMoreCompromissos}>+{comps.length - 2} mais</div>
+                )}
+              </div>
+            </div>
+          );
+        })}
       </div>
-    );
-  };
+    </div>
+  );
+
+  const renderMonthView = () => (
+    <div className={styles.monthView}>
+      <Calendar
+        onChange={(value) => {
+          if (value instanceof Date) {
+            handleDateClick(value);
+          } else if (Array.isArray(value) && value[0] instanceof Date) {
+            handleDateClick(value[0]);
+          }
+        }}
+        value={selectedDate || currentDate}
+        tileContent={tileContent}
+        tileClassName={tileClassName}
+        className={styles.calendar}
+        locale="pt-BR"
+        calendarType="iso8601"
+      />
+    </div>
+  );
 
   return (
     <div className={styles.calendarContainer}>
-      {/* Toggle de visualização */}
       <div className={styles.viewToggle}>
         <button
           className={`${styles.viewButton} ${viewMode === 'month' ? styles.viewButtonActive : ''}`}
@@ -325,59 +265,29 @@ export default function CompromissosCalendar({
         </button>
       </div>
 
-      {/* Renderizar view baseada no modo */}
       {viewMode === 'day' && renderDayView()}
       {viewMode === 'week' && renderWeekView()}
       {viewMode === 'month' && renderMonthView()}
 
-      {/* Lista de compromissos do dia selecionado (apenas no modo mês) */}
-      {viewMode === 'month' && selectedDate && compromissosDoDiaSelecionado.length > 0 && (
+      {/* Lista de compromissos abaixo do calendário no modo mês */}
+      {viewMode === 'month' && selectedDate && (
         <div className={styles.compromissosList}>
           <h3 className={styles.listTitle}>
-            Compromissos do dia {selectedDate.toLocaleDateString('pt-BR')}
+            {format(selectedDate, "d 'de' MMMM", { locale: ptBR })}
           </h3>
           <div className={styles.compromissosGrid}>
-            {compromissosDoDiaSelecionado.map((comp) => {
-              const dataHora = new Date(comp.data_hora!);
-              const isPassado = dataHora < new Date();
-              
-              return (
-                <div
-                  key={comp.id}
-                  className={`${styles.compromissoItem} ${comp.concluido ? styles.concluido : ''} ${isPassado && !comp.concluido ? styles.passado : ''}`}
-                  onClick={() => onCompromissoClick?.(comp)}
-                >
-                  <div className={styles.compromissoHeader}>
-                    <span className={styles.compromissoTime}>
-                      {dataHora.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}
-                    </span>
-                    {comp.concluido && (
-                      <span className={styles.badgeConcluido}>✓ Concluído</span>
-                    )}
-                    {isPassado && !comp.concluido && (
-                      <span className={styles.badgePassado}>Atrasado</span>
-                    )}
-                  </div>
-                  <h4 className={styles.compromissoTitulo}>{comp.titulo}</h4>
-                  {comp.descricao && (
-                    <p className={styles.compromissoDescricao}>{comp.descricao}</p>
-                  )}
-                  {comp.local && (
-                    <p className={styles.compromissoLocal}>📍 {comp.local}</p>
-                  )}
-                </div>
-              );
-            })}
+            {compromissosDoDiaSelecionado.length > 0 ? (
+              compromissosDoDiaSelecionado
+                .sort((a, b) => new Date(a.data_hora!).getTime() - new Date(b.data_hora!).getTime())
+                .map(renderCompromissoItem)
+            ) : (
+              <div className={styles.emptyDay}>
+                <p>Nenhum compromisso neste dia</p>
+              </div>
+            )}
           </div>
-        </div>
-      )}
-      
-      {viewMode === 'month' && selectedDate && compromissosDoDiaSelecionado.length === 0 && (
-        <div className={styles.emptyDay}>
-          <p>Nenhum compromisso neste dia</p>
         </div>
       )}
     </div>
   );
 }
-

@@ -11,12 +11,16 @@ export type IdosoResumo = {
   nome: string;
 };
 
+export const TODOS_IDOSOS_ID = '__TODOS__';
+
 type IdosoContextType = {
   listaIdososVinculados: IdosoResumo[];
   idosoSelecionadoId: string | null;
   setIdosoSelecionado: (id: string | null) => void;
   loading: boolean;
   refresh: () => Promise<void>;
+  mostrarTodos: boolean; // true quando "Todos" está selecionado
+  todosIdososIds: string[]; // lista de todos os IDs para queries
 };
 
 const IdosoContext = createContext<IdosoContextType | undefined>(undefined);
@@ -86,13 +90,18 @@ export function IdosoProvider({ children }: { children: ReactNode }) {
     }
   }, [selecionado]);
 
+  const mostrarTodos = selecionado === TODOS_IDOSOS_ID;
+  const todosIdososIds = useMemo(() => lista.map(i => i.id), [lista]);
+
   const value: IdosoContextType = useMemo(() => ({
     listaIdososVinculados: lista,
-    idosoSelecionadoId: escolhidoOrNull(selecionado),
+    idosoSelecionadoId: mostrarTodos ? null : escolhidoOrNull(selecionado),
     setIdosoSelecionado: setSelecionado,
     loading,
     refresh,
-  }), [lista, selecionado, loading, refresh]);
+    mostrarTodos,
+    todosIdososIds,
+  }), [lista, selecionado, loading, refresh, mostrarTodos, todosIdososIds]);
 
   return (
     <IdosoContext.Provider value={value}>

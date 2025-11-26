@@ -18,10 +18,9 @@ type CompItem = Tables<'compromissos'>;
 export default function CompromissosPage() {
   const { user } = useAuth();
   const { profile } = useProfileContext();
-  const { idosoSelecionadoId, listaIdososVinculados } = useIdoso();
+  const { idosoSelecionadoId, listaIdososVinculados, mostrarTodos, todosIdososIds } = useIdoso();
   const isFamiliar = profile?.tipo === 'familiar';
-  const [showAll, setShowAll] = useState(false);
-  const targetProfileId = isFamiliar && !showAll ? idosoSelecionadoId : profile?.id;
+  const targetProfileId = isFamiliar && !mostrarTodos ? idosoSelecionadoId : profile?.id;
 
   const [items, setItems] = useState<CompItem[]>([]);
   const [loading, setLoading] = useState(true);
@@ -34,10 +33,10 @@ export default function CompromissosPage() {
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);
 
   const selectedElderName = useMemo(() => {
-    if (showAll) return null;
+    if (mostrarTodos) return null;
     const elderList = listaIdososVinculados ?? [];
-    return elderList.find((i) => i.id === idosoSelecionadoId)?.nome_completo || null;
-  }, [listaIdososVinculados, idosoSelecionadoId, showAll]);
+    return elderList.find((i) => i.id === idosoSelecionadoId)?.nome || null;
+  }, [listaIdososVinculados, idosoSelecionadoId, mostrarTodos]);
 
   useEffect(() => {
     const fetchItems = async () => {
@@ -45,13 +44,12 @@ export default function CompromissosPage() {
       setError(null);
       
       try {
-        if (isFamiliar && showAll) {
+        if (isFamiliar && mostrarTodos) {
           // Buscar compromissos de todos os idosos vinculados
-          const allIds = listaIdososVinculados?.map(i => i.id) || [];
-          if (allIds.length === 0) {
+          if (todosIdososIds.length === 0) {
             setItems([]);
           } else {
-            const data = await CompromissosService.listarCompromissosMultiplos(allIds);
+            const data = await CompromissosService.listarCompromissosMultiplos(todosIdososIds);
             setItems(data);
           }
         } else if (targetProfileId) {
@@ -69,7 +67,7 @@ export default function CompromissosPage() {
     };
 
     fetchItems();
-  }, [targetProfileId, isFamiliar, showAll, listaIdososVinculados]);
+  }, [targetProfileId, isFamiliar, mostrarTodos, todosIdososIds]);
 
   const handleCreate = async (data: Omit<Compromisso, 'id' | 'created_at'>) => {
     if (!targetProfileId) {
@@ -163,7 +161,7 @@ export default function CompromissosPage() {
   };
 
   const renderList = () => {
-    if (isFamiliar && !targetProfileId) {
+    if (isFamiliar && !targetProfileId && !mostrarTodos) {
       return (
         <div className={styles.emptyState}>
           <p>Selecione um idoso no menu superior para visualizar os compromissos.</p>
@@ -201,35 +199,19 @@ export default function CompromissosPage() {
 
   const pageTitle = useMemo(() => {
     if (!isFamiliar) return 'Meus Compromissos';
-    if (showAll) return 'Compromissos de Todos os Idosos';
+    if (mostrarTodos) return 'Compromissos de Todos os Idosos';
     if (selectedElderName) return `Compromissos de ${selectedElderName}`;
     return 'Compromissos do Idoso';
-  }, [isFamiliar, showAll, selectedElderName]);
+  }, [isFamiliar, mostrarTodos, selectedElderName]);
 
   return (
     <main className={styles.main}>
       <div className={styles.content}>
         <div className={styles.pageHeader}>
           <h1 className={styles.content_title}>{pageTitle}</h1>
-          {isFamiliar && listaIdososVinculados && listaIdososVinculados.length > 0 && (
-            <div className={styles.filterToggle}>
-              <button
-                className={`${styles.filterButton} ${!showAll ? styles.filterButtonActive : ''}`}
-                onClick={() => setShowAll(false)}
-              >
-                {selectedElderName || 'Idoso Selecionado'}
-              </button>
-              <button
-                className={`${styles.filterButton} ${showAll ? styles.filterButtonActive : ''}`}
-                onClick={() => setShowAll(true)}
-              >
-                Todos
-              </button>
-            </div>
-          )}
         </div>
 
-        {!loading && !error && !(isFamiliar && !targetProfileId) && (
+        {!loading && !error && !(isFamiliar && !targetProfileId && !mostrarTodos) && (
           <div className={styles.actionsContainer}>
             <div className={styles.viewToggle}>
               <button

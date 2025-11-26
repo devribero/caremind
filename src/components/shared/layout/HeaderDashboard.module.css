@@ -64,3 +64,36 @@
   background: #0400b9;
   font-size: 12px;
 }
+
+/* Seletor de idoso */
+.idosoSelect {
+  padding: 8px 12px;
+  border: 1px solid rgba(0,0,0,0.1);
+  border-radius: 8px;
+  background: #f9fafb;
+  font-size: 14px;
+  font-weight: 500;
+  color: #0f172a;
+  cursor: pointer;
+  min-width: 180px;
+  transition: all 0.2s;
+}
+
+.idosoSelect:hover {
+  border-color: #0400BA;
+  background: #fff;
+}
+
+.idosoSelect:focus {
+  outline: none;
+  border-color: #0400BA;
+  box-shadow: 0 0 0 3px rgba(4, 0, 186, 0.1);
+}
+
+@media (max-width: 640px) {
+  .idosoSelect {
+    min-width: 140px;
+    font-size: 13px;
+    padding: 6px 10px;
+  }
+}

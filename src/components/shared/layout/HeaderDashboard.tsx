@@ -6,6 +6,8 @@ import styles from "./HeaderDashboard.module.css";
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { useAuth } from "@/contexts/AuthContext";
+import { useProfileContext } from "@/contexts/ProfileContext";
+import { useIdoso, TODOS_IDOSOS_ID } from "@/contexts/IdosoContext";
 import { useRouter } from "next/navigation";
 
 function prettify(segment: string) {
@@ -17,11 +19,15 @@ function prettify(segment: string) {
 }
 
 export default function HeaderDashboard({ collapsed, onToggle }: { collapsed: boolean; onToggle: () => void }) {
-  const { signOut } = useAuth();
+  const { signOut, user } = useAuth();
+  const { profile } = useProfileContext();
+  const { listaIdososVinculados, idosoSelecionadoId, setIdosoSelecionado, mostrarTodos } = useIdoso();
   const router = useRouter();
   const pathname = usePathname();
   const last = pathname?.split("/").filter(Boolean).slice(-1)[0] || "Dashboard";
   const title = last === "dashboard" ? "Dashboard" : prettify(last);
+
+  const isFamiliar = profile?.tipo === 'familiar' || user?.user_metadata?.account_type === 'familiar';
 
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
@@ -33,6 +39,11 @@ export default function HeaderDashboard({ collapsed, onToggle }: { collapsed: bo
     return () => document.removeEventListener("mousedown", onDoc);
   }, []);
 
+  const handleIdosoChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    const value = e.target.value;
+    setIdosoSelecionado(value || null);
+  };
+
   return (
     <header className={styles.header}>
       <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
@@ -42,6 +53,21 @@ export default function HeaderDashboard({ collapsed, onToggle }: { collapsed: bo
         <h1 className={styles.title}>{title}</h1>
       </div>
       <div className={styles.actions}>
+        {/* Seletor de idoso para contas familiares */}
+        {isFamiliar && listaIdososVinculados.length > 0 && (
+          <select
+            className={styles.idosoSelect}
+            value={mostrarTodos ? TODOS_IDOSOS_ID : (idosoSelecionadoId || '')}
+            onChange={handleIdosoChange}
+          >
+            <option value={TODOS_IDOSOS_ID}>👥 Todos os idosos</option>
+            {listaIdososVinculados.map((idoso) => (
+              <option key={idoso.id} value={idoso.id}>
+                👤 {idoso.nome}
+              </option>
+            ))}
+          </select>
+        )}
         <button className={styles.iconBtn} aria-label="Notificações">
           <IoNotificationsOutline size={20} />
         </button>

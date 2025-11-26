@@ -435,7 +435,7 @@ export default function Remedios() {
 
       // Polling de status do OCR
       if (inserted?.id) {
-        const ocrId = inserted.id as string;
+        const ocrId = Number(inserted.id);
         const start = Date.now();
         const timeoutMs = 10 * 60 * 1000; // 10 minutos
         const interval = 3000; // 3s para feedback mais rápido
@@ -474,7 +474,7 @@ export default function Remedios() {
                 if (medicamentos.length > 0 && imgUrl) {
                   setValidacaoModal({
                     isOpen: true,
-                    ocrId: Number(ocrId),
+                    ocrId: ocrId,
                     imageUrl: imgUrl,
                     medicamentos,
                   });
