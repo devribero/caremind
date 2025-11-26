@@ -40,6 +40,7 @@ export function ValidarOcrMedicamentos({
   const [saving, setSaving] = useState(false);
   const [editingIndex, setEditingIndex] = useState<number | null>(null);
   const [editModalOpen, setEditModalOpen] = useState(false);
+  const [imageExpanded, setImageExpanded] = useState(false);
 
   const handleSaveMedicamento = async (
     nome: string,
@@ -211,17 +212,24 @@ export function ValidarOcrMedicamentos({
       </div>
 
       <div className={styles.content}>
-        {/* Imagem original - colapsável */}
+        {/* Imagem original - expansível */}
         {imageUrl && (
           <div className={styles.imageSection}>
-            <h3 className={styles.sectionTitle}>Receita</h3>
-            <div className={styles.imageContainer}>
+            <button 
+              className={styles.imageSectionHeader}
+              onClick={() => setImageExpanded(!imageExpanded)}
+              type="button"
+            >
+              <h3 className={styles.sectionTitle}>Receita</h3>
+              <span className={styles.expandIcon}>{imageExpanded ? '▲' : '▼'}</span>
+            </button>
+            <div className={`${styles.imageContainer} ${imageExpanded ? styles.imageExpanded : ''}`}>
               <img 
                 src={imageUrl} 
                 alt="Receita médica" 
                 className={styles.image}
                 onClick={() => window.open(imageUrl, '_blank')}
-                title="Clique para ampliar"
+                title="Clique para abrir em nova aba"
               />
             </div>
           </div>
