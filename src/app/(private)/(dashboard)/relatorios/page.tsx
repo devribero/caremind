@@ -7,10 +7,10 @@ import { useRouter } from 'next/navigation';
 import { useProfileContext } from '@/contexts/ProfileContext';
 import { useIdoso } from '@/contexts/IdosoContext';
 import { FullScreenLoader } from '@/components/features/FullScreenLoader';
-import { InsightsCard } from '@/components/features/relatorios/InsightsCard';
 import { createClient } from '@/lib/supabase/client';
 import { toast } from '@/components/features/Toast';
 import jsPDF from 'jspdf';
+// @ts-ignore
 import autoTable from 'jspdf-autotable';
 import { Download } from 'lucide-react';
 import {
@@ -81,36 +81,6 @@ export default function Relatorios() {
   const selectedElderName = useMemo(() => (
     listaIdososVinculados.find((i) => i.id === idosoSelecionadoId)?.nome || null
   ), [listaIdososVinculados, idosoSelecionadoId]);
-
-  const chartOptions: any = {
-    responsive: true,
-    maintainAspectRatio: false,
-    plugins: {
-      legend: {
-        display: false,
-      },
-      title: {
-        display: false,
-      },
-    },
-    scales: {
-      x: {
-        grid: {
-          display: false,
-        },
-      },
-      y: {
-        beginAtZero: true,
-        max: 100,
-        ticks: {
-          callback: (value: number) => `${value}%`,
-        },
-        grid: {
-          borderDash: [2, 4],
-        },
-      },
-    },
-  };
 
   useEffect(() => {
     const hoje = new Date();
@@ -183,12 +153,12 @@ export default function Relatorios() {
         let eventosFiltrados = eventosHistorico;
         if (tipoSelecionado && tipoSelecionado !== 'Todos') {
           eventosFiltrados = eventosHistorico.filter(
-            e => e.tipo_evento.toLowerCase() === tipoSelecionado.toLowerCase()
+            (e: HistoricoEventoResponse) => e.tipo_evento.toLowerCase() === tipoSelecionado.toLowerCase()
           );
         }
 
         // Mapear para o formato esperado pela UI
-        const eventosFormatados: EventoHistorico[] = eventosFiltrados.map((evento) => ({
+        const eventosFormatados: EventoHistorico[] = eventosFiltrados.map((evento: HistoricoEventoResponse) => ({
           id: evento.id.toString(),
           tipo: (evento.tipo_evento === 'medicamento' ? 'Medicamento' : 'Rotina') as 'Medicamento' | 'Rotina',
           nome: evento.titulo ?? 'Evento',
@@ -266,7 +236,7 @@ export default function Relatorios() {
     };
   }, [analytics]);
 
-  const tendenciaChartOptions = useMemo(() => ({
+  const tendenciaChartOptions: any = useMemo(() => ({
     responsive: true,
     maintainAspectRatio: false,
     plugins: {
@@ -278,7 +248,7 @@ export default function Relatorios() {
         beginAtZero: true,
         suggestedMax: 100,
         ticks: {
-          callback: (value: number) => `${value}%`,
+          callback: (value: number | string) => `${value}%`,
         },
       },
       x: {
@@ -684,58 +654,6 @@ export default function Relatorios() {
         yPos += 5;
       }
 
-      // ========== SEÇÃO: ACOMPANHAMENTO SEMANAL ==========
-      if (yPos > 180) {
-        doc.addPage();
-        yPos = 20;
-      }
-
-      doc.setFontSize(14);
-      doc.setTextColor(4, 0, 186);
-      doc.text('ACOMPANHAMENTO SEMANAL', margin, yPos);
-      yPos += 8;
-
-      const daysOfWeek = ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb'];
-      const weeklyData = chartData.datasets[0].data;
-      const barWidth = (pageWidth - margin * 2 - 30) / 7;
-      const maxBarHeight = 40;
-
-      // Eixo Y
-      doc.setFontSize(7);
-      doc.setTextColor(150);
-      for (let i = 0; i <= 4; i++) {
-        const val = i * 25;
-        const posY = yPos + maxBarHeight - (val / 100) * maxBarHeight;
-        doc.text(`${val}%`, margin - 2, posY + 1, { align: 'right' });
-        doc.setDrawColor(230);
-        doc.setLineWidth(0.2);
-        doc.line(margin, posY, pageWidth - margin, posY);
-      }
-
-      // Barras
-      daysOfWeek.forEach((day, idx) => {
-        const x = margin + 5 + idx * barWidth;
-        const value = weeklyData[idx] as number;
-        const barH = (value / 100) * maxBarHeight;
-
-        doc.setFillColor(4, 0, 186);
-        doc.roundedRect(x + 2, yPos + maxBarHeight - barH, barWidth - 6, barH, 2, 2, 'F');
-
-        // Label dia
-        doc.setFontSize(8);
-        doc.setTextColor(100);
-        doc.text(day, x + barWidth / 2 - 2, yPos + maxBarHeight + 6);
-
-        // Valor
-        if (value > 0) {
-          doc.setFontSize(7);
-          doc.setTextColor(4, 0, 186);
-          doc.text(`${value}%`, x + barWidth / 2 - 2, yPos + maxBarHeight - barH - 2);
-        }
-      });
-
-      yPos += maxBarHeight + 20;
-
       // ========== TABELA DE EVENTOS ==========
       doc.addPage();
       yPos = 20;
@@ -767,7 +685,7 @@ export default function Relatorios() {
           3: { cellWidth: 'auto' },
           4: { cellWidth: 30 }
         },
-        didParseCell: (data) => {
+        didParseCell: (data: any) => {
           // Colorir status
           if (data.column.index === 4 && data.section === 'body') {
             const status = data.cell.raw as string;
@@ -797,7 +715,7 @@ export default function Relatorios() {
     } finally {
       setIsExporting(false);
     }
-  }, [isExporting, analytics, eventos, selectedElderName, dataInicio, dataFim, chartData]);
+  }, [isExporting, analytics, eventos, selectedElderName, dataInicio, dataFim]);
 
   if (loading) {
     return (
