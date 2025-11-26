@@ -1,5 +1,5 @@
 // supabase/functions/alexa-handler/index.ts
-// VERSÃO 4: Suporte a múltiplos idosos + Memória de Sessão
+// VERSÃO 5: Busca correta via vinculos_familiares
 
 import { serve } from 'https://deno.land/std@0.168.0/http/server.ts';
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
@@ -7,11 +7,10 @@ import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
 const SUPABASE_URL = Deno.env.get('SUPABASE_URL')!;
 const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
 
-// Helper para resposta da Alexa mantendo atributos de sessão (memória)
 function buildAlexaResponse(speechText: string, sessionAttributes: any = {}, shouldEndSession = false) {
   return {
     version: '1.0',
-    sessionAttributes: sessionAttributes, // AQUI ESTÁ O SEGREDO: Devolvemos a memória para a Alexa guardar
+    sessionAttributes: sessionAttributes,
     response: {
       outputSpeech: { type: 'PlainText', text: speechText },
       shouldEndSession: shouldEndSession
@@ -19,7 +18,7 @@ function buildAlexaResponse(speechText: string, sessionAttributes: any = {}, sho
   };
 }
 
-console.log('[FUNCTION:START] alexa-handler v4 (Multi-Idoso + Sessão) inicializada');
+console.log('[FUNCTION:START] alexa-handler v5 (vinculos_familiares) inicializada');
 
 serve(async (req) => {
   if (req.method === 'OPTIONS') return new Response('ok');
@@ -27,8 +26,6 @@ serve(async (req) => {
   try {
     const body = await req.json();
     const amazonAccessToken = body.session?.user?.accessToken;
-    
-    // Recupera a memória da conversa anterior (se houver)
     let sessionAttributes = body.session?.attributes || {};
 
     const requestId = crypto.randomUUID().slice(0, 8);
@@ -37,22 +34,19 @@ serve(async (req) => {
     console.log(`[${requestId}] Intent: ${body.request?.intent?.name || 'N/A'}`);
 
     if (!amazonAccessToken) {
-      console.log(`[${requestId}] ❌ Sem token de acesso`);
       return new Response(
         JSON.stringify(buildAlexaResponse('Por favor, vincule sua conta do Caremind no app Alexa.')),
         { headers: { 'Content-Type': 'application/json' } }
       );
     }
 
-    // --- 1. IDENTIFICAÇÃO DO CUIDADOR (Só fazemos se não tivermos os perfis em cache) ---
-    // Usamos sessionAttributes para evitar chamar a API da Amazon e Banco toda vez
-    
+    // --- 1. IDENTIFICAÇÃO DOS IDOSOS ---
     let perfisEncontrados = sessionAttributes.perfis_cache;
 
     if (!perfisEncontrados) {
       console.log(`[${requestId}] Cache vazio - Buscando perfis...`);
-      
-      // Passo A: Quem é o usuário Amazon?
+
+      // A) Quem é o usuário Amazon?
       const amazonProfileRes = await fetch("https://api.amazon.com/user/profile", {
         headers: { Authorization: `Bearer ${amazonAccessToken}` }
       });
@@ -64,12 +58,12 @@ serve(async (req) => {
           { headers: { 'Content-Type': 'application/json' } }
         );
       }
-      
+
       const amazonProfile = await amazonProfileRes.json();
       const amazonUserId = amazonProfile.user_id;
       console.log(`[${requestId}] Amazon User ID: ${amazonUserId.slice(0, 20)}...`);
 
-      // Passo B: Quem é o Cuidador no Supabase?
+      // B) Quem é o Familiar/Cuidador no Supabase?
       const supabaseAdmin = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
       const { data: integracao, error: intError } = await supabaseAdmin
         .from('user_integrations')
@@ -86,125 +80,160 @@ serve(async (req) => {
         );
       }
 
-      console.log(`[${requestId}] Supabase User ID: ${integracao.user_id}`);
+      const idFamiliar = integracao.user_id;
+      console.log(`[${requestId}] ID Familiar (Supabase): ${idFamiliar}`);
 
-      // Passo C: Buscar TODOS os idosos vinculados a este cuidador
-      const { data: perfis, error: perfisError } = await supabaseAdmin
-        .from('perfis')
-        .select('id, nome')
-        .eq('user_id', integracao.user_id);
+      // C) [CORREÇÃO] Buscar os VÍNCULOS na tabela 'vinculos_familiares'
+      console.log(`[${requestId}] Buscando vínculos para familiar: ${idFamiliar}`);
 
-      if (perfisError || !perfis || perfis.length === 0) {
-        console.log(`[${requestId}] ❌ Nenhum perfil encontrado`);
+      const { data: vinculos, error: erroVinculos } = await supabaseAdmin
+        .from('vinculos_familiares')
+        .select('id_idoso')
+        .eq('id_familiar', idFamiliar);
+
+      if (erroVinculos) {
+        console.error(`[${requestId}] ❌ Erro ao buscar vínculos:`, erroVinculos.message);
+      }
+
+      let listaPerfis: any[] = [];
+
+      if (vinculos && vinculos.length > 0) {
+        console.log(`[${requestId}] ✅ Encontrados ${vinculos.length} vínculos`);
+
+        // Extrair os IDs dos idosos (ex: [uuid1, uuid2])
+        const idsIdosos = vinculos.map((v: any) => v.id_idoso);
+        console.log(`[${requestId}] IDs dos idosos:`, idsIdosos);
+
+        // D) Buscar os nomes desses idosos na tabela 'perfis'
+        const { data: dadosIdosos, error: erroPerfis } = await supabaseAdmin
+          .from('perfis')
+          .select('id, nome')
+          .in('id', idsIdosos);
+
+        if (erroPerfis) {
+          console.error(`[${requestId}] ❌ Erro ao buscar perfis:`, erroPerfis.message);
+        }
+
+        listaPerfis = dadosIdosos || [];
+        console.log(`[${requestId}] Perfis encontrados:`, listaPerfis.map(p => p.nome));
+      } else {
+        console.log(`[${requestId}] ⚠️ Nenhum vínculo encontrado, tentando perfil próprio...`);
+
+        // Fallback: Se não tiver vínculos, tenta ver se o próprio usuário tem um perfil
+        const { data: meuPerfil } = await supabaseAdmin
+          .from('perfis')
+          .select('id, nome')
+          .eq('user_id', idFamiliar);
+
+        if (meuPerfil && meuPerfil.length > 0) {
+          listaPerfis = meuPerfil;
+          console.log(`[${requestId}] ✅ Perfil próprio encontrado:`, listaPerfis.map(p => p.nome));
+        }
+      }
+
+      if (listaPerfis.length === 0) {
+        console.log(`[${requestId}] ❌ Nenhum idoso encontrado`);
         return new Response(
-          JSON.stringify(buildAlexaResponse('Não encontrei nenhum perfil de idoso cadastrado na sua conta.')),
+          JSON.stringify(buildAlexaResponse('Não encontrei idosos vinculados à sua conta.')),
           { headers: { 'Content-Type': 'application/json' } }
         );
       }
 
-      console.log(`[${requestId}] ✅ Encontrados ${perfis.length} perfis`);
-      perfisEncontrados = perfis;
-      // Guardamos na memória para a próxima fala
-      sessionAttributes.perfis_cache = perfis;
+      perfisEncontrados = listaPerfis;
+      sessionAttributes.perfis_cache = listaPerfis;
     } else {
-      console.log(`[${requestId}] 📦 Usando cache de perfis (${perfisEncontrados.length} perfis)`);
+      console.log(`[${requestId}] 📦 Usando cache (${perfisEncontrados.length} perfis)`);
     }
 
     // --- 2. LÓGICA DE INTENÇÕES ---
-    
+
     const requestType = body.request.type;
     const intentName = body.request.intent?.name;
     let speechText = 'Não entendi.';
-    
-    // --> ABERTURA (LaunchRequest)
+
+    // --> ABERTURA
     if (requestType === 'LaunchRequest') {
       console.log(`[${requestId}] 🚀 LaunchRequest - ${perfisEncontrados.length} perfis`);
-      
+
       if (perfisEncontrados.length === 1) {
-        // Caso Simples: Só tem 1 idoso. Seleciona automático.
         sessionAttributes.perfil_atual = perfisEncontrados[0];
         speechText = `Olá. Acessando o perfil de ${perfisEncontrados[0].nome}. O que deseja confirmar?`;
       } else {
-        // Caso Múltiplo: Lista os nomes e pergunta.
         const nomes = perfisEncontrados.map((p: any) => p.nome).join(', ');
-        sessionAttributes.aguardando_selecao = true; // Marca que estamos esperando um nome
-        speechText = `Olá! Encontrei os perfis de: ${nomes}. Qual deles você quer acessar?`;
+        sessionAttributes.aguardando_selecao = true;
+        speechText = `Olá! Encontrei: ${nomes}. Qual deles você quer acessar?`;
       }
-      
       return new Response(
         JSON.stringify(buildAlexaResponse(speechText, sessionAttributes, false)),
         { headers: { 'Content-Type': 'application/json' } }
       );
     }
 
-    // --> SELEÇÃO DE PERFIL (Quando o usuário diz um nome)
+    // --> SELEÇÃO DE PERFIL
     if (intentName === 'SelecionarPerfilIntent') {
       const nomeFalado = body.request.intent.slots?.nome?.value;
-      console.log(`[${requestId}] 👤 SelecionarPerfilIntent - Nome falado: "${nomeFalado}"`);
-      
+      console.log(`[${requestId}] 👤 SelecionarPerfilIntent - Nome: "${nomeFalado}"`);
+
       if (!nomeFalado) {
         return new Response(
-          JSON.stringify(buildAlexaResponse('Não entendi o nome. Pode repetir?', sessionAttributes)),
+          JSON.stringify(buildAlexaResponse('Não entendi o nome.', sessionAttributes)),
           { headers: { 'Content-Type': 'application/json' } }
         );
       }
 
-      // Tenta achar o nome na lista (busca simples "contém")
-      const perfilEscolhido = perfisEncontrados.find((p: any) => 
+      const perfilEscolhido = perfisEncontrados.find((p: any) =>
         p.nome.toLowerCase().includes(nomeFalado.toLowerCase())
       );
 
       if (perfilEscolhido) {
         sessionAttributes.perfil_atual = perfilEscolhido;
         sessionAttributes.aguardando_selecao = false;
-        speechText = `Certo, selecionei ${perfilEscolhido.nome}. Pode falar "já tomei o remédio" para confirmar.`;
+        speechText = `Certo, ${perfilEscolhido.nome} selecionado. Pode confirmar dizendo "já tomei".`;
         console.log(`[${requestId}] ✅ Perfil selecionado: ${perfilEscolhido.nome}`);
       } else {
-        speechText = `Não encontrei um idoso chamado ${nomeFalado}. Tenho: ${perfisEncontrados.map((p: any) => p.nome).join(', ')}. Qual deles?`;
+        const nomes = perfisEncontrados.map((p: any) => p.nome).join(', ');
+        speechText = `Não achei ${nomeFalado}. Tenho aqui: ${nomes}. Qual deles?`;
         console.log(`[${requestId}] ❌ Perfil não encontrado: "${nomeFalado}"`);
       }
-      
+
       return new Response(
         JSON.stringify(buildAlexaResponse(speechText, sessionAttributes, false)),
         { headers: { 'Content-Type': 'application/json' } }
       );
     }
 
-    // --> CONFIRMAÇÃO DE EVENTO (O comando principal)
+    // --> CONFIRMAÇÃO
     if (intentName === 'ConfirmarEventoIntent') {
       console.log(`[${requestId}] ✅ ConfirmarEventoIntent`);
-      
-      // Verifica se já temos um idoso selecionado na memória
+
       let perfilAtual = sessionAttributes.perfil_atual;
 
-      if (!perfilAtual) {
-        // Se o usuário mandou confirmar direto sem escolher antes
-        if (perfisEncontrados.length === 1) {
-          // Recuperação automática se for único
-          sessionAttributes.perfil_atual = perfisEncontrados[0];
-          perfilAtual = perfisEncontrados[0];
-          console.log(`[${requestId}] Auto-selecionado perfil único: ${perfilAtual.nome}`);
-        } else {
-          sessionAttributes.aguardando_selecao = true;
-          const nomes = perfisEncontrados.map((p: any) => p.nome).join(', ');
-          console.log(`[${requestId}] ⚠️ Múltiplos perfis - aguardando seleção`);
-          return new Response(
-            JSON.stringify(buildAlexaResponse(`Para qual idoso você quer confirmar? Encontrei: ${nomes}.`, sessionAttributes)),
-            { headers: { 'Content-Type': 'application/json' } }
-          );
-        }
+      // Se não tem perfil selecionado e só tem 1 na lista, seleciona automático
+      if (!perfilAtual && perfisEncontrados.length === 1) {
+        perfilAtual = perfisEncontrados[0];
+        sessionAttributes.perfil_atual = perfilAtual;
+        console.log(`[${requestId}] Auto-selecionado: ${perfilAtual.nome}`);
       }
 
-      // AGORA SIM, com o ID certo, executamos a ação no banco
-      const perfilFinal = perfilAtual || perfisEncontrados[0];
-      console.log(`[${requestId}] Buscando eventos pendentes para: ${perfilFinal.nome} (${perfilFinal.id})`);
-      
+      if (!perfilAtual) {
+        sessionAttributes.aguardando_selecao = true;
+        const nomes = perfisEncontrados.map((p: any) => p.nome).join(', ');
+        console.log(`[${requestId}] ⚠️ Aguardando seleção de perfil`);
+        return new Response(
+          JSON.stringify(buildAlexaResponse(`Para qual idoso? Diga o nome: ${nomes}.`, sessionAttributes)),
+          { headers: { 'Content-Type': 'application/json' } }
+        );
+      }
+
       const supabaseAdmin = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
+
+      // Busca evento pendente para o ID DO IDOSO
+      console.log(`[${requestId}] Buscando eventos pendentes para: ${perfilAtual.nome} (${perfilAtual.id})`);
 
       const { data: evento, error: eventoError } = await supabaseAdmin
         .from('historico_eventos')
         .select('*')
-        .eq('perfil_id', perfilFinal.id)
+        .eq('perfil_id', perfilAtual.id) // <--- Agora usa o ID do idoso certo
         .eq('status', 'pendente')
         .order('data_prevista', { ascending: true })
         .limit(1)
@@ -212,31 +241,31 @@ serve(async (req) => {
 
       if (eventoError || !evento) {
         console.log(`[${requestId}] ℹ️ Nenhum evento pendente`);
-        speechText = `O perfil de ${perfilFinal.nome} não tem pendências para agora.`;
+        speechText = `O perfil de ${perfilAtual.nome} não tem nada pendente agora.`;
       } else {
-        console.log(`[${requestId}] 📋 Evento encontrado: ${evento.titulo} (${evento.tipo_evento})`);
-        
-        // Atualiza Estoque se for medicamento
+        console.log(`[${requestId}] 📋 Evento: ${evento.titulo} (${evento.tipo_evento})`);
+
+        // Baixa no estoque se for medicamento
         if (evento.tipo_evento === 'medicamento') {
           const { data: med } = await supabaseAdmin
             .from('medicamentos')
             .select('quantidade')
             .eq('id', evento.evento_id)
             .single();
-            
+
           if (med && med.quantidade !== null && med.quantidade > 0) {
             await supabaseAdmin
               .from('medicamentos')
               .update({ quantidade: med.quantidade - 1 })
               .eq('id', evento.evento_id);
-            console.log(`[${requestId}] 💊 Estoque atualizado: ${med.quantidade} → ${med.quantidade - 1}`);
+            console.log(`[${requestId}] 💊 Estoque: ${med.quantidade} → ${med.quantidade - 1}`);
           }
         }
-        
-        // Confirma Evento
+
+        // Confirma o evento
         const { error: updateError } = await supabaseAdmin
           .from('historico_eventos')
-          .update({ 
+          .update({
             status: 'confirmado',
             horario_programado: new Date().toISOString()
           })
@@ -247,38 +276,33 @@ serve(async (req) => {
           speechText = 'Tive um problema ao confirmar. Tente novamente.';
         } else {
           console.log(`[${requestId}] ✅ Evento confirmado!`);
-          speechText = `Confirmado para ${perfilFinal.nome}: ${evento.titulo} marcado como feito.`;
+          speechText = `Feito. Marquei ${evento.titulo} como confirmado para ${perfilAtual.nome}.`;
         }
       }
-      
+
       return new Response(
         JSON.stringify(buildAlexaResponse(speechText, sessionAttributes, false)),
         { headers: { 'Content-Type': 'application/json' } }
       );
     }
 
-    // --> INTENTS PADRÃO E DEBUG
+    // DEBUG & DEFAULT
     if (intentName === 'AMAZON.HelpIntent') {
       console.log(`[${requestId}] ❓ HelpIntent`);
-      speechText = 'Você pode selecionar um idoso dizendo o nome dele, ou confirmar um remédio dizendo "já tomei".';
-    } 
-    else if (intentName === 'AMAZON.StopIntent' || intentName === 'AMAZON.CancelIntent') {
+      speechText = 'Diga o nome do idoso ou "já tomei".';
+    } else if (intentName === 'AMAZON.StopIntent' || intentName === 'AMAZON.CancelIntent') {
       console.log(`[${requestId}] 👋 Stop/CancelIntent`);
       speechText = 'Até mais.';
       return new Response(
-        JSON.stringify(buildAlexaResponse(speechText, {}, true)), // Limpa a sessão ao sair
+        JSON.stringify(buildAlexaResponse(speechText, {}, true)),
         { headers: { 'Content-Type': 'application/json' } }
       );
-    }
-    else if (intentName === 'AMAZON.FallbackIntent') {
-      console.log(`[${requestId}] 🔄 FallbackIntent - Comando não reconhecido pela Alexa`);
-      speechText = 'Desculpe, não entendi esse comando. Tente dizer o nome do idoso ou "já tomei".';
-    }
-    // [DEBUG] Se chegou aqui com "Não entendi", vamos ver o que a Alexa mandou
-    else if (speechText === 'Não entendi.') {
-      console.log(`[${requestId}] ⚠️ Comando desconhecido recebido:`, intentName);
-      console.log(`[${requestId}] Request completo:`, JSON.stringify(body.request, null, 2));
-      speechText = `Recebi o comando ${intentName || 'desconhecido'} e não sei o que fazer. Tente "já tomei" ou diga o nome do idoso.`;
+    } else if (intentName === 'AMAZON.FallbackIntent') {
+      console.log(`[${requestId}] 🔄 FallbackIntent`);
+      speechText = 'Não entendi. Tente dizer: "abrir care mind"';
+    } else if (speechText === 'Não entendi.') {
+      console.log(`[${requestId}] ⚠️ Intent desconhecida:`, intentName);
+      speechText = `Recebi "${intentName || 'desconhecido'}" mas não sei o que fazer.`;
     }
 
     return new Response(
@@ -289,7 +313,7 @@ serve(async (req) => {
   } catch (error) {
     console.error('[ERRO FATAL]', error);
     return new Response(
-      JSON.stringify(buildAlexaResponse('Erro técnico no Caremind.')),
+      JSON.stringify(buildAlexaResponse('Erro técnico.')),
       { headers: { 'Content-Type': 'application/json' } }
     );
   }
