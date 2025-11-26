@@ -81,7 +81,7 @@ export default function HeaderDashboard({ collapsed, onToggle }: { collapsed: bo
               <Link href="/perfil" className={styles.dropdownItem} style={{ display: 'block', padding: '10px 12px', color: '#0f172a' }} onClick={() => setOpen(false)}>
                 Perfil
               </Link>
-              <button className={styles.dropdownItem} style={{ display: 'block', padding: '10px 12px', width: '100%', textAlign: 'left', border: 'none', background: 'transparent', color: '#ef4444', cursor: 'pointer' }} onClick={async () => { await signOut(); router.push('/auth'); }}>
+              <button className={styles.dropdownItem} style={{ display: 'block', padding: '10px 12px', width: '100%', textAlign: 'left', border: 'none', background: 'transparent', color: '#ef4444', cursor: 'pointer' }} onClick={async () => { await signOut(); router.push('/'); }}>
                 Sair
               </button>
             </div>
