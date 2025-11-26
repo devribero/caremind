@@ -287,7 +287,7 @@ export default function CompromissosCalendar({
           tileClassName={tileClassName}
           className={styles.calendar}
           locale="pt-BR"
-          calendarType="ISO 8601"
+          calendarType="iso8601"
           onClickDay={handleDateClick}
         />
       </div>

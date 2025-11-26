@@ -323,3 +323,46 @@
 .viewButtonActive:hover {
   background: #0300a0;
 }
+
+/* Filter toggle para contas familiares */
+.pageHeader {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+.filterToggle {
+  display: flex;
+  gap: 0.5rem;
+  background: #f3f4f6;
+  padding: 4px;
+  border-radius: 10px;
+}
+
+.filterButton {
+  padding: 0.5rem 1rem;
+  border: none;
+  border-radius: 8px;
+  background: transparent;
+  color: #6b7280;
+  font-size: 0.875rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.filterButton:hover {
+  background: #e5e7eb;
+}
+
+.filterButtonActive {
+  background: #0400BA;
+  color: white;
+}
+
+.filterButtonActive:hover {
+  background: #0300a0;
+}

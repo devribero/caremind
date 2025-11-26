@@ -12,6 +12,7 @@ import { AddMedicamentoForm } from '@/components/features/forms/AddMedicamentoFo
 import { Modal } from '@/components/features/Modal';
 import MedicamentoCard from '@/components/features/MedicamentoCard';
 import { ValidarOcrMedicamentos } from '@/components/features/ValidarOcrMedicamentos';
+import { OcrProcessingOverlay } from '@/components/features/OcrProcessingOverlay';
 import { createClient } from '@/lib/supabase/client';
 import { toast } from '@/components/features/Toast';
 import { MedicamentosService } from '@/lib/supabase/services';
@@ -64,6 +65,16 @@ export default function Remedios() {
   const [photoUploading, setPhotoUploading] = useState(false);
   const [photoStatus, setPhotoStatus] = useState<string | null>(null);
   const [photoError, setPhotoError] = useState<string | null>(null);
+
+  // Estado do overlay de processamento OCR
+  const [ocrOverlay, setOcrOverlay] = useState<{
+    isVisible: boolean;
+    status: 'uploading' | 'processing' | 'analyzing' | 'validating' | 'success' | 'error';
+    errorMessage?: string;
+  }>({
+    isVisible: false,
+    status: 'uploading',
+  });
 
   const [validacaoModal, setValidacaoModal] = useState<{
     isOpen: boolean;
@@ -361,9 +372,10 @@ export default function Remedios() {
       return;
     }
 
+    // Fechar modal de foto e mostrar overlay
+    photoModal.close();
+    setOcrOverlay({ isVisible: true, status: 'uploading' });
     setPhotoError(null);
-    setPhotoStatus('Enviando foto...');
-    toast.info('Enviando foto...');
     setPhotoUploading(true);
 
     const supabase = createClient();
@@ -378,8 +390,7 @@ export default function Remedios() {
         .maybeSingle();
 
       if (perfilError || !perfil) {
-        setPhotoError('Perfil não encontrado. Verifique se o usuário possui um perfil cadastrado.');
-        toast.error('Perfil não encontrado. Verifique se o usuário possui um perfil cadastrado.');
+        setOcrOverlay({ isVisible: true, status: 'error', errorMessage: 'Perfil não encontrado. Verifique se o usuário possui um perfil cadastrado.' });
         setPhotoUploading(false);
         return;
       }
@@ -390,27 +401,24 @@ export default function Remedios() {
         .upload(fileName, file);
 
       if (uploadError) {
-        setPhotoError(`Erro ao fazer upload: ${uploadError.message}`);
-        toast.error(`Erro ao fazer upload: ${uploadError.message}`);
+        setOcrOverlay({ isVisible: true, status: 'error', errorMessage: `Erro ao fazer upload: ${uploadError.message}` });
         return;
       }
 
-      setPhotoStatus('Gerando link público...');
+      setOcrOverlay({ isVisible: true, status: 'processing' });
+      
       const { data: publicUrlData } = supabase.storage
         .from('receitas-medicas')
         .getPublicUrl(fileName);
       if (!publicUrlData) {
-        setPhotoError('Erro ao obter URL pública');
-        toast.error('Erro ao obter URL pública');
+        setOcrOverlay({ isVisible: true, status: 'error', errorMessage: 'Erro ao obter URL pública' });
         return;
       }
       const imageUrl = publicUrlData.publicUrl;
 
-      setPhotoStatus('Registrando processamento...');
       const { data: inserted, error: insertError } = await supabase
         .from('ocr_gerenciamento')
         .insert({
-          // Quando familiar, garantir que use o id do idoso selecionado
           user_id: userIdToUse,
           image_url: imageUrl,
           status: 'PENDENTE',
@@ -419,23 +427,19 @@ export default function Remedios() {
         .single();
 
       if (insertError) {
-        setPhotoError(`Erro ao salvar no banco: ${insertError.message}`);
-        toast.error(`Erro ao salvar no banco: ${insertError.message}`);
+        setOcrOverlay({ isVisible: true, status: 'error', errorMessage: `Erro ao salvar no banco: ${insertError.message}` });
         return;
       }
 
-      setPhotoStatus('Foto enviada! Processando receita...');
-      toast.success('Foto enviada! Processando receita...');
-      photoModal.close();
-      setPhotoStatus(null);
+      setOcrOverlay({ isVisible: true, status: 'analyzing' });
 
       // Polling de status do OCR
       if (inserted?.id) {
         const ocrId = inserted.id as string;
         const start = Date.now();
         const timeoutMs = 10 * 60 * 1000; // 10 minutos
-        const interval = 5000; // 5s
-        let notifiedStatusError = false;
+        const interval = 3000; // 3s para feedback mais rápido
+        
         const poll = async () => {
           try {
             const { data, error } = await supabase
@@ -443,75 +447,82 @@ export default function Remedios() {
               .select('status, error_message, result_json, image_url')
               .eq('id', ocrId)
               .single();
+              
             if (error) {
-              // Falha temporária ao consultar status: avisar uma vez e continuar tentando
-              if (!notifiedStatusError) {
-                toast.info('Aguardando processamento da receita...');
-                notifiedStatusError = true;
-              }
               if (Date.now() - start < timeoutMs) {
                 setTimeout(poll, interval);
               } else {
-                toast.error('Tempo esgotado aguardando processamento da receita.');
+                setOcrOverlay({ isVisible: true, status: 'error', errorMessage: 'Tempo esgotado aguardando processamento da receita.' });
               }
               return;
             }
+            
             const status = (data as any)?.status;
+            
             // Aguardando validação: abrir tela de validação
             if (status === 'AGUARDANDO_VALIDACAO') {
               const resultJson = (data as any)?.result_json;
               const medicamentos = resultJson?.medicamentos || resultJson?.medicamentos_extraidos_qwen || [];
-              const imageUrl = (data as any)?.image_url || '';
-              const perfilIdFromResult = resultJson?.perfil_id || null;
+              const imgUrl = (data as any)?.image_url || '';
 
-              if (medicamentos.length > 0 && imageUrl) {
-                setValidacaoModal({
-                  isOpen: true,
-                  ocrId: Number(ocrId),
-                  imageUrl,
-                  medicamentos,
-                });
-                photoModal.close();
-                return; // fim do polling - aguardando validação do usuário
-              } else {
-                toast.error('Erro: dados do OCR não encontrados');
-                return;
-              }
-            }
-            // Sucesso: PROCESSADO ou PROCESSADO_PARCIALMENTE
-            if (status === 'PROCESSADO' || status === 'PROCESSADO_PARCIALMENTE') {
-              toast.success('Receita processada. Atualizando medicamentos...');
-              await fetchMedicamentos();
-              return; // fim do polling
-            }
-            // Erros: ERRO_PROCESSAMENTO (ex.: não encontrou medicamentos) ou ERRO_DATABASE
-            if (status === 'ERRO_PROCESSAMENTO' || status === 'ERRO_DATABASE') {
-              const errMsg = (data as any)?.error_message || 'Não foi possível encontrar medicamento na receita.';
-              toast.error(`Falha no processamento: ${errMsg}`);
-              return; // fim do polling
-            }
-            if (Date.now() - start >= timeoutMs) {
-              toast.error('Tempo esgotado aguardando processamento da receita.');
+              setOcrOverlay({ isVisible: true, status: 'validating' });
+              
+              // Pequeno delay para mostrar o status antes de abrir modal
+              setTimeout(() => {
+                setOcrOverlay({ isVisible: false, status: 'uploading' });
+                
+                if (medicamentos.length > 0 && imgUrl) {
+                  setValidacaoModal({
+                    isOpen: true,
+                    ocrId: Number(ocrId),
+                    imageUrl: imgUrl,
+                    medicamentos,
+                  });
+                } else {
+                  toast.error('Nenhum medicamento encontrado na receita. Tente novamente com uma foto mais clara.');
+                }
+              }, 800);
               return;
             }
+            
+            // Sucesso: PROCESSADO ou PROCESSADO_PARCIALMENTE
+            if (status === 'PROCESSADO' || status === 'PROCESSADO_PARCIALMENTE') {
+              setOcrOverlay({ isVisible: true, status: 'success' });
+              await fetchMedicamentos();
+              setTimeout(() => {
+                setOcrOverlay({ isVisible: false, status: 'uploading' });
+              }, 1500);
+              return;
+            }
+            
+            // Erros
+            if (status === 'ERRO_PROCESSAMENTO' || status === 'ERRO_DATABASE') {
+              const errMsg = (data as any)?.error_message || 'Não foi possível encontrar medicamento na receita.';
+              setOcrOverlay({ isVisible: true, status: 'error', errorMessage: errMsg });
+              return;
+            }
+            
+            if (Date.now() - start >= timeoutMs) {
+              setOcrOverlay({ isVisible: true, status: 'error', errorMessage: 'Tempo esgotado aguardando processamento da receita.' });
+              return;
+            }
+            
             setTimeout(poll, interval);
           } catch (e) {
-            const errMsg = e instanceof Error ? e.message : 'Erro inesperado no polling';
-            // Erro inesperado: continuar tentando até timeout
-            toast.info('Aguardando processamento da receita...');
             if (Date.now() - start < timeoutMs) {
               setTimeout(poll, interval);
             } else {
-              toast.error(`Tempo esgotado: ${errMsg}`);
+              const errMsg = e instanceof Error ? e.message : 'Erro inesperado';
+              setOcrOverlay({ isVisible: true, status: 'error', errorMessage: errMsg });
             }
           }
         };
+        
         setTimeout(poll, interval);
       }
     } catch (e) {
       const errMsg = e instanceof Error ? e.message : 'Erro inesperado';
-      setPhotoError(errMsg);
-      toast.error(`Erro: ${errMsg}`);
+      setOcrOverlay({ isVisible: true, status: 'error', errorMessage: errMsg });
     } finally {
       setPhotoUploading(false);
     }
@@ -678,6 +689,14 @@ export default function Remedios() {
           />
         )}
       </Modal>
+
+      {/* Overlay de processamento OCR */}
+      <OcrProcessingOverlay
+        isVisible={ocrOverlay.isVisible}
+        status={ocrOverlay.status}
+        errorMessage={ocrOverlay.errorMessage}
+        onClose={() => setOcrOverlay({ isVisible: false, status: 'uploading' })}
+      />
     </main>
   );
 }

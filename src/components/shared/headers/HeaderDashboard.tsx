@@ -187,12 +187,10 @@ export function Header({ isMenuOpen, onMenuToggle }: HeaderProps) {
                                                 role="option"
                                                 aria-selected={i.id === idosoSelecionadoId}
                                                 className={styles.elderOption}
-                                                onClick={() => { 
-                                                    setIdosoSelecionado(i.id); 
-                                                    setElderOpen(false);
-                                                    // Força refresh da página para atualizar os dados do novo idoso
-                                                    router.refresh();
-                                                }}
+                                                            onClick={() => { 
+                                                                    setIdosoSelecionado(i.id); 
+                                                                    setElderOpen(false);
+                                                                }}
                                             >
                                                 {i.nome}
                                             </div>

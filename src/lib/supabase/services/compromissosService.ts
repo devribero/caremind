@@ -15,6 +15,16 @@ export const CompromissosService = {
     return data;
   },
 
+  async listarCompromissosMultiplos(perfilIds: string[]): Promise<Compromisso[]> {
+    const supabase = createClient();
+    const { data, error } = await supabase
+      .from('compromissos')
+      .select('*')
+      .in('perfil_id', perfilIds);
+    if (error) throw error;
+    return data;
+  },
+
   async criarCompromisso(compromisso: Omit<Compromisso, 'id' | 'created_at'>): Promise<Compromisso> {
     const supabase = createClient();
     const { data, error } = await supabase

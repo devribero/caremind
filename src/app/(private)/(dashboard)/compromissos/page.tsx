@@ -20,7 +20,8 @@ export default function CompromissosPage() {
   const { profile } = useProfileContext();
   const { idosoSelecionadoId, listaIdososVinculados } = useIdoso();
   const isFamiliar = profile?.tipo === 'familiar';
-  const targetProfileId = isFamiliar ? idosoSelecionadoId : profile?.id;
+  const [showAll, setShowAll] = useState(false);
+  const targetProfileId = isFamiliar && !showAll ? idosoSelecionadoId : profile?.id;
 
   const [items, setItems] = useState<CompItem[]>([]);
   const [loading, setLoading] = useState(true);
@@ -33,25 +34,32 @@ export default function CompromissosPage() {
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);
 
   const selectedElderName = useMemo(() => {
+    if (showAll) return null;
     const elderList = listaIdososVinculados ?? [];
     return elderList.find((i) => i.id === idosoSelecionadoId)?.nome_completo || null;
-  }, [listaIdososVinculados, idosoSelecionadoId]);
+  }, [listaIdososVinculados, idosoSelecionadoId, showAll]);
 
   useEffect(() => {
     const fetchItems = async () => {
-      if (!targetProfileId) {
-        if (isFamiliar) {
-          setItems([]);
-          setLoading(false);
-        }
-        return;
-      }
-
       setLoading(true);
       setError(null);
+      
       try {
-        const data = await CompromissosService.listarCompromissos(targetProfileId);
-        setItems(data);
+        if (isFamiliar && showAll) {
+          // Buscar compromissos de todos os idosos vinculados
+          const allIds = listaIdososVinculados?.map(i => i.id) || [];
+          if (allIds.length === 0) {
+            setItems([]);
+          } else {
+            const data = await CompromissosService.listarCompromissosMultiplos(allIds);
+            setItems(data);
+          }
+        } else if (targetProfileId) {
+          const data = await CompromissosService.listarCompromissos(targetProfileId);
+          setItems(data);
+        } else {
+          setItems([]);
+        }
       } catch (err: any) {
         setError(err.message);
         toast.error('Falha ao carregar compromissos.');
@@ -61,7 +69,7 @@ export default function CompromissosPage() {
     };
 
     fetchItems();
-  }, [targetProfileId, isFamiliar]);
+  }, [targetProfileId, isFamiliar, showAll, listaIdososVinculados]);
 
   const handleCreate = async (data: Omit<Compromisso, 'id' | 'created_at'>) => {
     if (!targetProfileId) {
@@ -191,11 +199,34 @@ export default function CompromissosPage() {
     );
   };
 
+  const pageTitle = useMemo(() => {
+    if (!isFamiliar) return 'Meus Compromissos';
+    if (showAll) return 'Compromissos de Todos os Idosos';
+    if (selectedElderName) return `Compromissos de ${selectedElderName}`;
+    return 'Compromissos do Idoso';
+  }, [isFamiliar, showAll, selectedElderName]);
+
   return (
     <main className={styles.main}>
       <div className={styles.content}>
         <div className={styles.pageHeader}>
-          <h1 className={styles.content_title}>{selectedElderName ? `Compromissos de ${selectedElderName}` : 'Meus Compromissos'}</h1>
+          <h1 className={styles.content_title}>{pageTitle}</h1>
+          {isFamiliar && listaIdososVinculados && listaIdososVinculados.length > 0 && (
+            <div className={styles.filterToggle}>
+              <button
+                className={`${styles.filterButton} ${!showAll ? styles.filterButtonActive : ''}`}
+                onClick={() => setShowAll(false)}
+              >
+                {selectedElderName || 'Idoso Selecionado'}
+              </button>
+              <button
+                className={`${styles.filterButton} ${showAll ? styles.filterButtonActive : ''}`}
+                onClick={() => setShowAll(true)}
+              >
+                Todos
+              </button>
+            </div>
+          )}
         </div>
 
         {!loading && !error && !(isFamiliar && !targetProfileId) && (
