@@ -280,13 +280,14 @@ export default function DashboardClient({ readOnly = false, idosoId }: { readOnl
           throw new Error('Tipo de item inválido para criar evento');
         }
 
-        // Cria ou atualiza o evento
+        // Cria ou atualiza o evento com o título correto
         await criarOuAtualizarEvento(
           profile.id,
           item.tipo,
           eventoId,
           novoStatus,
-          item.horario
+          item.horario,
+          item.titulo
         );
       } else {
         // Item já existe no histórico, apenas atualiza
@@ -323,6 +324,38 @@ export default function DashboardClient({ readOnly = false, idosoId }: { readOnl
   const { medsHoje, medsHojeConcluidos, rotinasHoje, rotinasHojeConcluidas, alertasPendentes, dosesOmitidas, estoqueBaixo, agendaExata } = useMemo(() => {
     const hoje = new Date();
 
+    // Função para extrair o horário da frequência
+    const getHorarioFromFrequencia = (frequencia: any): Date => {
+      const agora = new Date();
+      if (!frequencia) return agora;
+
+      // Tipo "horarios_fixos" - usa o primeiro horário do array
+      if (frequencia.tipo === 'horarios_fixos' && frequencia.horarios?.length > 0) {
+        const [hora, minuto] = frequencia.horarios[0].split(':').map(Number);
+        const horario = new Date(hoje);
+        horario.setHours(hora, minuto, 0, 0);
+        return horario;
+      }
+
+      // Tipo "intervalo" - usa o horário de início
+      if (frequencia.tipo === 'intervalo' && frequencia.inicio) {
+        const [hora, minuto] = frequencia.inicio.split(':').map(Number);
+        const horario = new Date(hoje);
+        horario.setHours(hora, minuto, 0, 0);
+        return horario;
+      }
+
+      // Tipo "dias_especificos" - usa o horário fixo
+      if (frequencia.tipo === 'dias_especificos' && frequencia.horario) {
+        const [hora, minuto] = frequencia.horario.split(':').map(Number);
+        const horario = new Date(hoje);
+        horario.setHours(hora, minuto, 0, 0);
+        return horario;
+      }
+
+      return agora;
+    };
+
     // 1. Calcular itens agendados para hoje baseados na frequência
     const medsAgendadosHoje = medicamentos.filter(med => isScheduledForDate(med, hoje));
     const rotinasAgendadasHoje = rotinas.filter(rot => isScheduledForDate(rot, hoje));
@@ -348,12 +381,12 @@ export default function DashboardClient({ readOnly = false, idosoId }: { readOnl
         return eventoExistente;
       }
 
-      // Item calculado mas ainda não gerado no histórico
+      // Item calculado mas ainda não gerado no histórico - usa horário da frequência
       return {
         id: `temp-med-${med.id}`,
         tipo: 'medicamento',
         titulo: med.nome,
-        horario: new Date(), // Horário padrão ou calcular baseado na frequência
+        horario: getHorarioFromFrequencia(med.frequencia),
         status: 'pendente',
         dadosOriginais: med
       } as AgendaItem;
@@ -371,7 +404,7 @@ export default function DashboardClient({ readOnly = false, idosoId }: { readOnl
         id: `temp-rot-${rot.id}`,
         tipo: 'rotina',
         titulo: rot.titulo,
-        horario: new Date(),
+        horario: getHorarioFromFrequencia(rot.frequencia),
         status: 'pendente',
         dadosOriginais: rot
       } as AgendaItem;

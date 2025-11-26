@@ -161,7 +161,8 @@ export const criarOuAtualizarEvento = async (
   tipoEvento: 'medicamento' | 'rotina',
   eventoId: number,
   novoStatus: StatusEvento = 'confirmado',
-  dataEvento: Date = new Date()
+  dataEvento: Date = new Date(),
+  titulo?: string
 ): Promise<HistoricoEvento> => {
   const supabase = createClient();
   
@@ -193,7 +194,7 @@ export const criarOuAtualizarEvento = async (
   }
 
   // Se não existe, cria novo evento
-  const novoEvento: Omit<HistoricoEvento, 'id' | 'created_at'> = {
+  const novoEvento: Omit<HistoricoEvento, 'id' | 'created_at'> & { titulo?: string } = {
     perfil_id: perfilId,
     tipo_evento: tipoEvento,
     evento_id: eventoId,
@@ -202,6 +203,7 @@ export const criarOuAtualizarEvento = async (
     horario_programado: novoStatus === 'confirmado' ? new Date().toISOString() : null,
     bem_estar_registrado: null,
     id_evento_origem: null,
+    titulo: titulo || undefined,
   };
 
   // Se for medicamento e estiver sendo confirmado, diminui a quantidade
