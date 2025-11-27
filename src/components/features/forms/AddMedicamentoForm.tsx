@@ -503,11 +503,10 @@ export function AddMedicamentoForm({ onSave, onCancel, medicamento }: AddMedicam
           />
           <div className={styles.formGroup}>
             <label htmlFor="horaUnica">A partir das</label>
-            <input
+            <TimePicker
               id="horaUnica"
-              type="time"
               value={horaInicio}
-              onChange={(e) => setHoraInicio(e.target.value)}
+              onChange={(value) => setHoraInicio(value)}
               className={styles.input}
               aria-required="true"
             />

@@ -5,7 +5,7 @@
 DROP TRIGGER IF EXISTS trg_gerar_eventos_medicamento ON public.medicamentos;
 DROP TRIGGER IF EXISTS trg_sincronizar_horarios_medicamento ON public.medicamentos;
 
--- 2. Criar função simplificada para criar medicamento sem trigger
+-- 2. Criar função simplificada para criar medicamento sem trigger (bypass RLS)
 CREATE OR REPLACE FUNCTION public.criar_medicamento_sem_trigger(
   p_nome TEXT,
   p_perfil_id UUID,
@@ -21,9 +21,9 @@ RETURNS TABLE (
   quantidade INTEGER,
   perfil_id UUID,
   created_at TIMESTAMPTZ
-) AS $$
+) SECURITY DEFINER AS $$
 BEGIN
-  -- Inserir medicamento sem ativar triggers
+  -- Inserir medicamento sem ativar triggers (bypass RLS)
   RETURN QUERY
   INSERT INTO public.medicamentos (nome, dosagem, frequencia, quantidade, perfil_id)
   VALUES (p_nome, p_dosagem, p_frequencia, p_quantidade, p_perfil_id)
@@ -38,34 +38,22 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
--- 3. Recriar trigger corrigido (sem ambiguidade)
-CREATE OR REPLACE FUNCTION public.trigger_gerar_eventos_medicamento()
-RETURNS TRIGGER AS $$
-BEGIN
-  -- Só gerar eventos se não for criação via função alternativa
-  IF TG_OP = 'INSERT' AND NEW.perfil_id IS NOT NULL THEN
-    -- Gerar eventos apenas para hoje para evitar problemas
-    PERFORM public.gerar_eventos_do_dia_simplificado(CURRENT_DATE, 'America/Sao_Paulo', NEW.id);
-  END IF;
-  
-  RETURN NEW;
-END;
-$$ LANGUAGE plpgsql;
-
--- 4. Criar função simplificada para gerar eventos (sem ambiguidade)
-CREATE OR REPLACE FUNCTION public.gerar_eventos_do_dia_simplificado(
+-- 3. Criar função para gerar eventos com bypass RLS (necessário para triggers)
+CREATE OR REPLACE FUNCTION public.gerar_eventos_medicamento_bypass_rls(
+  p_medicamento_id BIGINT,
+  p_perfil_id UUID,
   p_data DATE DEFAULT CURRENT_DATE,
-  p_timezone TEXT DEFAULT 'America/Sao_Paulo',
-  p_medicamento_id BIGINT DEFAULT NULL
+  p_timezone TEXT DEFAULT 'America/Sao_Paulo'
 )
 RETURNS INTEGER AS $$
 DECLARE
   v_eventos_criados INTEGER := 0;
 BEGIN
-  -- Versão simplificada que evita ambiguidade
+  -- Versão que bypass RLS para criar eventos automaticamente
   INSERT INTO public.historico_eventos (
     perfil_id,
     tipo_evento,
+    evento_id,
     data_prevista,
     horario_programado,
     titulo,
@@ -76,8 +64,9 @@ BEGIN
     referencia_id
   )
   SELECT 
-    m.perfil_id,
+    p_perfil_id,
     'medicamento',
+    m.id,
     (p_data::TIMESTAMP + mh.horario) AT TIME ZONE p_timezone AT TIME ZONE 'UTC',
     (p_data::TIMESTAMP + mh.horario) AT TIME ZONE p_timezone AT TIME ZONE 'UTC',
     'Medicamento: ' || m.nome,
@@ -88,8 +77,8 @@ BEGIN
     m.id::TEXT
   FROM public.medicamentos m
   JOIN public.medicamento_horarios mh ON mh.medicamento_id = m.id
-  WHERE m.quantidade > 0
-    AND (p_medicamento_id IS NULL OR m.id = p_medicamento_id)
+  WHERE m.id = p_medicamento_id
+    AND m.quantidade > 0
     AND (
       mh.dia_semana IS NULL 
       OR mh.dia_semana = EXTRACT(DOW FROM (p_data::TIMESTAMP AT TIME ZONE p_timezone))::INTEGER
@@ -110,7 +99,21 @@ BEGIN
   
   RETURN v_eventos_criados;
 END;
-$$ LANGUAGE plpgsql;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
+
+-- 4. Recriar trigger corrigido (sem ambiguidade e com bypass RLS)
+CREATE OR REPLACE FUNCTION public.trigger_gerar_eventos_medicamento()
+RETURNS TRIGGER AS $$
+BEGIN
+  -- Só gerar eventos se não for criação via função alternativa
+  IF TG_OP = 'INSERT' AND NEW.perfil_id IS NOT NULL THEN
+    -- Gerar eventos usando função com bypass RLS
+    PERFORM public.gerar_eventos_medicamento_bypass_rls(NEW.id, NEW.perfil_id);
+  END IF;
+  
+  RETURN NEW;
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
 
 -- 5. Recriar trigger com função corrigida
 CREATE TRIGGER trg_gerar_eventos_medicamento
@@ -125,13 +128,13 @@ BEGIN
   -- Sincronizar horários quando frequência mudar
   IF TG_OP = 'INSERT' OR (TG_OP = 'UPDATE' AND (OLD.frequencia IS DISTINCT FROM NEW.frequencia)) THEN
     PERFORM public.sincronizar_horarios_medicamento(NEW.id);
-    -- Gerar eventos para hoje
-    PERFORM public.gerar_eventos_do_dia_simplificado(CURRENT_DATE, 'America/Sao_Paulo', NEW.id);
+    -- Gerar eventos para hoje usando função com bypass RLS
+    PERFORM public.gerar_eventos_medicamento_bypass_rls(NEW.id, NEW.perfil_id);
   END IF;
   
   RETURN NEW;
 END;
-$$ LANGUAGE plpgsql;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
 
 CREATE TRIGGER trg_sincronizar_horarios_medicamento
   AFTER INSERT OR UPDATE OF frequencia ON public.medicamentos
@@ -139,5 +142,5 @@ CREATE TRIGGER trg_sincronizar_horarios_medicamento
   EXECUTE FUNCTION public.trigger_sincronizar_horarios_medicamento();
 
 -- Comentário sobre o fix
-COMMENT ON FUNCTION public.criar_medicamento_sem_trigger IS 'Função alternativa para criar medicamentos sem triggers problemáticos';
-COMMENT ON FUNCTION public.gerar_eventos_do_dia_simplificado IS 'Versão simplificada que evita ambiguidade de coluna data_prevista';
+COMMENT ON FUNCTION public.criar_medicamento_sem_trigger IS 'Função alternativa para criar medicamentos sem triggers problemáticos (bypass RLS)';
+COMMENT ON FUNCTION public.gerar_eventos_medicamento_bypass_rls IS 'Função para gerar eventos com bypass RLS (necessário para triggers)';
