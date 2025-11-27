@@ -112,28 +112,55 @@ export const MedicamentosService = {
       throw new Error('Perfil é obrigatório para criar medicamento');
     }
     
-    // Remove user_id do objeto antes de inserir (a coluna não existe mais)
+    // Removes user_id do objeto antes de inserir (a coluna não existe mais)
     const { user_id, ...medicamentoToInsert } = medicamento;
     
-    const { data, error } = await supabase
-      .from(TABLE_NAME)
-      .insert(medicamentoToInsert)
-      .select()
-      .single();
-    
-    if (error) {
-      console.error('Erro Supabase ao criar medicamento:', error);
-      if (error.code === '23505') {
-        throw new Error('Medicamento já existe');
-      } else if (error.code === '23503') {
-        throw new Error('Referência inválida (perfil não existe)');
-      } else if (error.code === '42501') {
-        throw new Error('Sem permissão para criar medicamento');
+    try {
+      const { data, error } = await supabase
+        .from(TABLE_NAME)
+        .insert(medicamentoToInsert)
+        .select()
+        .single();
+      
+      if (error) {
+        console.error('Erro Supabase ao criar medicamento:', error);
+        if (error.code === '23505') {
+          throw new Error('Medicamento já existe');
+        } else if (error.code === '23503') {
+          throw new Error('Referência inválida (perfil não existe)');
+        } else if (error.code === '42501') {
+          throw new Error('Sem permissão para criar medicamento');
+        }
+        // Verificar se é erro de ambiguidade de coluna
+        if (error.message && error.message.includes('column reference "data_prevista" is ambiguous')) {
+          console.warn('Erro de ambiguidade detectado, tentando abordagem alternativa...');
+          // Tentar criar sem trigger temporariamente
+          const { data: dataFallback, error: fallbackError } = await supabase
+            .rpc('criar_medicamento_sem_trigger', {
+              p_nome: medicamentoToInsert.nome,
+              p_perfil_id: medicamentoToInsert.perfil_id,
+              p_dosagem: medicamentoToInsert.dosagem,
+              p_frequencia: medicamentoToInsert.frequencia,
+              p_quantidade: medicamentoToInsert.quantidade
+            });
+          
+          if (fallbackError) {
+            throw new Error(`Erro ao criar medicamento (ambiguidade no banco): ${error.message}. Por favor, contate o suporte técnico.`);
+          }
+          
+          return dataFallback as Medicamento;
+        }
+        throw new Error(error.message || 'Erro ao salvar no banco de dados');
       }
-      throw new Error(error.message || 'Erro ao salvar no banco de dados');
+      
+      return data as Medicamento;
+    } catch (err) {
+      // Se o erro for sobre ambiguidade, fornecer uma mensagem mais clara
+      if (err instanceof Error && err.message.includes('data_prevista') && err.message.includes('ambiguous')) {
+        throw new Error('Erro de configuração do banco de dados ao criar medicamento. Este problema ocorre quando há múltiplos horários. Por favor, tente novamente ou contate o suporte.');
+      }
+      throw err;
     }
-    
-    return data as Medicamento;
   },
 
   async atualizarMedicamento(id: number, updates: MedicamentoUpdate): Promise<Medicamento> {

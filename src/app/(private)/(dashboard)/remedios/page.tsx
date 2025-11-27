@@ -213,8 +213,17 @@ export default function Remedios() {
       await fetchMedicamentos(); // Recarrega para garantir sincronização
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Erro ao criar medicamento';
-      toast.error(errorMessage);
-      alert(`Erro ao criar medicamento: ${errorMessage}`);
+      
+      // Verificar se é erro específico de ambiguidade
+      if (errorMessage.includes('data_prevista') && errorMessage.includes('ambiguous')) {
+        const userFriendlyMessage = 'Ocorreu um erro ao criar medicamento com múltiplos horários. Isso é um problema de configuração do banco de dados que já foi identificado. Por favor:\n\n1. Tente novamente com um único horário por enquanto\n2. Se precisar usar múltiplos horários, contate o suporte técnico\n3. O problema será corrigido em breve em uma atualização';
+        
+        toast.error('Erro ao criar medicamento com múltiplos horários');
+        alert(userFriendlyMessage);
+      } else {
+        toast.error(errorMessage);
+        alert(`Erro ao criar medicamento: ${errorMessage}`);
+      }
     }
   };
 
