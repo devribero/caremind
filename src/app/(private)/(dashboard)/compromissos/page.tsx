@@ -67,7 +67,7 @@ export default function CompromissosPage() {
     };
 
     fetchItems();
-  }, [targetProfileId, isFamiliar, mostrarTodos, todosIdososIds]);
+  }, [targetProfileId, isFamiliar, mostrarTodos, todosIdososIds, idosoSelecionadoId]);
 
   const handleCreate = async (data: Omit<Compromisso, 'id' | 'created_at'>) => {
     if (!targetProfileId) {
@@ -86,12 +86,13 @@ export default function CompromissosPage() {
       return;
     }
     
-    const payload = {
+    const payload: any = {
       ...data,
       titulo: data.titulo.trim(),
-      descricao: data.descricao?.trim() || null,
-      local: data.local?.trim() || null,
+      descricao: data.descricao?.trim() || undefined,
+      local: data.local?.trim() || undefined,
       perfil_id: targetProfileId,
+      updated_at: new Date().toISOString(),
     };
 
     try {
@@ -119,7 +120,7 @@ export default function CompromissosPage() {
       updates.local = data.local?.trim() || null;
     }
     if (data.data_hora !== undefined) {
-      updates.data_hora = data.data_hora;
+      updates.data_hora = data.data_hora || undefined;
     }
     if (data.tipo !== undefined) {
       updates.tipo = data.tipo;
@@ -260,7 +261,10 @@ export default function CompromissosPage() {
           <AddEditCompromissoForm
             onSave={handleUpdate}
             onCancel={() => setEditModalOpen(false)}
-            compromisso={editingItem}
+            compromisso={{
+              ...editingItem,
+              tipo: editingItem.tipo || undefined,
+            }}
           />
         )}
       </Modal>

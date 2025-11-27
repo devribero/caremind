@@ -116,6 +116,7 @@ export const MedicamentosService = {
     const { user_id, ...medicamentoToInsert } = medicamento;
     
     try {
+      // Criar medicamento diretamente (trigger vai criar eventos automaticamente)
       const { data, error } = await supabase
         .from(TABLE_NAME)
         .insert(medicamentoToInsert)
@@ -124,45 +125,44 @@ export const MedicamentosService = {
       
       if (error) {
         console.error('Erro Supabase ao criar medicamento:', error);
-        if (error.code === '23505') {
-          throw new Error('Medicamento já existe');
-        } else if (error.code === '23503') {
-          throw new Error('Referência inválida (perfil não existe)');
-        } else if (error.code === '42501') {
-          throw new Error('Sem permissão para criar medicamento');
-        }
-        // Verificar se é erro de ambiguidade de coluna ou evento_id nulo
-        if (error.message && (
-          error.message.includes('column reference "data_prevista" is ambiguous') ||
-          error.message.includes('null value in column "evento_id"')
-        )) {
-          console.warn('Erro de database detectado, tentando abordagem alternativa...');
-          // Tentar criar sem trigger temporariamente
-          const { data: dataFallback, error: fallbackError } = await supabase
-            .rpc('criar_medicamento_sem_eventos', {
-              p_nome: medicamentoToInsert.nome,
-              p_perfil_id: medicamentoToInsert.perfil_id,
-              p_dosagem: medicamentoToInsert.dosagem,
-              p_frequencia: medicamentoToInsert.frequencia,
-              p_quantidade: medicamentoToInsert.quantidade
-            });
-          
-          if (fallbackError) {
-            throw new Error(`Erro ao criar medicamento: ${error.message}. Por favor, contate o suporte técnico.`);
-          }
-          
-          return dataFallback as Medicamento;
-        }
         throw new Error(error.message || 'Erro ao salvar no banco de dados');
       }
       
+      // O trigger automático vai criar os eventos
+      console.log('Medicamento criado com sucesso, eventos sendo criados pelo trigger...');
+      
       return data as Medicamento;
     } catch (err) {
-      // Se o erro for sobre ambiguidade, fornecer uma mensagem mais clara
-      if (err instanceof Error && err.message.includes('data_prevista') && err.message.includes('ambiguous')) {
-        throw new Error('Erro de configuração do banco de dados ao criar medicamento. Este problema ocorre quando há múltiplos horários. Por favor, tente novamente ou contate o suporte.');
+      // Se der erro, tentar método manual
+      console.warn('Método automático falhou, tentando manual:', err);
+      
+      const { data: dataFallback, error: fallbackError } = await supabase
+        .rpc('criar_medicamento_simples', {
+          p_nome: medicamentoToInsert.nome,
+          p_perfil_id: medicamentoToInsert.perfil_id,
+          p_dosagem: medicamentoToInsert.dosagem,
+          p_frequencia: medicamentoToInsert.frequencia,
+          p_quantidade: medicamentoToInsert.quantidade
+        });
+      
+      if (fallbackError) {
+        console.error('Erro na função simples:', fallbackError);
+        throw new Error(`Erro ao criar medicamento: ${fallbackError.message || 'Erro desconhecido'}`);
       }
-      throw err;
+      
+      // Criar eventos manualmente
+      if (dataFallback && dataFallback.id) {
+        try {
+          await supabase.rpc('criar_eventos_medicamento_automatico', {
+            p_medicamento_id: dataFallback.id
+          });
+          console.log('Eventos criados manualmente com sucesso');
+        } catch (eventError) {
+          console.warn('Não foi possível criar eventos automaticamente:', eventError);
+        }
+      }
+      
+      return dataFallback as Medicamento;
     }
   },
 

@@ -19,8 +19,9 @@ import { listarEventosDoDia, atualizarStatusEvento, criarOuAtualizarEvento } fro
 import { Tables } from '@/types/supabase';
 
 // Tipos
-type Rotina = Tables<'rotinas'>;
-type Frequencia = Rotina['frequencia'];
+type RotinaDB = Tables<'rotinas'>;
+type Rotina = RotinaDB;
+type Frequencia = any; // Json type from Supabase
 
 export default function Rotinas() {
   // Hooks e estados
@@ -48,7 +49,53 @@ export default function Rotinas() {
   ), [listaIdososVinculados, idosoSelecionadoId]);
 
   // Carregar rotinas e eventos do dia
-  const carregarDados = useCallback(async () => {
+  useEffect(() => {
+    const carregarDados = async () => {
+      if (!user?.id) return;
+      
+      setLoading(true);
+      setError(null);
+      
+      try {
+        if (isFamiliar && !targetUserId) {
+          setRotinas([]);
+          return;
+        }
+
+        // Carrega rotinas
+        const rotinasData = await RotinasService.listarRotinas(targetUserId || user.id);
+        setRotinas(rotinasData);
+
+        // Carrega eventos do dia (precisa do perfil_id, não user_id)
+        const hoje = new Date();
+        const perfilIdParaEventos = isFamiliar ? idosoSelecionadoId : profile?.id;
+        if (!perfilIdParaEventos) {
+          setEventosDoDia([]);
+          return;
+        }
+        const eventos = await listarEventosDoDia(perfilIdParaEventos, hoje);
+        setEventosDoDia(
+          eventos.map(e => ({
+            id: e.id.toString(),
+            tipo_evento: e.tipo_evento,
+            evento_id: e.evento_id.toString(),
+            status: e.status
+          }))
+        );
+      } catch (err) {
+        console.error('Erro ao carregar dados:', err);
+        setError('Não foi possível carregar as rotinas');
+        toast.error('Não foi possível carregar as rotinas');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    carregarDados();
+  }, [user?.id, targetUserId, isFamiliar, profile?.id, idosoSelecionadoId]);
+
+  // Função de refresh local para recarregar rotinas
+  const refreshRotinas = async () => {
     if (!user?.id) return;
     
     setLoading(true);
@@ -87,12 +134,7 @@ export default function Rotinas() {
     } finally {
       setLoading(false);
     }
-  }, [user?.id, targetUserId, isFamiliar, profile?.id, idosoSelecionadoId]);
-
-  // Efeito para carregar dados iniciais
-  useEffect(() => {
-    carregarDados();
-  }, [carregarDados]);
+  };
 
   // Ouve botões do Header
   useEffect(() => {
@@ -117,28 +159,28 @@ export default function Rotinas() {
 
     try {
       // Garantir que frequencia seja um objeto válido
-      // Criar um novo objeto limpo sem propriedades undefined
       let frequenciaLimpa: any = null;
-      if (frequencia) {
+      if (frequencia && typeof frequencia === 'object' && !Array.isArray(frequencia)) {
         frequenciaLimpa = {};
-        if (frequencia.tipo) frequenciaLimpa.tipo = frequencia.tipo;
-        if ('horarios' in frequencia && Array.isArray(frequencia.horarios)) {
-          frequenciaLimpa.horarios = frequencia.horarios;
+        const freqObj = frequencia as Record<string, any>;
+        if (freqObj.tipo) frequenciaLimpa.tipo = freqObj.tipo;
+        if (freqObj.horarios && Array.isArray(freqObj.horarios)) {
+          frequenciaLimpa.horarios = freqObj.horarios;
         }
-        if ('intervalo_horas' in frequencia && frequencia.intervalo_horas !== undefined) {
-          frequenciaLimpa.intervalo_horas = frequencia.intervalo_horas;
+        if (freqObj.intervalo_horas !== undefined) {
+          frequenciaLimpa.intervalo_horas = freqObj.intervalo_horas;
         }
-        if ('inicio' in frequencia && frequencia.inicio) {
-          frequenciaLimpa.inicio = frequencia.inicio;
+        if (freqObj.inicio) {
+          frequenciaLimpa.inicio = freqObj.inicio;
         }
-        if ('intervalo_dias' in frequencia && frequencia.intervalo_dias !== undefined) {
-          frequenciaLimpa.intervalo_dias = frequencia.intervalo_dias;
+        if (freqObj.intervalo_dias !== undefined) {
+          frequenciaLimpa.intervalo_dias = freqObj.intervalo_dias;
         }
-        if ('horario' in frequencia && frequencia.horario) {
-          frequenciaLimpa.horario = frequencia.horario;
+        if (freqObj.horario) {
+          frequenciaLimpa.horario = freqObj.horario;
         }
-        if ('dias_da_semana' in frequencia && Array.isArray(frequencia.dias_da_semana)) {
-          frequenciaLimpa.dias_da_semana = frequencia.dias_da_semana;
+        if (freqObj.dias_da_semana && Array.isArray(freqObj.dias_da_semana)) {
+          frequenciaLimpa.dias_da_semana = freqObj.dias_da_semana;
         }
       }
       
@@ -151,7 +193,7 @@ export default function Rotinas() {
       });
       
       toast.success('Rotina criada com sucesso');
-      await carregarDados();
+      await refreshRotinas();
       setIsAddModalOpen(false);
     } catch (error) {
       console.error('Erro ao criar rotina:', error);
@@ -164,40 +206,39 @@ export default function Rotinas() {
 
     try {
       // Garantir que frequencia seja um objeto válido
-      // Criar um novo objeto limpo sem propriedades undefined
       let frequenciaLimpa: any = null;
-      if (frequencia) {
+      if (frequencia && typeof frequencia === 'object' && !Array.isArray(frequencia)) {
         frequenciaLimpa = {};
-        if (frequencia.tipo) frequenciaLimpa.tipo = frequencia.tipo;
-        if ('horarios' in frequencia && Array.isArray(frequencia.horarios)) {
-          frequenciaLimpa.horarios = frequencia.horarios;
+        const freqObj = frequencia as Record<string, any>;
+        if (freqObj.tipo) frequenciaLimpa.tipo = freqObj.tipo;
+        if (freqObj.horarios && Array.isArray(freqObj.horarios)) {
+          frequenciaLimpa.horarios = freqObj.horarios;
         }
-        if ('intervalo_horas' in frequencia && frequencia.intervalo_horas !== undefined) {
-          frequenciaLimpa.intervalo_horas = frequencia.intervalo_horas;
+        if (freqObj.intervalo_horas !== undefined) {
+          frequenciaLimpa.intervalo_horas = freqObj.intervalo_horas;
         }
-        if ('inicio' in frequencia && frequencia.inicio) {
-          frequenciaLimpa.inicio = frequencia.inicio;
+        if (freqObj.inicio) {
+          frequenciaLimpa.inicio = freqObj.inicio;
         }
-        if ('intervalo_dias' in frequencia && frequencia.intervalo_dias !== undefined) {
-          frequenciaLimpa.intervalo_dias = frequencia.intervalo_dias;
+        if (freqObj.intervalo_dias !== undefined) {
+          frequenciaLimpa.intervalo_dias = freqObj.intervalo_dias;
         }
-        if ('horario' in frequencia && frequencia.horario) {
-          frequenciaLimpa.horario = frequencia.horario;
+        if (freqObj.horario) {
+          frequenciaLimpa.horario = freqObj.horario;
         }
-        if ('dias_da_semana' in frequencia && Array.isArray(frequencia.dias_da_semana)) {
-          frequenciaLimpa.dias_da_semana = frequencia.dias_da_semana;
+        if (freqObj.dias_da_semana && Array.isArray(freqObj.dias_da_semana)) {
+          frequenciaLimpa.dias_da_semana = freqObj.dias_da_semana;
         }
       }
       
-      // Garantir que strings vazias sejam null
       await RotinasService.atualizarRotina(editingRotina.id, {
-        titulo: titulo?.trim() || null,
-        descricao: descricao?.trim() || null,
+        titulo: titulo?.trim() || undefined,
+        descricao: descricao?.trim() || undefined,
         frequencia: frequenciaLimpa,
       });
       
       toast.success('Rotina atualizada com sucesso');
-      await carregarDados();
+      await refreshRotinas();
       setEditingRotina(null);
     } catch (error) {
       console.error('Erro ao atualizar rotina:', error);
@@ -205,23 +246,24 @@ export default function Rotinas() {
     }
   };
 
-  const handleDeleteRotina = async (id: number) => {
+  const handleDeleteRotina = async (id: string | number) => {
     const confirmed = await toast.confirm('Tem certeza que deseja excluir esta rotina?');
     if (!confirmed) {
       return;
     }
 
-    setDeleting(prev => ({ ...prev, [id]: true }));
+    const numId = typeof id === 'string' ? parseInt(id, 10) : id;
+    setDeleting(prev => ({ ...prev, [numId]: true }));
     
     try {
-      await RotinasService.deletarRotina(id);
+      await RotinasService.deletarRotina(numId);
       toast.success('Rotina excluída com sucesso');
-      await carregarDados();
+      await refreshRotinas();
     } catch (error) {
       console.error('Erro ao excluir rotina:', error);
       toast.error('Não foi possível excluir a rotina');
     } finally {
-      setDeleting(prev => ({ ...prev, [id]: false }));
+      setDeleting(prev => ({ ...prev, [numId]: false }));
     }
   };
 
@@ -242,7 +284,7 @@ export default function Rotinas() {
       setMarking(prev => ({ ...prev, [rotinaId]: true }));
       try {
         await criarOuAtualizarEvento(targetPerfilId, 'rotina', rotinaId, 'confirmado');
-        await carregarDados(); // Recarrega para sincronizar
+        await refreshRotinas(); // Recarrega para sincronizar
       } catch (err) {
         console.error('Erro ao marcar rotina como concluída:', err);
         toast.error('Falha ao atualizar o status da rotina');
@@ -267,7 +309,7 @@ export default function Rotinas() {
       );
       
       // Recarrega dados para sincronizar
-      await carregarDados();
+      await refreshRotinas();
     } catch (err) {
       console.error('Erro ao marcar rotina como concluída:', err);
       setEventosDoDia(prevEventos);
@@ -407,10 +449,10 @@ export default function Rotinas() {
             setEditingRotina(null);
           }}
           rotina={editingRotina ? {
-            id: editingRotina.id,
-            titulo: editingRotina.titulo,
+            id: editingRotina.id.toString(),
+            titulo: editingRotina.titulo || '',
             descricao: editingRotina.descricao || '',
-            frequencia: editingRotina.frequencia
+            frequencia: editingRotina.frequencia as any
           } : undefined}
         />
       </Modal>

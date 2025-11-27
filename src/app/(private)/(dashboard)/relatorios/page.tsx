@@ -183,7 +183,7 @@ export default function Relatorios() {
     };
 
     fetchEventos();
-  }, [user, router, targetProfileId, isFamiliar, dataInicio, dataFim, tipoSelecionado, applyTick, supabase]);
+  }, [user, router, targetProfileId, isFamiliar, dataInicio, dataFim, tipoSelecionado, applyTick, supabase, idosoSelecionadoId]);
 
 
   // Função para formatar data

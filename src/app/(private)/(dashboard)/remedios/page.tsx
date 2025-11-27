@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useMemo, useState, useCallback } from 'react';
+import React, { useMemo, useState, useCallback, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 
 // Componentes e hooks
@@ -92,7 +92,35 @@ export default function Remedios() {
   const [marking, setMarking] = useState<Record<number, boolean>>({});
 
   // Carregar medicamentos
-  const fetchMedicamentos = React.useCallback(async () => {
+  useEffect(() => {
+    const fetchMedicamentos = async () => {
+      if (!targetUserId) {
+        if (isFamiliar) {
+          setMedicamentos([]);
+          setLoading(false);
+        }
+        return;
+      }
+
+      setLoading(true);
+      setError(null);
+      try {
+        const data = await MedicamentosService.listarMedicamentos(targetUserId);
+        setMedicamentos(data || []);
+      } catch (err) {
+        const errorMessage = err instanceof Error ? err.message : 'Erro ao carregar medicamentos';
+        setError(errorMessage);
+        toast.error(errorMessage);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchMedicamentos();
+  }, [targetUserId, isFamiliar, idosoSelecionadoId]);
+
+  // Função de refresh local para recarregar medicamentos
+  const refreshMedicamentos = async () => {
     if (!targetUserId) {
       if (isFamiliar) {
         setMedicamentos([]);
@@ -113,14 +141,10 @@ export default function Remedios() {
     } finally {
       setLoading(false);
     }
-  }, [targetUserId, isFamiliar]);
-
-  React.useEffect(() => {
-    fetchMedicamentos();
-  }, [fetchMedicamentos]);
+  };
 
   // Ouve botões do Header
-  React.useEffect(() => {
+  useEffect(() => {
     const onAddMedicamento = () => setAddModalOpen(true);
     const onAddMedicamentoFoto = () => photoModal.open();
     window.addEventListener('caremind:add-medicamento', onAddMedicamento as EventListener);
@@ -132,7 +156,7 @@ export default function Remedios() {
   }, [photoModal]);
 
   // Carregar eventos do dia
-  React.useEffect(() => {
+  useEffect(() => {
     const loadAgenda = async () => {
       if (!targetProfileId) return;
       if (isFamiliar && !targetProfileId) return;
@@ -154,7 +178,7 @@ export default function Remedios() {
       }
     };
     loadAgenda();
-  }, [targetProfileId, isFamiliar]);
+  }, [targetProfileId, isFamiliar, idosoSelecionadoId]);
 
   const handleSaveMedicamento = async (
     nome: string,
@@ -210,7 +234,7 @@ export default function Remedios() {
       setMedicamentos(prev => [novoMedicamento, ...prev]);
       toast.success('Medicamento criado com sucesso');
       setAddModalOpen(false);
-      await fetchMedicamentos(); // Recarrega para garantir sincronização
+      await refreshMedicamentos(); // Recarrega para garantir sincronização
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Erro ao criar medicamento';
       
@@ -277,7 +301,7 @@ export default function Remedios() {
       toast.success('Medicamento atualizado com sucesso');
       setEditModalOpen(false);
       setEditingMedicamento(null);
-      await fetchMedicamentos(); // Recarrega para garantir sincronização
+      await refreshMedicamentos(); // Recarrega para garantir sincronização
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Erro ao atualizar medicamento';
       toast.error(errorMessage);
@@ -293,7 +317,7 @@ export default function Remedios() {
       await MedicamentosService.deletarMedicamento(id);
       setMedicamentos(prev => prev.filter(m => m.id !== id));
       toast.success('Medicamento excluído com sucesso');
-      await fetchMedicamentos(); // Recarrega para garantir sincronização
+      await refreshMedicamentos(); // Recarrega para garantir sincronização
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Erro ao excluir medicamento';
       toast.error(errorMessage);
@@ -346,7 +370,7 @@ export default function Remedios() {
       }
       
       // Recarrega os medicamentos para atualizar a quantidade
-      await fetchMedicamentos();
+      await refreshMedicamentos();
       
       // Recarrega eventos do dia para sincronizar
       if (targetProfileId) {
@@ -499,7 +523,7 @@ export default function Remedios() {
             // Sucesso: PROCESSADO ou PROCESSADO_PARCIALMENTE
             if (status === 'PROCESSADO' || status === 'PROCESSADO_PARCIALMENTE') {
               setOcrOverlay({ isVisible: true, status: 'success' });
-              await fetchMedicamentos();
+              await refreshMedicamentos();
               setTimeout(() => {
                 setOcrOverlay({ isVisible: false, status: 'uploading' });
               }, 1500);
@@ -687,7 +711,7 @@ export default function Remedios() {
                 imageUrl: null,
                 medicamentos: [],
               });
-              await fetchMedicamentos();
+              await refreshMedicamentos();
             }}
             onCancel={() => {
               setValidacaoModal({
