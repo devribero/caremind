@@ -204,7 +204,8 @@ export default function Remedios() {
         dosagem: dosagem?.trim() || null,
         frequencia: frequenciaLimpa,
         quantidade: quantidade || null,
-        user_id: targetUserId,
+        user_id: targetUserId, // Para compatibilidade com o serviço
+        perfil_id: targetProfileId || undefined,
       });
       setMedicamentos(prev => [novoMedicamento, ...prev]);
       toast.success('Medicamento criado com sucesso');

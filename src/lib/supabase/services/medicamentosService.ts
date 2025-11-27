@@ -31,13 +31,13 @@ export type Medicamento = Omit<Database['public']['Tables']['medicamentos']['Row
   frequencia: Frequencia | null;
 };
 
-export type MedicamentoInsert = Omit<Database['public']['Tables']['medicamentos']['Insert'], 'frequencia' | 'user_id' | 'perfil_id'> & {
+export type MedicamentoInsert = Omit<Database['public']['Tables']['medicamentos']['Insert'], 'frequencia' | 'perfil_id'> & {
   frequencia?: Frequencia | null;
-  user_id: string;
+  user_id?: string; // Mantido para compatibilidade, mas não será salvo no banco
   perfil_id?: string;
 };
 
-export type MedicamentoUpdate = Omit<Database['public']['Tables']['medicamentos']['Update'], 'frequencia' | 'user_id'> & {
+export type MedicamentoUpdate = Omit<Database['public']['Tables']['medicamentos']['Update'], 'frequencia'> & {
   frequencia?: Frequencia | null;
 };
 
@@ -56,16 +56,17 @@ export const MedicamentosService = {
     
     const perfilId = perfil?.id;
     
-    // Usar perfil_id se disponível, senão usar user_id (compatibilidade durante transição)
+    // Usar apenas perfil_id (a tabela medicamentos não tem mais coluna user_id)
     const query = supabase
       .from(TABLE_NAME)
       .select('*')
       .order('created_at', { ascending: false });
     
     if (perfilId) {
-      query.or(`perfil_id.eq.${perfilId},user_id.eq.${userId}`);
+      query.eq('perfil_id', perfilId);
     } else {
-      query.eq('user_id', userId);
+      // Se não encontrar perfil, retorna array vazio
+      return [];
     }
     
     const { data, error } = await query;
@@ -101,7 +102,7 @@ export const MedicamentosService = {
         .maybeSingle();
       
       if (perfil) {
-        (medicamento as any).perfil_id = perfil.id;
+        medicamento.perfil_id = perfil.id;
       } else {
         throw new Error('Perfil não encontrado para o usuário');
       }
@@ -111,9 +112,12 @@ export const MedicamentosService = {
       throw new Error('Perfil é obrigatório para criar medicamento');
     }
     
+    // Remove user_id do objeto antes de inserir (a coluna não existe mais)
+    const { user_id, ...medicamentoToInsert } = medicamento;
+    
     const { data, error } = await supabase
       .from(TABLE_NAME)
-      .insert(medicamento)
+      .insert(medicamentoToInsert)
       .select()
       .single();
     
