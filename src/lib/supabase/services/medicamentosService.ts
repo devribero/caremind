@@ -131,12 +131,15 @@ export const MedicamentosService = {
         } else if (error.code === '42501') {
           throw new Error('Sem permissão para criar medicamento');
         }
-        // Verificar se é erro de ambiguidade de coluna
-        if (error.message && error.message.includes('column reference "data_prevista" is ambiguous')) {
-          console.warn('Erro de ambiguidade detectado, tentando abordagem alternativa...');
+        // Verificar se é erro de ambiguidade de coluna ou evento_id nulo
+        if (error.message && (
+          error.message.includes('column reference "data_prevista" is ambiguous') ||
+          error.message.includes('null value in column "evento_id"')
+        )) {
+          console.warn('Erro de database detectado, tentando abordagem alternativa...');
           // Tentar criar sem trigger temporariamente
           const { data: dataFallback, error: fallbackError } = await supabase
-            .rpc('criar_medicamento_sem_trigger', {
+            .rpc('criar_medicamento_sem_eventos', {
               p_nome: medicamentoToInsert.nome,
               p_perfil_id: medicamentoToInsert.perfil_id,
               p_dosagem: medicamentoToInsert.dosagem,
@@ -145,7 +148,7 @@ export const MedicamentosService = {
             });
           
           if (fallbackError) {
-            throw new Error(`Erro ao criar medicamento (ambiguidade no banco): ${error.message}. Por favor, contate o suporte técnico.`);
+            throw new Error(`Erro ao criar medicamento: ${error.message}. Por favor, contate o suporte técnico.`);
           }
           
           return dataFallback as Medicamento;
