@@ -319,7 +319,7 @@ export default function AuthClient() {
                     <button
                       type="button"
                       className={styles.linkButton}
-                      onClick={() => router.push('/forgot-password')}
+                      onClick={() => router.push('/esqueci-senha')}
                     >
                       Esqueci minha senha
                     </button>

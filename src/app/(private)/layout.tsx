@@ -18,7 +18,7 @@ export default function PrivateLayout({
 
   useEffect(() => {
     if (!loading && !user) {
-      router.push("/(auth)/auth");
+      router.push("/auth");
     }
   }, [loading, user, router]);
 
