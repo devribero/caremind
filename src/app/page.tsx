@@ -70,15 +70,6 @@ export default function Home() {
       <section className={styles.heroSection}>
         <div className={styles.heroContainer}>
           <div className={`${styles.heroContent} ${styles.reveal} ${styles.active}`}>
-            <div className={styles.heroRating}>
-              <div className={styles.ratingStars}>
-                <span className={styles.stars}>★★★★★</span>
-                <span className={styles.ratingNumber}>4.9</span>
-              </div>
-              <div className={styles.ratingBadge}>
-                <span className={styles.badgeText}>+4.200 usuários ativos</span>
-              </div>
-            </div>
             
             <h1 className={styles.heroTitle}>
               Cuidado inteligente que traz
@@ -110,24 +101,6 @@ export default function Home() {
                 </div>
               </div>
             </div>
-          </div>
-        </div>
-      </section>
-
-      {/* SOCIAL PROOF */}
-      <section className={styles.socialProofSection}>
-        <div className={`${styles.socialProofContainer} ${styles.reveal}`}>
-          <div className={styles.socialCard}>
-            <div className={styles.socialNumber}>4.9★</div>
-            <div className={styles.socialLabel}>Avaliação média</div>
-          </div>
-          <div className={styles.socialCard}>
-            <div className={styles.socialNumber}>4.200+</div>
-            <div className={styles.socialLabel}>Usuários ativos</div>
-          </div>
-          <div className={styles.socialCard}>
-            <div className={styles.socialNumber}>92%</div>
-            <div className={styles.socialLabel}>Menos risco de esquecimento</div>
           </div>
         </div>
       </section>
@@ -294,107 +267,7 @@ export default function Home() {
         </div>
       </section>
 
-      {/* IMPACT & TESTIMONIAL SECTION */}
-      <section id="depoimentos" className={styles.impactSection}>
-        <div className={styles.container}>
-          <div className={styles.impactGrid}>
-            <div className={`${styles.impactContent} ${styles.reveal}`}>
-              <h2 className={styles.impactTitle}>
-                Mais independência para quem precisa,
-                <span className={styles.impactHighlight}> mais tranquilidade para quem cuida.</span>
-              </h2>
-              
-              <div className={styles.impactStats}>
-                <div className={styles.statItem}>
-                  <div className={styles.statNumber}>92%</div>
-                  <div className={styles.statLabel}>Redução de esquecimentos</div>
-                </div>
-                <div className={styles.statItem}>
-                  <div className={styles.statNumber}>4.2k+</div>
-                  <div className={styles.statLabel}>Famílias cuidadas</div>
-                </div>
-                <div className={styles.statItem}>
-                  <div className={styles.statNumber}>24/7</div>
-                  <div className={styles.statLabel}>Monitoramento ativo</div>
-                </div>
-              </div>
-            </div>
-
-            <div className={`${styles.testimonialColumn} ${styles.reveal}`}>
-              {/* Testimonial with Floating Animation */}
-              <div className={`${styles.testimonialCard} ${styles.floating}`}>
-                <FaQuoteLeft className={styles.quoteIcon} />
-                <p className={styles.testimonialText}>
-                  "O CareMind transformou completamente como cuidamos da minha mãe. Sinto mais segurança porque sei exatamente quando ela tomou os remédios, mesmo estando no trabalho. Ela ganhou autonomia e eu ganhei paz."
-                </p>
-                <div className={styles.testimonialAuthor}>
-                  <div className={styles.authorAvatar}>
-                    <Image 
-                      src="/icons/user.webp" 
-                      alt="Maria Silva" 
-                      width={50} 
-                      height={50} 
-                      style={{ borderRadius: '50%' }}
-                    />
-                  </div>
-                  <div className={styles.authorInfo}>
-                    <span className={styles.authorName}>Maria Silva</span>
-                    <span className={styles.authorRole}>Filha e Cuidadora</span>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* FAQ SECTION */}
       <section className={styles.faqSection}>
-        <div className={styles.container}>
-          <div className={styles.reveal}>
-            <h2 className={styles.sectionTitle}>Perguntas Frequentes</h2>
-            <p className={styles.sectionSubtitle}>Tudo que você precisa saber sobre o CareMind</p>
-          </div>
-          
-          <div className={styles.faqGrid}>
-            {[
-              { q: "É seguro para idosos com Alzheimer?", a: "Sim. O CareMind foi desenvolvido com interface simplificada, textos grandes e comandos por voz. Além disso, familiares recebem alertas se houver esquecimentos, criando uma rede de segurança completa." },
-              { q: "Como funciona o alerta de esquecimento?", a: "O sistema envia notificações para o aplicativo do idoso e também para os familiares vinculados. Se não houver confirmação em até 30 minutos, o alerta é escalonado com notificações adicionais." },
-              { q: "Precisa de internet sempre?", a: "Para melhores resultados, sim. O aplicativo precisa de internet para sincronizar dados e enviar alertas. No entanto, lembretes locais funcionam mesmo sem conexão temporária." },
-              { q: "Funciona sem Alexa?", a: "Sim! A integração com Alexa é opcional. Todas as funcionalidades principais funcionam normalmente pelo aplicativo, incluindo lembretes, confirmações e acompanhamento familiar." },
-              { q: "O familiar precisa baixar aplicativo?", a: "Familiares podem acessar pelo painel web em qualquer computador ou celular. O aplicativo mobile é opcional e oferece conveniência adicional para acompanhamento." },
-              { q: "Como funciona o cadastro por foto?", a: "Basta tirar uma foto da receita médica. Nosso sistema de reconhecimento identifica os medicamentos, dosagens e frequências automaticamente. Você só precisa confirmar as informações." }
-            ].map((faq, idx) => (
-              <div key={idx} className={`${styles.faqItem} ${styles.reveal}`} style={{ transitionDelay: `${idx * 0.05}s` }}>
-                <h3>{faq.q}</h3>
-                <p>{faq.a}</p>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      <section className={styles.finalCTA}>
-        <div className={styles.container}>
-          <div className={`${styles.ctaContent} ${styles.reveal}`}>
-            <h2 className={styles.ctaTitle}>Transforme o cuidado da sua família hoje</h2>
-            <p className={styles.ctaDescription}>
-              Junte-se a mais de 2.400 famílias que já conquistaram mais tranquilidade e segurança no cuidado diário.
-            </p>
-            <div className={styles.ctaButton}>
-              <Link href="/auth?mode=register">
-                <Button size="lg" className={styles.ctaButtonPrimary}>
-                  Começar Gratuitamente
-                </Button>
-              </Link>
-            </div>
-            <p className={styles.ctaNote}>Sem compromisso. Cancela quando quiser.</p>
-          </div>
-        </div>
-      </section>
-
-      {/* FAQ SECTION (MOVIDA PARA DEPOIS DA CTA FINAL) */}
-      <section id="faq" className={styles.faqSection}>
         <div className={styles.container}>
           <div className={styles.reveal}>
             <h2 className={styles.sectionTitle}>Perguntas Frequentes</h2>

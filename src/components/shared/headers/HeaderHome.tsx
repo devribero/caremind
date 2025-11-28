@@ -26,7 +26,7 @@ export function Header() {
     const animation = (currentTime: number) => {
       if (start === null) start = currentTime;
       const timeElapsed = currentTime - start;
-      
+
       // Função de Easing (easeInOutCubic) para suavidade
       const ease = (t: number) => {
         return t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
