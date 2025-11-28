@@ -11,6 +11,7 @@ import styles from './page.module.css';
 import Image from 'next/image';
 import { BsCamera, BsMic, BsBell, BsPeople, BsHeartPulse, BsMegaphone } from 'react-icons/bs';
 import { FaQuoteLeft } from 'react-icons/fa';
+import { Waves } from '@/components/shared/Waves';
 
 export default function Home() {
   const { user, loading } = useAuth();
@@ -65,23 +66,28 @@ export default function Home() {
   return (
     <main className={styles.main}>
       <Header />
-
+      <Waves />
       {/* HERO SECTION */}
       <section className={styles.heroSection}>
         <div className={styles.heroContainer}>
           <div className={`${styles.heroContent} ${styles.reveal} ${styles.active}`}>
-            
+
             <h1 className={styles.heroTitle}>
-              Cuidado inteligente que traz
-              <span className={styles.titleHighlight}> autonomia e segurança</span>
-              todos os dias.
+              Cuidado inteligente que traz autonomia e segurança todos os dias.
             </h1>
-            
+
             <p className={styles.heroDescription}>
               O CareMind ajuda no controle de medicações e rotinas, prevenindo esquecimentos e garantindo mais tranquilidade para famílias e cuidadores.
             </p>
-            
-            
+
+            <div className={styles.heroButton}>
+              <Link href="/auth?mode=register">
+                <Button size="lg" className={styles.ctaButton}>
+                  Quero conhecer o CareMind
+                </Button>
+              </Link>
+            </div>
+
             <p className={styles.ctaNote}>Sem compromisso • Cancela quando quiser</p>
           </div>
 
@@ -93,8 +99,8 @@ export default function Home() {
                   <Image
                     src="/images/hero-elderly.svg"
                     alt="Idoso usando assistente virtual"
-                    width={500}
-                    height={400}
+                    width={600}
+                    height={600}
                     className={styles.heroImg}
                   />
                 </div>
@@ -115,7 +121,7 @@ export default function Home() {
               Funcionalidades pensadas para simplificar o dia a dia de quem cuida e de quem precisa de cuidado.
             </p>
           </div>
-          
+
           <div className={styles.featuresGrid}>
             {[
               { icon: BsCamera, title: "OCR de Medicamentos", desc: "Cadastre com uma foto: o sistema identifica o remédio e cria os lembretes sozinho, exclusivamente a partir de receitas médicas.", delay: "0s", featured: false },
@@ -174,11 +180,11 @@ export default function Home() {
             <div className={`${styles.ocrVisual} ${styles.reveal}`}>
               {/* Breathing animation for OCR focus */}
               <div className={`${styles.computerFrame} ${styles.breathing}`}>
-                <video 
-                  autoPlay 
-                  loop 
-                  muted 
-                  playsInline 
+                <video
+                  autoPlay
+                  loop
+                  muted
+                  playsInline
                   className={styles.videoPlayer}
                   poster="/images/print_app_configuracoes.jpeg"
                 >
@@ -204,7 +210,7 @@ export default function Home() {
             <h2 className={styles.sectionTitle}>Veja o CareMind em ação</h2>
             <p className={styles.sectionSubtitle}>Interface sofisticada que faz a diferença no dia a dia</p>
           </div>
-          
+
           <div className={styles.mockupsGrid}>
             {/* Card 1: Gestão */}
             <div className={`${styles.mockupCard} ${styles.reveal}`} style={{ transitionDelay: '0s' }}>
@@ -224,7 +230,7 @@ export default function Home() {
               <h3>Gestão Simplificada</h3>
               <p>Acompanhe todos os medicamentos, horários e estoques em uma interface limpa e organizada.</p>
             </div>
-            
+
             {/* Card 2: Família */}
             <div className={`${styles.mockupCard} ${styles.reveal}`} style={{ transitionDelay: '0.2s' }}>
               <div className={styles.mockupVisual}>
@@ -243,7 +249,7 @@ export default function Home() {
               <h3>Painel Familiar</h3>
               <p>Mantenha toda a família conectada e informada sobre a rotina de cuidados em tempo real.</p>
             </div>
-            
+
             {/* Card 3: Perfil */}
             <div className={`${styles.mockupCard} ${styles.reveal}`} style={{ transitionDelay: '0.4s' }}>
               <div className={styles.mockupVisual}>
@@ -272,7 +278,7 @@ export default function Home() {
             <h2 className={styles.sectionTitle}>Perguntas Frequentes</h2>
             <p className={styles.sectionSubtitle}>Tudo que você precisa saber sobre o CareMind</p>
           </div>
-          
+
           <div className={styles.faqGrid}>
             {[
               { q: "É seguro para idosos com Alzheimer?", a: "Sim. O CareMind foi desenvolvido com interface simplificada, textos grandes e comandos por voz. Além disso, familiares recebem alertas se houver esquecimentos, criando uma rede de segurança completa." },

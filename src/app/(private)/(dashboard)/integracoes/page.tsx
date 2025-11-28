@@ -198,33 +198,6 @@ export default function IntegracoesPage() {
                 )}
               </div>
             </div>
-
-            {/* Card do Google Home - Em breve */}
-            <div className={`${styles.card} ${styles.cardDisabled}`}>
-              <div className={styles.cardHeader}>
-                <h2 className={styles.cardTitle}>Google Home</h2>
-                <div className={styles.alexaLogo}>
-                      <Image 
-                        src="/images/google_home-logo.png" 
-                        alt="Google" 
-                        width={32} 
-                        height={32}
-                        className="object-contain opacity-50"
-                      />
-                    </div>
-              </div>
-              <div className={styles.cardContent}>
-                <div className={styles.comingSoonBadge}>
-                  <span>Em breve</span>
-                </div>
-                <p className={styles.cardDescription}>
-                  Use comandos de voz com o Google Assistente para acompanhar medicamentos, rotinas e compromissos.
-                </p>
-                <Button size="lg" disabled className={`${styles.primaryButton} w-full opacity-50 cursor-not-allowed`}>
-                  Em breve
-                </Button>
-              </div>
-            </div>
           </div>
         </section>
       </div>
