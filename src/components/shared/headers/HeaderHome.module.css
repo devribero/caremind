@@ -1,33 +1,41 @@
 /* ============================================= */
-/* 2. Estilos do Header                          */
+/* 2. Estilos do Header (Absolute & Static)      */
 /* ============================================= */
 .header {
   font-family: var(--font-family);
-  background-color: rgba(255, 255, 255, 0.8);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-  color: var(--primary-color);
+  /* Design Fixo e Sólido (Sempre igual) */
+  background-color: #ffffff;
+  color: #0400BA; /* Cor padrão dos links e texto */
   font-weight: 600;
-  border-radius: 24px;
-  width: 100%;
+  border-radius: 100px;
+  width: 90%;
   max-width: 1200px;
-  margin: 20px auto;
+  margin: 0 auto;
   padding: 12px 32px;
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.05);
-  border: 1px solid rgba(255, 255, 255, 0.3);
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1); /* Sombra padrão */
+  border: 1px solid rgba(0, 0, 0, 0.05); /* Borda sutil */
   box-sizing: border-box;
-  position: sticky;
-  top: 20px;
+  
+  /* Posicionamento ABSOLUTO no topo (não segue o scroll) */
+  position: absolute;
+  top: 24px; /* Distância do topo */
+  left: 50%;
+  transform: translateX(-50%); /* Centraliza horizontalmente */
   z-index: 1000;
+  
+  /* Transição suave para quaisquer mudanças de estado (e.g. hover) */
   transition: all 0.3s ease;
 }
 
-.header:hover {
-  background-color: rgba(255, 255, 255, 0.95);
-  box-shadow: 0 12px 40px rgba(4, 0, 186, 0.1);
-  transform: translateY(-2px);
+/* O .scrolled agora não tem mais efeito de posição/background,
+   mas a classe ainda existe caso queira usar para outros hover/focus*/
+.header.scrolled {
+  /* Não há mudança de estilo/posição ao rolar, apenas o padrão */
+  /* Pode ser usado para uma sombra extra ou leve elevação se desejar, */
+  /* mas sem alterar cor ou esconder/mostrar. */
 }
 
+/* Container Interno */
 .header__container {
   display: flex;
   align-items: center;
@@ -35,46 +43,97 @@
   width: 100%;
 }
 
+/* Logo */
 .header__logo {
   flex-shrink: 0;
   display: flex;
   align-items: center;
+  transition: opacity 0.2s ease;
+}
+
+.header__logo:hover {
+  opacity: 0.8;
 }
 
 .header__logo img {
   max-width: 100%;
   height: auto;
   object-fit: contain;
+  /* Sem filtros, cor original da logo sempre */
+  filter: none; 
 }
 
 /* Navegação Desktop */
 .header__nav_desktop {
   display: flex;
   align-items: center;
-  gap: 35px;
-  font-size: 20px;
+  gap: 40px;
+  font-size: 1.05rem;
 }
 
 .header__nav_desktop a {
   text-decoration: none;
-  transition: opacity 0.3s ease;
+  transition: all 0.2s ease;
   white-space: nowrap;
+  font-weight: 500;
+  position: relative;
+  color: #4b5563; /* Cor padrão dos links */
+}
+
+.header__nav_desktop a:not([class*="btn"])::after {
+  content: '';
+  position: absolute;
+  bottom: -4px;
+  left: 0;
+  width: 0;
+  height: 2px;
+  background: #0400BA;
+  transition: width 0.3s ease;
+  border-radius: 2px;
+}
+
+.header__nav_desktop a:not([class*="btn"]):hover::after {
+  width: 100%;
 }
 
 .header__nav_desktop a:not([class*="btn"]):hover {
-  opacity: 0.7;
+  color: #0400BA;
 }
 
-.header__nav_desktop_item {
-  color: #0400ba;
+/* Botões */
+.btn {
+  padding: 12px 28px;
+  border-radius: 100px;
+  font-weight: 700;
+  text-decoration: none;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  font-size: 0.95rem;
+  cursor: pointer;
+  text-align: center;
+  border: 2px solid transparent;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.btn_primary {
+  background-color: #0400BA;
+  color: white !important;
+  border: none;
+  box-shadow: 0 4px 15px rgba(4, 0, 186, 0.2);
+}
+
+.btn_primary:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(4, 0, 186, 0.3);
+  background-color: #030094;
 }
 
 /* ============================================= */
 /* 3. Responsividade e Menu Mobile               */
 /* ============================================= */
 
-/* Esconde menu mobile em desktop */
-@media (min-width: 769px) {
+@media (min-width: 1025px) {
   .mobile_menu {
     display: none !important;
   }
@@ -86,40 +145,14 @@
 
 @media (max-width: 1350px) {
   .header {
-    margin-left: 20px;
-    margin-right: 20px;
-    max-width: calc(100% - 40px);
+    width: 95%;
   }
 }
 
 @media (max-width: 1024px) {
   .header {
-    margin: 20px auto;
-    padding: 12px 20px;
-  }
-
-  .header__nav_desktop {
-    gap: 25px;
-    font-size: 18px;
-  }
-}
-
-@media (max-width: 768px) {
-  .header {
-    border-radius: 25px;
-    padding: 12px 15px;
-    max-width: 90%;
-    box-shadow: none;
-  }
-
-  .header__container {
-    flex-wrap: nowrap;
-    justify-content: space-between;
-    align-items: center;
-  }
-
-  .header__logo img {
-    max-width: 150px;
+    padding: 12px 24px;
+    border-radius: 24px;
   }
 
   .header__nav_desktop {
@@ -129,39 +162,70 @@
   .hamburger {
     display: flex !important;
     flex-direction: column !important;
-    gap: 4px !important;
+    gap: 5px !important;
     cursor: pointer !important;
     background: none !important;
     border: none !important;
     padding: 8px !important;
+    width: 40px;
+    height: 40px;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    transition: background 0.2s ease;
+  }
+  
+  .hamburger:hover {
+    background: rgba(0, 0, 0, 0.05);
   }
 
   .hamburger span {
-    width: 28px !important;
-    height: 3px !important;
-    background-color: #0400BA !important;
+    width: 24px !important;
+    height: 2px !important;
+    background-color: #0400BA !important; /* Sempre azul agora */
     border-radius: 2px !important;
     transition: all 0.3s ease-in-out !important;
   }
+  
+  .hamburger.active span:nth-child(1) {
+    transform: translateY(7px) rotate(45deg);
+  }
+  
+  .hamburger.active span:nth-child(2) {
+    opacity: 0;
+  }
+  
+  .hamburger.active span:nth-child(3) {
+    transform: translateY(-7px) rotate(-45deg);
+  }
 }
 
-/* ============================================= */
-/* 4. Estilos do Menu Mobile                     */
-/* ============================================= */
+@media (max-width: 768px) {
+  .header {
+    width: calc(100% - 32px);
+    top: 16px;
+    padding: 10px 20px;
+  }
+
+  .header__logo img {
+    width: 120px;
+  }
+}
+
+/* Menu Mobile (Gaveta) */
 .mobile_menu {
   position: fixed;
   top: 0;
-  left: 0;
-  width: 80%;
-  max-width: 300px;
+  right: 0;
+  width: 85%;
+  max-width: 320px;
   height: 100vh;
   background-color: white;
-  z-index: 1000;
-  transform: translateX(-100%);
-  transition: transform 0.3s ease-in-out, visibility 0.3s;
-  padding: 60px 20px 20px;
-  box-shadow: 2px 0 10px rgba(0, 0, 0, 0.1);
-  border-right: 1px solid #e2e8f0;
+  z-index: 1002;
+  transform: translateX(100%);
+  transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1), visibility 0.4s;
+  padding: 80px 24px 24px;
+  box-shadow: -5px 0 30px rgba(0, 0, 0, 0.1);
   visibility: hidden;
 }
 
@@ -172,28 +236,26 @@
 
 .close_button {
   position: absolute;
-  top: 15px;
-  right: 15px;
+  top: 24px;
+  right: 24px;
   background: none;
   border: none;
   font-size: 32px;
   color: #0400BA;
   cursor: pointer;
-  padding: 5px;
-  width: 40px;
-  height: 40px;
+  width: 44px;
+  height: 44px;
   display: flex;
   align-items: center;
   justify-content: center;
   border-radius: 50%;
   transition: all 0.3s ease;
-  z-index: 1001;
+  z-index: 1003;
 }
 
 .close_button:hover {
-  background-color: #f1f5ff;
-  color: #020054;
-  transform: scale(1.1);
+  background-color: #f8f9ff;
+  transform: rotate(90deg);
 }
 
 .mobile_menu__nav {
@@ -201,24 +263,23 @@
   flex-direction: column;
   align-items: center;
   text-align: center;
-  gap: 30px;
+  gap: 1.5rem;
 }
 
-.mobile_menu__nav a {
-  font-size: 22px;
-  color: #0400BA;
+.mobile_menu__nav a:not([class*="btn"]) {
+  font-size: 1.2rem;
+  color: #1f2937;
   text-decoration: none;
-  padding: 12px 20px;
+  padding: 16px;
   width: 100%;
-  border-radius: 8px;
-  transition: all 0.3s ease;
-  font-weight: 500;
+  border-radius: 16px;
+  transition: all 0.2s ease;
+  font-weight: 600;
 }
 
-.mobile_menu__nav a:hover {
-  background-color: #f1f5ff;
-  color: #020054;
-  transform: translateX(5px);
+.mobile_menu__nav a:not([class*="btn"]):hover {
+  background-color: #f8f9ff;
+  color: #0400BA;
 }
 
 .menu_overlay {
@@ -227,11 +288,12 @@
   left: 0;
   width: 100%;
   height: 100%;
-  background-color: rgba(0, 0, 0, 0.5);
-  z-index: 999;
+  background-color: rgba(0, 0, 0, 0.3);
+  backdrop-filter: blur(4px);
+  z-index: 1001;
   opacity: 0;
   visibility: hidden;
-  transition: all 0.3s ease;
+  transition: all 0.4s ease;
 }
 
 .menu_overlay.active {
@@ -239,72 +301,12 @@
   visibility: visible;
 }
 
-/* ============================================= */
-/* 5. Botões                                     */
-/* ============================================= */
-.btn {
-  padding: 10px 24px;
-  border-radius: 50px;
-  font-weight: 600;
-  text-decoration: none;
-  transition: all 0.3s ease;
-  font-size: 15px;
-  cursor: pointer;
-  text-align: center;
-  border: 2px solid transparent;
-  display: inline-block;
-  letter-spacing: 0.5px;
-}
-
-.btn_primary {
-  background-color: #0400BA;
-  color: white !important;
-  border: none;
-  box-shadow: 0 4px 15px rgba(4, 0, 186, 0.3);
-  font-weight: 600;
-  letter-spacing: 1px;
-}
-
-.btn_primary:hover {
-  background-color: #020054;
-  box-shadow: 0 6px 25px rgba(4, 0, 186, 0.5);
-  transform: translateY(-2px) scale(1.02);
-  color: white !important;
-  filter: brightness(1.1);
-}
-
-.btn_outline {
-  background-color: white;
-  color: #0400BA !important;
-  border: 2px solid #0400BA;
-}
-
-.btn_outline:hover {
-  background-color: #0400BA;
-  color: white !important;
-  transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(4, 0, 186, 0.2);
-}
-
-/* Botões no menu mobile */
+/* Botão dentro do menu mobile */
 .mobile_menu__nav .btn {
-  margin-top: 10px;
-  width: 90%;
-  max-width: 250px;
-  font-size: 16px;
-  padding: 12px 24px;
-}
-
-.mobile_menu__nav .btn_primary {
-  background: #0400BA;
+  margin-top: 1rem;
+  width: 100%;
+  padding: 16px;
+  font-size: 1.1rem;
+  background-color: #0400BA;
   color: white !important;
-  border: 2px solid #0400BA;
-}
-
-.mobile_menu__nav .btn_primary:hover {
-  background: #020054;
-  border-color: #020054;
-  color: white !important;
-  transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(4, 0, 186, 0.4);
 }

@@ -8,7 +8,7 @@ export function Footer() {
             <div className={styles.footerContainer}>
                 {/* Seção Superior do Rodapé */}
                 <div className={styles.footerTop}>
-                    {/* Coluna 1: Sobre a Empresa e Social */}
+                    {/* Coluna 1: Sobre o TCC */}
                     <div className={styles.footerColumnAbout}>
                         <Link href="/" className={styles.footerLogo}>
                             <Image
@@ -20,41 +20,31 @@ export function Footer() {
                             />
                         </Link>
                         <p className={styles.footerDescription}>
-                            CareMind - tecnologia que aproxima, cuida e protege.
+                            Projeto desenvolvido como Trabalho de Conclusão de Curso (TCC).
+                            <br />
+                            Tecnologia a serviço do cuidado e da autonomia.
                         </p>
                     </div>
 
-                    {/* Coluna 2: Links de Produto */}
+                    {/* Links Úteis (Reduzido) */}
                     <div className={styles.footerColumnLinks}>
-                        <h4>Produto</h4>
+                        <h4>Navegação</h4>
                         <nav>
                             <ul>
-                                <li><Link href="/funcionalidades">Funcionalidades</Link></li>
-                                <li><Link href="/seguranca">Segurança</Link></li>
+                                <li><Link href="#funcionalidades">Funcionalidades</Link></li>
+                                <li><Link href="#como-funciona">Como Funciona</Link></li>
+                                <li><Link href="/auth">Acessar Sistema</Link></li>
                             </ul>
                         </nav>
                     </div>
 
-                    {/* Coluna 3: Links de Suporte */}
+                    {/* Legal */}
                     <div className={styles.footerColumnLinks}>
-                        <h4>Suporte</h4>
+                        <h4>Legal</h4>
                         <nav>
                             <ul>
-                                <li><Link href="/ajuda">Central de Ajuda</Link></li>
-                                <li><Link href="/contato">Contato</Link></li>
-                                <li><Link href="/status">Status</Link></li>
-                            </ul>
-                        </nav>
-                    </div>
-
-                    {/* Coluna 4: Links da Empresa */}
-                    <div className={styles.footerColumnLinks}>
-                        <h4>Empresa</h4>
-                        <nav>
-                            <ul>
-                                <li><Link href="/sobre">Sobre</Link></li>
-                                <li><Link href="/blog">Blog</Link></li>
-                                <li><Link href="/politica-privacidade">Privacidade</Link></li>
+                                <li><Link href="/politica-privacidade">Política de Privacidade</Link></li>
+                                <li><Link href="/termos">Termos de Uso</Link></li>
                             </ul>
                         </nav>
                     </div>
@@ -64,12 +54,7 @@ export function Footer() {
 
                 {/* Seção Inferior do Rodapé */}
                 <div className={styles.footerBottom}>
-                    <p className={styles.footerCopyright}>© {new Date().getFullYear()} CareMind. Todos os direitos reservados.</p>
-                    <div className={styles.footerLegalLinks}>
-                        <Link href="/termos">Termos de Uso</Link>
-                        <Link href="/politica-privacidade">Política de Privacidade</Link>
-                        <Link href="/cookies">Cookies</Link>
-                    </div>
+                    <p className={styles.footerCopyright}>© {new Date().getFullYear()} CareMind - Projeto Acadêmico.</p>
                 </div>
             </div>
         </footer>

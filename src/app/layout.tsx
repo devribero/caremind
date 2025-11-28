@@ -14,7 +14,8 @@ export const metadata: Metadata = {
   title: "CareMind",
   description: "Assistente virtual para auxiliar idosos no gerenciamento de medicações e rotinas diárias.",
   icons: {
-    icon: "/icons/logo_coracao_rounded.png",
+    icon: "/icons/logo_coracao.png",
+    apple: "/icons/logo_coracao.png",
   },
 };
 
@@ -28,7 +29,8 @@ export default function RootLayout({
       <head>
         {/* PWA DESATIVADO - Não remover, apenas comentado para futura reativação */}
         {/* <link rel="manifest" href="/manifest.json" /> */}
-        <link rel="icon" href="/icons/logo_coracao_rounded.png" />
+        <link rel="icon" href="/icons/logo_coracao.png" />
+        <link rel="apple-touch-icon" href="/icons/logo_coracao.png" />
         <meta name="theme-color" content="#0400BA" />
         {/* Script para desregistrar Service Worker antigo do PWA */}
         <script

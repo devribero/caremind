@@ -1,6 +1,6 @@
 import Image from 'next/image';
 import Link from 'next/link';
-import { useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import styles from './HeaderHome.module.css';
 
 export function Header() {
@@ -8,6 +8,38 @@ export function Header() {
 
   const toggleMenu = () => setIsMenuOpen(!isMenuOpen);
   const closeMenu = () => setIsMenuOpen(false);
+
+  // Função de Scroll Manual Lento (Cinematográfico)
+  const smoothScrollTo = (e: React.MouseEvent<HTMLAnchorElement>, targetId: string) => {
+    e.preventDefault();
+    closeMenu();
+
+    const target = document.getElementById(targetId.replace('#', ''));
+    if (!target) return;
+
+    const targetPosition = target.getBoundingClientRect().top + window.pageYOffset;
+    const startPosition = window.pageYOffset;
+    const distance = targetPosition - startPosition - 100; // -100 para compensar o header
+    const duration = 1500; // 1.5 segundos (Scroll Lento)
+    let start: number | null = null;
+
+    const animation = (currentTime: number) => {
+      if (start === null) start = currentTime;
+      const timeElapsed = currentTime - start;
+      
+      // Função de Easing (easeInOutCubic) para suavidade
+      const ease = (t: number) => {
+        return t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
+      };
+
+      const run = ease(timeElapsed / duration);
+      window.scrollTo(0, startPosition + distance * run);
+
+      if (timeElapsed < duration) requestAnimationFrame(animation);
+    };
+
+    requestAnimationFrame(animation);
+  };
 
   return (
     <header className={styles.header}>
@@ -29,9 +61,9 @@ export function Header() {
 
         {/* Navegação Desktop */}
         <nav className={styles.header__nav_desktop}>
-          <a className={styles.header__nav_desktop_item} href="#">Funcionalidades</a>
-          <a className={styles.header__nav_desktop_item} href="#">Como Funciona</a>
-          <a className={styles.header__nav_desktop_item} href="#">Para Famílias</a>
+          <Link className={styles.header__nav_desktop_item} href="#funcionalidades" onClick={(e) => smoothScrollTo(e, '#funcionalidades')}>Funcionalidades</Link>
+          <Link className={styles.header__nav_desktop_item} href="#como-funciona" onClick={(e) => smoothScrollTo(e, '#como-funciona')}>Como Funciona</Link>
+          <Link className={styles.header__nav_desktop_item} href="#depoimentos" onClick={(e) => smoothScrollTo(e, '#depoimentos')}>Depoimentos</Link>
           <Link href="/auth" className={`${styles.btn} ${styles.btn_primary}`}>
             Área do Cliente
           </Link>
@@ -67,9 +99,9 @@ export function Header() {
         </button>
 
         <nav className={styles.mobile_menu__nav}>
-          <a href="#" onClick={closeMenu}>Funcionalidades</a>
-          <a href="#" onClick={closeMenu}>Como Funciona</a>
-          <a href="#" onClick={closeMenu}>Para Famílias</a>
+          <Link href="#funcionalidades" onClick={(e) => smoothScrollTo(e, '#funcionalidades')}>Funcionalidades</Link>
+          <Link href="#como-funciona" onClick={(e) => smoothScrollTo(e, '#como-funciona')}>Como Funciona</Link>
+          <Link href="#depoimentos" onClick={(e) => smoothScrollTo(e, '#depoimentos')}>Depoimentos</Link>
           <Link href="/auth" className={`${styles.btn} ${styles.btn_primary}`} onClick={closeMenu}>
             Área do cliente
           </Link>
