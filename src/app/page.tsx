@@ -91,12 +91,11 @@ export default function Home() {
               <div className={`${styles.phoneMockup} ${styles.floating}`}>
                 <div className={styles.mockupFrame}>
                   <Image
-                    src="/images/print_app_inicio.jpeg"
-                    alt="Tela Inicial CareMind"
-                    width={300}
-                    height={600}
-                    className={styles.mockupScreenImage}
-                    priority
+                    src="/images/hero-elderly.svg"
+                    alt="Idoso usando assistente virtual"
+                    width={500}
+                    height={400}
+                    className={styles.heroImg}
                   />
                 </div>
               </div>
