@@ -14,18 +14,19 @@ import { ConfirmDialog } from './ConfirmDialog';
 import { AddMedicamentoForm } from './forms/AddMedicamentoForm';
 import { AddRotinaForm } from './forms/AddRotinaForm';
 import { useLoading } from '@/contexts/LoadingContext';
-import { 
-  Pill, 
-  Activity, 
-  AlertTriangle, 
-  CheckCircle2, 
-  Clock, 
+import {
+  Pill,
+  Activity,
+  AlertTriangle,
+  CheckCircle2,
+  Clock,
   Plus,
   ChevronLeft,
   ChevronRight,
   AlertCircle,
   Sparkles,
-  Package
+  Package,
+  Calendar
 } from 'lucide-react';
 
 // Tipos
@@ -43,7 +44,7 @@ type AgendaItem = {
   dadosOriginais: Medicamento | Rotina | Compromisso | HistoricoEvento;
 };
 
-type FilterType = 'todos' | 'medicamento' | 'rotina';
+type FilterType = 'todos' | 'medicamento' | 'rotina' | 'compromisso';
 
 // Helpers de data
 const addDays = (date: Date, days: number): Date => {
@@ -97,7 +98,7 @@ export default function DashboardClient({ readOnly = false, idosoId }: { readOnl
     if (!profile?.id) return;
 
     if (showLoader) setIsLoading(true);
-    
+
     try {
       const targetDate = date || selectedDate;
       const [eventos, compromissos, meds, rots] = await Promise.all([
@@ -329,12 +330,12 @@ export default function DashboardClient({ readOnly = false, idosoId }: { readOnl
   };
 
   // Calcular dados da agenda
-  const { 
-    agendaExata, 
-    eventosAtrasados, 
-    proximoEvento, 
-    totalConcluidos, 
-    estoqueBaixo 
+  const {
+    agendaExata,
+    eventosAtrasados,
+    proximoEvento,
+    totalConcluidos,
+    estoqueBaixo
   } = useMemo(() => {
     const getHorarioFromFrequencia = (frequencia: any): Date => {
       const agora = new Date();
@@ -415,20 +416,20 @@ export default function DashboardClient({ readOnly = false, idosoId }: { readOnl
     });
 
     const todosEventos = [...listaMeds, ...listaRotinas].sort((a, b) => a.horario.getTime() - b.horario.getTime());
-    
+
     // Eventos atrasados: pendentes com horário passado (apenas se for hoje)
-    const atrasados = isToday 
+    const atrasados = isToday
       ? todosEventos.filter(e => e.status === 'pendente' && e.horario < now)
       : [];
-    
+
     // Próximo evento: primeiro pendente com horário futuro (apenas se for hoje)
-    const proximo = isToday 
+    const proximo = isToday
       ? todosEventos.find(e => e.status === 'pendente' && e.horario >= now)
       : null;
-    
+
     // Total concluídos
     const concluidos = todosEventos.filter(e => e.status === 'confirmado').length;
-    
+
     // Estoque baixo
     const estoqueBaixoList = medicamentos.filter(m => m.quantidade != null && m.quantidade <= 3);
 
@@ -463,26 +464,26 @@ export default function DashboardClient({ readOnly = false, idosoId }: { readOnl
           <h1>{getGreeting()}, <span>{userName}</span>!</h1>
           <p>Acompanhe sua agenda de saúde</p>
         </div>
-        
+
         <div className={styles.dateNav}>
-          <button 
-            className={styles.dateNavBtn} 
+          <button
+            className={styles.dateNavBtn}
             onClick={() => navigateDate('prev')}
             aria-label="Dia anterior"
           >
             <ChevronLeft size={20} />
           </button>
-          
-          <button 
+
+          <button
             className={styles.dateLabel}
             onClick={goToToday}
             title="Voltar para hoje"
           >
             {formatDateLabel(selectedDate, today)}
           </button>
-          
-          <button 
-            className={styles.dateNavBtn} 
+
+          <button
+            className={styles.dateNavBtn}
             onClick={() => navigateDate('next')}
             aria-label="Próximo dia"
           >
@@ -533,7 +534,7 @@ export default function DashboardClient({ readOnly = false, idosoId }: { readOnl
               </p>
             </div>
             {!readOnly && (
-              <button 
+              <button
                 className={styles.heroAction}
                 onClick={() => handleToggleAgendaStatus(proximoEvento)}
               >
@@ -550,7 +551,7 @@ export default function DashboardClient({ readOnly = false, idosoId }: { readOnl
             <div className={styles.heroContent}>
               <h2>Tudo em dia!</h2>
               <p>
-                {agendaExata.length === 0 
+                {agendaExata.length === 0
                   ? 'Nenhuma tarefa agendada para este dia'
                   : 'Todas as tarefas foram concluídas'}
               </p>
@@ -565,12 +566,12 @@ export default function DashboardClient({ readOnly = false, idosoId }: { readOnl
           <CheckCircle2 size={16} />
           <span>{totalConcluidos} Concluídos</span>
         </div>
-        
+
         <div className={styles.statBadge} data-type="total">
           <Clock size={16} />
           <span>{agendaExata.length} Total</span>
         </div>
-        
+
         {estoqueBaixo.length > 0 && (
           <div className={styles.statBadge} data-type="warning">
             <Package size={16} />
@@ -596,27 +597,34 @@ export default function DashboardClient({ readOnly = false, idosoId }: { readOnl
       <section className={styles.agendaSection}>
         <div className={styles.agendaHeader}>
           <h3>Agenda</h3>
-          
+
           <div className={styles.filterTabs}>
-            <button 
+            <button
               className={activeFilter === 'todos' ? styles.active : ''}
               onClick={() => setActiveFilter('todos')}
             >
               Todos
             </button>
-            <button 
+            <button
               className={activeFilter === 'medicamento' ? styles.active : ''}
               onClick={() => setActiveFilter('medicamento')}
             >
               <Pill size={14} />
               Medicamentos
             </button>
-            <button 
+            <button
               className={activeFilter === 'rotina' ? styles.active : ''}
               onClick={() => setActiveFilter('rotina')}
             >
               <Activity size={14} />
               Rotinas
+            </button>
+            <button
+              className={activeFilter === 'compromisso' ? styles.active : ''}
+              onClick={() => setActiveFilter('compromisso')}
+            >
+              <Calendar size={14} />
+              Compromissos
             </button>
           </div>
         </div>
@@ -628,18 +636,18 @@ export default function DashboardClient({ readOnly = false, idosoId }: { readOnl
             </div>
             <h4>Nenhum evento</h4>
             <p>
-              {activeFilter === 'todos' 
+              {activeFilter === 'todos'
                 ? 'Não há tarefas agendadas para este dia'
-                : `Não há ${activeFilter === 'medicamento' ? 'medicamentos' : 'rotinas'} agendados`}
+                : `Não há ${activeFilter === 'medicamento' ? 'medicamentos' : activeFilter === 'rotina' ? 'rotinas' : 'compromissos'} agendados`}
             </p>
           </div>
         ) : (
           <div className={styles.timeline}>
             {agendaFiltrada.map((item, index) => {
               const status = getItemStatus(item);
-              const showTimeDivider = index === 0 || 
+              const showTimeDivider = index === 0 ||
                 item.horario.getHours() !== agendaFiltrada[index - 1].horario.getHours();
-              
+
               return (
                 <React.Fragment key={item.id}>
                   {showTimeDivider && (
@@ -647,23 +655,23 @@ export default function DashboardClient({ readOnly = false, idosoId }: { readOnl
                       <span>{item.horario.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
                     </div>
                   )}
-                  
+
                   <div className={`${styles.timelineItem} ${styles[status]}`} data-type={item.tipo}>
                     <div className={styles.timelineLine} />
                     <div className={styles.timelineDot} data-type={item.tipo} />
-                    
+
                     <div className={styles.timelineCard}>
                       <div className={styles.cardIcon} data-type={item.tipo}>
-                        {item.tipo === 'medicamento' ? <Pill size={18} /> : <Activity size={18} />}
+                        {item.tipo === 'medicamento' ? <Pill size={18} /> : item.tipo === 'rotina' ? <Activity size={18} /> : <Calendar size={18} />}
                       </div>
-                      
+
                       <div className={styles.cardContent}>
                         <span className={styles.cardType}>
-                          {item.tipo === 'medicamento' ? 'Medicamento' : 'Rotina'}
+                          {item.tipo === 'medicamento' ? 'Medicamento' : item.tipo === 'rotina' ? 'Rotina' : 'Compromisso'}
                         </span>
                         <h4>{item.titulo}</h4>
                       </div>
-                      
+
                       {item.tipo !== 'compromisso' && !readOnly && (
                         <button
                           onClick={() => handleToggleAgendaStatus(item)}
@@ -673,7 +681,7 @@ export default function DashboardClient({ readOnly = false, idosoId }: { readOnl
                           {item.status === 'confirmado' ? <CheckCircle2 size={20} /> : 'Concluir'}
                         </button>
                       )}
-                      
+
                       {item.tipo === 'compromisso' && item.status === 'confirmado' && (
                         <div className={styles.cardCheck}>
                           <CheckCircle2 size={20} />

@@ -14,7 +14,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
       <SidebarDashboard collapsed={collapsed} />
       <div
         className={styles.mainArea}
-        style={{ marginLeft: collapsed ? 80 : 280, width: `calc(100% - ${collapsed ? 80 : 280}px)` }}
+        style={{ marginLeft: collapsed ? 80 : 280 }}
       >
         <Header isMenuOpen={!collapsed} onMenuToggle={handleMenuToggle} />
         <div className={styles.contentArea}>{children}</div>

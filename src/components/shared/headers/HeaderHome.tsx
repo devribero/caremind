@@ -63,7 +63,7 @@ export function Header() {
         <nav className={styles.header__nav_desktop}>
           <Link className={styles.header__nav_desktop_item} href="#funcionalidades" onClick={(e) => smoothScrollTo(e, '#funcionalidades')}>Funcionalidades</Link>
           <Link className={styles.header__nav_desktop_item} href="#como-funciona" onClick={(e) => smoothScrollTo(e, '#como-funciona')}>Como Funciona</Link>
-          <Link className={styles.header__nav_desktop_item} href="#depoimentos" onClick={(e) => smoothScrollTo(e, '#depoimentos')}>Depoimentos</Link>
+          <Link className={styles.header__nav_desktop_item} href="#perguntas" onClick={(e) => smoothScrollTo(e, '#perguntas')}>Perguntas</Link>
           <Link href="/auth" className={`${styles.btn} ${styles.btn_primary}`}>
             Área do Cliente
           </Link>

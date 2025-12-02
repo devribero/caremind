@@ -7,11 +7,14 @@
   margin-left: 280px;
   display: flex;
   flex-direction: column;
-  width: calc(100% - 280px);
-  background: transparent; /* keep waves visible */
+  flex: 1;
+  width: auto;
+  background: transparent;
+  /* keep waves visible */
   min-height: 100vh;
   position: relative;
-  z-index: 2; /* above global waves */
+  z-index: 2;
+  /* above global waves */
 }
 
 .contentArea {

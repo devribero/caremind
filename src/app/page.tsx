@@ -272,7 +272,7 @@ export default function Home() {
         </div>
       </section>
 
-      <section className={styles.faqSection}>
+      <section id='perguntas' className={styles.faqSection}>
         <div className={styles.container}>
           <div className={styles.reveal}>
             <h2 className={styles.sectionTitle}>Perguntas Frequentes</h2>
