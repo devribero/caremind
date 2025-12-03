@@ -1,48 +1,48 @@
-# <img src="/icons/logo_coracao.png" alt="CareMind Logo" width="40" height="40" style="vertical-align: middle;"> CareMind Web
+# <img src="./public/icons/logo_coracao.png" alt="CareMind Logo" width="40" height="40" style="vertical-align: middle;"> CareMind Web
 
-[![Next.js](https://img.shields.io/badge/Next.js-15.5.4-black?style=flat-square&logo=next.js)](https://nextjs.org/)
-[![TypeScript](https://img.shields.io/badge/TypeScript-5.9.3-blue?style=flat-square&logo=typescript)](https://www.typescriptlang.org/)
-[![Tailwind CSS](https://img.shields.io/badge/Tailwind_CSS-3.4.0-38B2AC?style=flat-square&logo=tailwind-css)](https://tailwindcss.com/)
-[![Supabase](https://img.shields.io/badge/Supabase-2.58.5-3ECF8E?style=flat-square&logo=supabase)](https://supabase.com/)
-[![Vercel](https://img.shields.io/badge/Vercel-Deployed-000000?style=flat-square&logo=vercel)](https://vercel.com/)
-[![Status](https://img.shields.io/badge/Status-Concluído-brightgreen?style=flat-square)]()
+[![Next.js](https://img.shields.io/badge/Next.js-15.5.4-black?style=plastic&logo=next.js)](https://nextjs.org/)
+[![TypeScript](https://img.shields.io/badge/TypeScript-5.9.3-blue?style=plastic&logo=typescript)](https://www.typescriptlang.org/)
+[![Tailwind CSS](https://img.shields.io/badge/Tailwind_CSS-3.4.0-38B2AC?style=plastic&logo=tailwind-css)](https://tailwindcss.com/)
+[![Supabase](https://img.shields.io/badge/Supabase-2.58.5-3ECF8E?style=plastic&logo=supabase)](https://supabase.com/)
+[![Vercel](https://img.shields.io/badge/Vercel-Deployed-000000?style=plastic&logo=vercel)](https://vercel.com/)
+[![Status](https://img.shields.io/badge/Status-Concluído-brightgreen?style=plastic)]()
 
 > **Gerenciamento Inteligente de Medicamentos e Rotinas para Idosos**
 
-## 📋 Sobre o Projeto
+## Sobre o Projeto
 
 CareMind Web é uma plataforma de saúde digital desenvolvida como Trabalho de Conclusão de Curso (TCC) para o Técnico em Desenvolvimento de Sistemas no SENAI Conde Alexandre Siciliano (Jundiaí-SP). A aplicação foi projetada para combater a **polifarmácia** e auxiliar cuidadores no gerenciamento seguro e eficiente de medicamentos e rotinas diárias de idosos.
 
 Com uma interface focada no **Familiar/Cuidador**, o sistema oferece dashboard administrativo completo, relatórios detalhados de adesão e configurações avançadas de segurança.
 
-## ✨ Funcionalidades Chave (Web)
+## Funcionalidades Chave (Web)
 
-### 🏠 Dashboard Administrativo
-- 📊 **Gráficos interativos** de adesão medicamentosa em tempo real
-- 📈 **Analytics** avançados com Chart.js e Vercel Analytics
-- 🎯 **KPIs** personalizáveis para monitoramento de saúde
+### Dashboard Administrativo
+- **Gráficos interativos** de adesão medicamentosa em tempo real
+- **Analytics** avançados com Chart.js e Vercel Analytics
+- **KPIs** personalizáveis para monitoramento de saúde
 
-### 💊 Gestão de Medicamentos e Rotinas
-- ➕ **CRUD completo** de medicamentos com dosagens e horários
-- ⏰ **Sistema de agendamento** inteligente com notificações
-- 🔄 **Rotinas personalizáveis** adaptadas às necessidades do paciente
+### Gestão de Medicamentos e Rotinas
+- **CRUD completo** de medicamentos com dosagens e horários
+- **Sistema de agendamento** inteligente com notificações
+- **Rotinas personalizáveis** adaptadas às necessidades do paciente
 
-### 📸 Upload de Receitas com OCR
-- 🤖 **IA Qwen-VL** para reconhecimento óptico de caracteres
-- 👁️ **Revisão manual** garantindo 100% de precisão
-- 📱 **Processamento em tempo real** via Supabase Edge Functions
+### Upload de Receitas com OCR
+- **IA Qwen-VL** para reconhecimento óptico de caracteres
+- **Revisão manual** garantindo 100% de precisão
+- **Processamento em tempo real** via Supabase Edge Functions
 
-### 👥 Gerenciamento Familiar Seguro
-- 🔐 **Security by Design** com Row Level Security (RLS)
-- 👨‍👩‍👧‍👦 **Vínculos familiares** hierárquicos e controlados
-- 🛡️ **Permissões granulares** por nível de acesso
+### Gerenciamento Familiar Seguro
+- **Security by Design** com Row Level Security (RLS)
+- **Vínculos familiares** hierárquicos e controlados
+- **Permissões granulares** por nível de acesso
 
-### 🌐 Landing Page Institucional
-- 📱 **Design responsivo** com Tailwind CSS e Shadcn/ui
-- 🎨 **UI/UX moderna** com Framer Motion
-- ♿ **Acessibilidade** WCAG 2.1 AA compliance
+### Landing Page Institucional
+- **Design responsivo** com Tailwind CSS e Shadcn/ui
+- **UI/UX moderna** com Framer Motion
+- **Acessibilidade** WCAG 2.1 AA compliance
 
-## 🏗️ Arquitetura e Tecnologias
+## Arquitetura e Tecnologias
 
 ### Frontend
 - **Next.js 15.5.4** (App Router) - Framework React full-stack
@@ -60,13 +60,13 @@ Com uma interface focada no **Familiar/Cuidador**, o sistema oferece dashboard a
   - **Edge Functions**: Serverless functions para OCR
 
 ### Segurança e Performance
-- 🛡️ **CSP (Content Security Policy)** implementado
-- 🔒 **HSTS (HTTP Strict Transport Security)**
-- ✅ **Validação OWASP ZAP** para segurança web
-- 📊 **Vercel Speed Insights** para monitoramento de performance
-- 🚀 **PWA capabilities** (desativado temporariamente)
+- **CSP (Content Security Policy)** implementado
+- **HSTS (HTTP Strict Transport Security)**
+- **Validação OWASP ZAP** para segurança web
+- **Vercel Speed Insights** para monitoramento de performance
+- **PWA capabilities** (desativado temporariamente)
 
-## 🚀 Instalação e Execução
+## Instalação e Execução
 
 ### Pré-requisitos
 - **Node.js 20.x** ou superior
@@ -101,9 +101,9 @@ Com uma interface focada no **Familiar/Cuidador**, o sistema oferece dashboard a
    http://localhost:3000
    ```
 
-## 🔧 Variáveis de Ambiente
+## Variáveis de Ambiente
 
-Configure as seguintes variáveis no seu arquivo `.env.local`:
+Configure as seguintes variáveis no seu arquivo `.env`:
 
 ```env
 # Supabase Configuration
@@ -119,9 +119,9 @@ NEXT_PUBLIC_APP_NAME=CareMind
 NEXT_PUBLIC_VERCEL_ANALYTICS_ID=your_vercel_analytics_id
 ```
 
-> **⚠️ Importante**: Nunca exponha suas chaves do Supabase em repositórios públicos. O arquivo `.env` está incluído no `.gitignore` para segurança.
+> **Importante**: Nunca exponha suas chaves do Supabase em repositórios públicos. O arquivo `.env` está incluído no `.gitignore` para segurança.
 
-## 📁 Estrutura do Projeto
+## Estrutura do Projeto
 
 ```
 caremind/
@@ -141,42 +141,30 @@ caremind/
 └── docs/                    # Documentação adicional
 ```
 
-## 👥 Autores e Orientador
+## Autores e Orientador
 
 ### Desenvolvedores
-- **Daniel Augusto Batista** - Full-stack Developer
-- **João Gabriel Sacramoni Pincinato** - Frontend Specialist  
-- **Leonardo Destro Felix** - Backend & Integration
-- **Marcos Néfi Bolonha da Silva** - UI/UX Designer
-- **Pedro Ribeiro** - DevOps & Security
+- **Daniel Augusto Batista**
+- **João Gabriel Sacramoni Pincinato**  
+- **Leonardo Destro Felix**
+- **Marcos Néfi Bolonha da Silva**
+- **Pedro Ribeiro**
 
 ### Orientador
 - **Carlos Ribeiro** - Orientador Técnico
   - SENAI Conde Alexandre Siciliano
   - Jundiaí - São Paulo
 
-## 📄 Licença
+## Licença
 
 **© 2025 - Todos os direitos reservados**
 
-Este projeto é propriedade intelectual dos desenvolvedores e do SENAI Conde Alexandre Siciliano. Não é permitida a reprodução, distribuição ou modificação sem autorização expressa.
-
----
-
-## 🤝 Contribuições
-
-Este é um projeto acadêmico concluído. Para sugestões ou feedback, entre em contato através dos canais institucionais do SENAI.
-
-## 📞 Contato
-
-- **Instituição**: SENAI Conde Alexandre Siciliano
-- **Localização**: Jundiaí - São Paulo, Brasil
-- **Ano de Conclusão**: 2025
+Este projeto é propriedade intelectual dos desenvolvedores. Não é permitida a reprodução, distribuição ou modificação sem autorização expressa.
 
 ---
 
 <div align="center">
 
-**💙 Desenvolvido com dedicação ao cuidado dos nossos idosos 💙**
+**Desenvolvido com dedicação ao cuidado dos nossos idosos**
 
 </div>
