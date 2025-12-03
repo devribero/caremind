@@ -1,4 +1,4 @@
-# <img src="./public/icons/logo_coracao.png" alt="CareMind Logo" width="40" height="40" style="vertical-align: middle;"> CareMind Web
+# <img src="./public/logo.png" alt="CareMind Logo" width="200" height="60">
 
 [![Next.js](https://img.shields.io/badge/Next.js-15.5.4-black?style=plastic&logo=next.js)](https://nextjs.org/)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.9.3-blue?style=plastic&logo=typescript)](https://www.typescriptlang.org/)
@@ -41,6 +41,28 @@ Com uma interface focada no **Familiar/Cuidador**, o sistema oferece dashboard a
 - **Design responsivo** com Tailwind CSS e Shadcn/ui
 - **UI/UX moderna** com Framer Motion
 - **Acessibilidade** WCAG 2.1 AA compliance
+
+## Demonstração Visual
+
+### OCR em Ação
+<video src="./public/videos/ocr-demo.mp4" width="600" controls autoplay loop>
+  Seu navegador não suporta a tag de vídeo.
+</video>
+
+### Interface Principal
+
+#### Dashboard Administrativo
+![Dashboard](./public/images/dashboard-print.png)
+
+
+#### Gestão de Medicamentos
+![Medicamentos](./public/images/medicamentos-print.png)
+
+#### Vinculo Familiar
+![Familia](./public/images/familia-print.png)
+
+#### Landing Page
+![Landing](./public/images/landing-print.png)
 
 ## Arquitetura e Tecnologias
 
