@@ -442,14 +442,15 @@ export default function Remedios() {
 
       setOcrOverlay({ isVisible: true, status: 'processing' });
       
-      const { data: publicUrlData } = supabase.storage
+      const { data: signedUrlData, error: signedUrlError } = await supabase.storage
         .from('receitas-medicas')
-        .getPublicUrl(fileName);
-      if (!publicUrlData) {
-        setOcrOverlay({ isVisible: true, status: 'error', errorMessage: 'Erro ao obter URL pública' });
+        .createSignedUrl(fileName, 3600); // URL válida por 1 hora
+      if (signedUrlError || !signedUrlData) {
+        console.error('Erro ao criar URL assinada:', signedUrlError);
+        setOcrOverlay({ isVisible: true, status: 'error', errorMessage: `Erro ao obter URL da imagem: ${signedUrlError?.message || 'Desconhecido'}` });
         return;
       }
-      const imageUrl = publicUrlData.publicUrl;
+      const imageUrl = signedUrlData.signedUrl;
 
       const { data: inserted, error: insertError } = await supabase
         .from('ocr_gerenciamento')
