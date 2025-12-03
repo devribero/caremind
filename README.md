@@ -1,11 +1,11 @@
 # <img src="./public/logo.png" alt="CareMind Logo" width="200" height="60">
 
-[![Next.js](https://img.shields.io/badge/Next.js-15.5.4-black?style=plastic&logo=next.js)](https://nextjs.org/)
-[![TypeScript](https://img.shields.io/badge/TypeScript-5.9.3-blue?style=plastic&logo=typescript)](https://www.typescriptlang.org/)
-[![Tailwind CSS](https://img.shields.io/badge/Tailwind_CSS-3.4.0-38B2AC?style=plastic&logo=tailwind-css)](https://tailwindcss.com/)
-[![Supabase](https://img.shields.io/badge/Supabase-2.58.5-3ECF8E?style=plastic&logo=supabase)](https://supabase.com/)
-[![Vercel](https://img.shields.io/badge/Vercel-Deployed-000000?style=plastic&logo=vercel)](https://vercel.com/)
-[![Status](https://img.shields.io/badge/Status-Concluído-brightgreen?style=plastic)]()
+[![Next.js](https://img.shields.io/badge/Next.js-15.5.4-black?style=for-the-badge&logo=next.js)](https://nextjs.org/)
+[![TypeScript](https://img.shields.io/badge/TypeScript-5.9.3-blue?style=for-the-badge&logo=typescript)](https://www.typescriptlang.org/)
+[![Tailwind CSS](https://img.shields.io/badge/Tailwind_CSS-3.4.0-38B2AC?style=for-the-badge&logo=tailwind-css)](https://tailwindcss.com/)
+[![Supabase](https://img.shields.io/badge/Supabase-2.58.5-3ECF8E?style=for-the-badge&logo=supabase)](https://supabase.com/)
+[![Vercel](https://img.shields.io/badge/Vercel-Deployed-000000?style=for-the-badge&logo=vercel)](https://vercel.com/)
+[![Status](https://img.shields.io/badge/Status-Concluído-brightgreen?style=for-the-badge)]()
 
 > **Gerenciamento Inteligente de Medicamentos e Rotinas para Idosos**
 
