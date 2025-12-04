@@ -80,6 +80,7 @@ export default function DashboardClient({ readOnly = false, idosoId }: { readOnl
   const [agenda, setAgenda] = useState<AgendaItem[]>([]);
   const [medicamentos, setMedicamentos] = useState<Medicamento[]>([]);
   const [rotinas, setRotinas] = useState<Rotina[]>([]);
+  const [compromissos, setCompromissos] = useState<Compromisso[]>([]);
   const [activeFilter, setActiveFilter] = useState<FilterType>('todos');
   const [selectedDate, setSelectedDate] = useState<Date>(new Date());
 
@@ -135,6 +136,7 @@ export default function DashboardClient({ readOnly = false, idosoId }: { readOnl
       setAgenda(agendaCompleta);
       setMedicamentos(meds);
       setRotinas(rots);
+      setCompromissos(compromissos);
 
     } catch (error) {
       console.error("Erro ao carregar dados do dashboard:", error);
@@ -415,7 +417,19 @@ export default function DashboardClient({ readOnly = false, idosoId }: { readOnl
       } as AgendaItem;
     });
 
-    const todosEventos = [...listaMeds, ...listaRotinas].sort((a, b) => a.horario.getTime() - b.horario.getTime());
+    // Lista de compromissos do dia
+    const listaCompromissos = compromissos
+      .filter(c => c.data_hora && isSameDay(new Date(c.data_hora), selectedDate))
+      .map(c => ({
+        id: c.id,
+        tipo: 'compromisso' as const,
+        titulo: c.titulo,
+        horario: new Date(c.data_hora!),
+        status: (c as any).concluido ? 'confirmado' as const : 'pendente' as const,
+        dadosOriginais: c,
+      }));
+
+    const todosEventos = [...listaMeds, ...listaRotinas, ...listaCompromissos].sort((a, b) => a.horario.getTime() - b.horario.getTime());
 
     // Eventos atrasados: pendentes com horário passado (apenas se for hoje)
     const atrasados = isToday
@@ -440,7 +454,7 @@ export default function DashboardClient({ readOnly = false, idosoId }: { readOnl
       totalConcluidos: concluidos,
       estoqueBaixo: estoqueBaixoList
     };
-  }, [agenda, medicamentos, rotinas, selectedDate, isToday, now]);
+  }, [agenda, medicamentos, rotinas, compromissos, selectedDate, isToday, now]);
 
   // Filtrar agenda
   const agendaFiltrada = useMemo(() => {
