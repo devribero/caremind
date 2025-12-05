@@ -491,3 +491,163 @@
     font-size: 1rem;
   }
 }
+/* Delete Data Modal */
+.deleteDataModal {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.deleteWarning {
+  display: flex;
+  gap: 1rem;
+  padding: 1rem;
+  background: #fef2f2;
+  border: 1px solid #fecaca;
+  border-radius: 0.75rem;
+}
+
+.warningIcon {
+  color: #dc2626;
+  flex-shrink: 0;
+}
+
+.deleteWarning strong {
+  display: block;
+  color: #991b1b;
+  margin-bottom: 0.5rem;
+}
+
+.deleteWarning p {
+  color: #7f1d1d;
+  font-size: 0.875rem;
+  margin: 0;
+  line-height: 1.5;
+}
+
+.dateRangeInputs {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 1rem;
+}
+
+.dateInputGroup {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.dateInputGroup label {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: #374151;
+}
+
+.dateInput {
+  padding: 0.75rem 1rem;
+  border: 1px solid #e2e8f0;
+  border-radius: 0.5rem;
+  font-size: 0.9375rem;
+  color: #171717;
+  background: white;
+}
+
+.dateInput:focus {
+  outline: none;
+  border-color: #0400b9;
+  box-shadow: 0 0 0 3px rgba(4, 0, 185, 0.15);
+}
+
+.deleteModalActions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.75rem;
+  padding-top: 0.5rem;
+}
+
+.cancelButton {
+  padding: 0.75rem 1.25rem;
+  background: white;
+  border: 1px solid #e2e8f0;
+  border-radius: 0.5rem;
+  font-size: 0.9375rem;
+  font-weight: 600;
+  color: #374151;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.cancelButton:hover:not(:disabled) {
+  background: #f8fafc;
+  border-color: #cbd5e1;
+}
+
+.confirmDeleteButton {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.75rem 1.25rem;
+  background: #dc2626;
+  border: none;
+  border-radius: 0.5rem;
+  font-size: 0.9375rem;
+  font-weight: 600;
+  color: white;
+  cursor: pointer;
+  transition: background 0.2s ease;
+}
+
+.confirmDeleteButton:hover:not(:disabled) {
+  background: #b91c1c;
+}
+
+.confirmDeleteButton:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.dangerButtonSecondary {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.875rem 1rem;
+  background: #ffffff;
+  color: #dc2626;
+  border: 1px solid #fecaca;
+  border-radius: 0.5rem;
+  font-size: 0.9375rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  width: 100%;
+  justify-content: center;
+  margin-top: 0.75rem;
+}
+
+.dangerButtonSecondary:hover {
+  background: #fef2f2;
+  border-color: #dc2626;
+}
+
+.dangerButtonSecondary .dangerButtonIcon {
+  color: #dc2626;
+}
+
+@media (max-width: 480px) {
+  .dateRangeInputs {
+    grid-template-columns: 1fr;
+  }
+
+  .deleteModalActions {
+    flex-direction: column;
+  }
+
+  .cancelButton,
+  .confirmDeleteButton {
+    width: 100%;
+    justify-content: center;
+  }
+}

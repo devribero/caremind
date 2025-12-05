@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, FormEvent } from "react";
+import { Eye, EyeOff } from "lucide-react";
 import { Modal } from "@/components/features/Modal";
 import { createClient } from "@/lib/supabase/client";
 import { toast } from "@/components/features/Toast";
@@ -17,6 +18,7 @@ export default function AddIdosoModal({ isOpen, onClose, onSuccess }: AddIdosoMo
   const [nome, setNome] = useState("");
   const [email, setEmail] = useState("");
   const [senha, setSenha] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -41,14 +43,14 @@ export default function AddIdosoModal({ isOpen, onClose, onSuccess }: AddIdosoMo
     try {
       const nomeTrimmed = nome.trim();
       const emailTrimmed = email.trim();
-      
+
       // Log para debug
       console.log('Enviando dados para criar idoso:', {
         nome_idoso: nomeTrimmed,
         email_idoso: emailTrimmed,
         senha_length: senha.length
       });
-      
+
       // Chamar a Edge Function criar-idoso
       const { data, error: functionError } = await supabase.functions.invoke('criar-idoso', {
         body: {
@@ -115,17 +117,28 @@ export default function AddIdosoModal({ isOpen, onClose, onSuccess }: AddIdosoMo
         </label>
         <label className={styles.label}>
           <span className={styles.labelText}>Senha Inicial</span>
-          <input
-            type="password"
-            value={senha}
-            onChange={(e) => setSenha(e.target.value)}
-            minLength={6}
-            placeholder="Mínimo 6 caracteres"
-            required
-            autoComplete="new-password"
-            name="idoso_new_password"
-            className={styles.input}
-          />
+          <div className={styles.passwordWrapper}>
+            <input
+              type={showPassword ? "text" : "password"}
+              value={senha}
+              onChange={(e) => setSenha(e.target.value)}
+              minLength={6}
+              placeholder="Mínimo 6 caracteres"
+              required
+              autoComplete="new-password"
+              name="idoso_new_password"
+              className={styles.input}
+            />
+            <button
+              type="button"
+              className={styles.togglePasswordBtn}
+              onClick={() => setShowPassword(!showPassword)}
+              tabIndex={-1}
+              aria-label={showPassword ? "Ocultar senha" : "Mostrar senha"}
+            >
+              {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+            </button>
+          </div>
         </label>
         <div className={styles.actions}>
           <button

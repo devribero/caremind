@@ -31,7 +31,7 @@ export class ProfileService {
   // 1. Perfil do usuário logado
   static async getProfile(userId: string): Promise<ProfilePreview | null> {
     const supabase = createClient();
-    
+
     // Verifica se há sessão ativa antes de fazer a requisição
     const { data: { session } } = await supabase.auth.getSession();
     if (!session) {
@@ -57,11 +57,21 @@ export class ProfileService {
     // Se não encontrou perfil, cria automaticamente
     if (!data) {
       // Obtém informações do usuário do Supabase Auth
+      const accountType = session.user.user_metadata?.account_type;
+
+      // Se o usuário é do tipo 'idoso', NÃO auto-criar perfil
+      // A edge function criar-idoso é responsável por criar o perfil
+      if (accountType === 'idoso') {
+        console.log('Usuário idoso sem perfil - aguardando edge function');
+        return null;
+      }
+
       const userEmail = session.user.email || '';
-      const userName = session.user.user_metadata?.full_name || 
-                       session.user.user_metadata?.name || 
-                       userEmail.split('@')[0] || 
-                       'Usuário';
+      const userName = session.user.user_metadata?.full_name ||
+        session.user.user_metadata?.name ||
+        session.user.user_metadata?.nome ||
+        userEmail.split('@')[0] ||
+        'Usuário';
 
       try {
         // Usa upsertProfile que já trata a criação/atualização corretamente
@@ -87,7 +97,7 @@ export class ProfileService {
   // 2. Criar ou atualizar perfil
   static async upsertProfile(profileData: ProfileUpsertData): Promise<ProfilePreview> {
     const supabase = createClient();
-    
+
     // Primeiro tenta buscar o perfil existente para obter o id
     const { data: existingProfile } = await supabase
       .from('perfis')

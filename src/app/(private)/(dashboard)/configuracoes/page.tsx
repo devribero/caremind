@@ -4,6 +4,8 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAccessibility } from '@/contexts/AccessibilityContext';
 import { useAuth } from '@/contexts/AuthContext';
+import { useProfileContext } from '@/contexts/ProfileContext';
+import { useIdoso } from '@/contexts/IdosoContext';
 import { Switch } from '@/components/ui/Switch';
 import { createClient } from '@/lib/supabase/client';
 import {
@@ -18,15 +20,24 @@ import {
   AlertCircle,
   Phone,
   AlertTriangle,
+  Trash2,
+  Calendar,
 } from 'lucide-react';
 import { ChangePasswordModal } from '@/components/features/ChangePasswordModal';
+import { Modal } from '@/components/features/Modal';
 import { toast } from '@/components/features/Toast';
 import styles from './page.module.css';
 
 export default function Configuracoes() {
   const router = useRouter();
-  const { signOut } = useAuth();
+  const { signOut, user } = useAuth();
+  const { profile } = useProfileContext();
+  const { idosoSelecionadoId } = useIdoso();
   const { fontSize, highContrast, reducedMotion, setFontSize, setHighContrast, setReducedMotion } = useAccessibility();
+
+  // Determine target profile ID for deletion
+  const isFamiliar = user?.user_metadata?.account_type === 'familiar';
+  const targetProfileId = isFamiliar ? idosoSelecionadoId : profile?.id;
 
   // Estados mockados para notificações (será integrado com backend depois)
   const [medicationAlerts, setMedicationAlerts] = useState(true);
@@ -40,6 +51,12 @@ export default function Configuracoes() {
   // Estados para modal de senha
   const [showPasswordModal, setShowPasswordModal] = useState(false);
   const [passwordLoading, setPasswordLoading] = useState(false);
+
+  // Estados para modal de excluir dados
+  const [showDeleteDataModal, setShowDeleteDataModal] = useState(false);
+  const [deleteDataInicio, setDeleteDataInicio] = useState('');
+  const [deleteDataFim, setDeleteDataFim] = useState('');
+  const [isDeleting, setIsDeleting] = useState(false);
 
   // Verificar status da integração Alexa
   useEffect(() => {
@@ -104,6 +121,60 @@ export default function Configuracoes() {
     } finally {
       setPasswordLoading(false);
       setShowPasswordModal(false);
+    }
+  };
+
+  const handleDeleteData = async () => {
+    if (!deleteDataInicio || !deleteDataFim) {
+      toast.error('Por favor, selecione as datas de início e fim.');
+      return;
+    }
+
+    if (!targetProfileId) {
+      toast.error('Não foi possível identificar o perfil. Tente novamente.');
+      return;
+    }
+
+    if (new Date(deleteDataInicio) > new Date(deleteDataFim)) {
+      toast.error('A data de início deve ser anterior à data de fim.');
+      return;
+    }
+
+    const confirmDelete = window.confirm(
+      `ATENÇÃO: Esta ação é IRREVERSÍVEL!\n\nVocê está prestes a excluir todos os dados de histórico entre ${new Date(deleteDataInicio).toLocaleDateString('pt-BR')} e ${new Date(deleteDataFim).toLocaleDateString('pt-BR')}.\n\nDeseja continuar?`
+    );
+
+    if (!confirmDelete) return;
+
+    setIsDeleting(true);
+    try {
+      const supabase = createClient();
+
+      // Delete historic events within date range for this profile
+      const { error: historicoError, count: historicoCount } = await supabase
+        .from('historico_eventos')
+        .delete()
+        .eq('perfil_id', targetProfileId)
+        .gte('data_prevista', deleteDataInicio)
+        .lte('data_prevista', deleteDataFim);
+
+      if (historicoError) {
+        console.error('Erro ao excluir histórico de eventos:', historicoError);
+        throw historicoError;
+      }
+
+      console.log(`Excluídos ${historicoCount ?? 0} registros do histórico`);
+
+
+      toast.success('Dados excluídos com sucesso!');
+      setShowDeleteDataModal(false);
+      setDeleteDataInicio('');
+      setDeleteDataFim('');
+    } catch (error: any) {
+      console.error('Erro ao excluir dados:', error);
+      toast.error('Erro ao excluir dados. Tente novamente.');
+    } finally {
+      setIsDeleting(false);
     }
   };
 
@@ -440,6 +511,16 @@ export default function Configuracoes() {
                       <LogOut className={styles.dangerButtonIcon} size={18} />
                       <span>Sair da Conta</span>
                     </button>
+
+                    <button
+                      type="button"
+                      onClick={() => setShowDeleteDataModal(true)}
+                      className={styles.dangerButtonSecondary}
+                      aria-label="Excluir dados históricos"
+                    >
+                      <Trash2 className={styles.dangerButtonIcon} size={18} />
+                      <span>Excluir Dados Históricos</span>
+                    </button>
                   </div>
                 </div>
               </section>
@@ -460,6 +541,70 @@ export default function Configuracoes() {
         }}
         loading={passwordLoading}
       />
+
+      {/* Modal de Excluir Dados */}
+      <Modal
+        isOpen={showDeleteDataModal}
+        onClose={() => setShowDeleteDataModal(false)}
+        title="Excluir Dados Históricos"
+      >
+        <div className={styles.deleteDataModal}>
+          <div className={styles.deleteWarning}>
+            <AlertTriangle size={24} className={styles.warningIcon} />
+            <div>
+              <strong>Atenção: Esta ação é irreversível!</strong>
+              <p>Os dados excluídos não poderão ser recuperados. Isso inclui histórico de medicamentos e rotinas do período selecionado.</p>
+            </div>
+          </div>
+
+          <div className={styles.dateRangeInputs}>
+            <div className={styles.dateInputGroup}>
+              <label>
+                <Calendar size={16} />
+                Data Início
+              </label>
+              <input
+                type="date"
+                value={deleteDataInicio}
+                onChange={(e) => setDeleteDataInicio(e.target.value)}
+                className={styles.dateInput}
+              />
+            </div>
+            <div className={styles.dateInputGroup}>
+              <label>
+                <Calendar size={16} />
+                Data Fim
+              </label>
+              <input
+                type="date"
+                value={deleteDataFim}
+                onChange={(e) => setDeleteDataFim(e.target.value)}
+                className={styles.dateInput}
+              />
+            </div>
+          </div>
+
+          <div className={styles.deleteModalActions}>
+            <button
+              type="button"
+              onClick={() => setShowDeleteDataModal(false)}
+              className={styles.cancelButton}
+              disabled={isDeleting}
+            >
+              Cancelar
+            </button>
+            <button
+              type="button"
+              onClick={handleDeleteData}
+              className={styles.confirmDeleteButton}
+              disabled={isDeleting || !deleteDataInicio || !deleteDataFim}
+            >
+              <Trash2 size={18} />
+              {isDeleting ? 'Excluindo...' : 'Excluir Dados'}
+            </button>
+          </div>
+        </div>
+      </Modal>
     </main >
   );
 }

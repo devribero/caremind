@@ -12,7 +12,7 @@ import { toast } from '@/components/features/Toast';
 import jsPDF from 'jspdf';
 // @ts-ignore
 import autoTable from 'jspdf-autotable';
-import { Download } from 'lucide-react';
+import { Download, ChevronLeft, ChevronRight } from 'lucide-react';
 import {
   Chart as ChartJS,
   CategoryScale,
@@ -71,10 +71,17 @@ export default function Relatorios() {
   const [eventos, setEventos] = useState<EventoHistorico[]>([]);
   const [dataInicio, setDataInicio] = useState<string>('');
   const [dataFim, setDataFim] = useState<string>('');
+  // Pending states for date inputs - only applied when clicking "Aplicar Filtros"
+  const [pendingDataInicio, setPendingDataInicio] = useState<string>('');
+  const [pendingDataFim, setPendingDataFim] = useState<string>('');
+  const [pendingTipo, setPendingTipo] = useState<'Todos' | 'Medicamento' | 'Rotina'>('Todos');
   const [tipoSelecionado, setTipoSelecionado] = useState<'Todos' | 'Medicamento' | 'Rotina'>('Todos');
   const [applyTick, setApplyTick] = useState<number>(0);
   const [analytics, setAnalytics] = useState<RelatorioAnalytics | null>(null);
   const [isExporting, setIsExporting] = useState(false);
+  // Pagination state for history table
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 10;
   const supabase = useMemo(() => createClient(), []);
   const isFamiliar = user?.user_metadata?.account_type === 'familiar';
   const targetProfileId = isFamiliar ? idosoSelecionadoId : profile?.id;
@@ -92,8 +99,12 @@ export default function Relatorios() {
       const day = String(d.getDate()).padStart(2, '0');
       return `${y}-${m}-${day}`;
     };
-    setDataInicio((prev) => prev || toYMD(seteDiasAtras));
-    setDataFim((prev) => prev || toYMD(hoje));
+    const inicioDefault = toYMD(seteDiasAtras);
+    const fimDefault = toYMD(hoje);
+    setDataInicio((prev) => prev || inicioDefault);
+    setDataFim((prev) => prev || fimDefault);
+    setPendingDataInicio((prev) => prev || inicioDefault);
+    setPendingDataFim((prev) => prev || fimDefault);
   }, []);
 
   useEffect(() => {
@@ -349,7 +360,7 @@ export default function Relatorios() {
         doc.setDrawColor(220, 220, 220);
         doc.setLineWidth(4);
         doc.circle(centerX, centerY, radius, 'S');
-        
+
         // Arco de progresso (simulado com múltiplos segmentos)
         doc.setDrawColor(...color);
         doc.setLineWidth(4);
@@ -463,7 +474,7 @@ export default function Relatorios() {
       const circleX = pageWidth / 2;
       const circleY = yPos + 25;
       drawProgressCircle(circleX, circleY, 18, analytics.kpis.taxa_adesao_total, [4, 0, 186]);
-      
+
       // Texto no centro
       doc.setFontSize(14);
       doc.setTextColor(4, 0, 186);
@@ -741,22 +752,27 @@ export default function Relatorios() {
         <div className={styles.filterBar}>
           <div className={styles.filterGroup}>
             <label>Data Início</label>
-            <input type="date" value={dataInicio} onChange={(e) => setDataInicio(e.target.value)} />
+            <input type="date" value={pendingDataInicio} onChange={(e) => setPendingDataInicio(e.target.value)} />
           </div>
           <div className={styles.filterGroup}>
             <label>Data Fim</label>
-            <input type="date" value={dataFim} onChange={(e) => setDataFim(e.target.value)} />
+            <input type="date" value={pendingDataFim} onChange={(e) => setPendingDataFim(e.target.value)} />
           </div>
           <div className={styles.filterGroup}>
             <label>Tipo de Evento</label>
-            <select value={tipoSelecionado} onChange={(e) => setTipoSelecionado(e.target.value as any)}>
+            <select value={pendingTipo} onChange={(e) => setPendingTipo(e.target.value as any)}>
               <option value="Todos">Todos</option>
               <option value="Medicamento">Medicamentos</option>
               <option value="Rotina">Rotinas</option>
             </select>
           </div>
           <div className={styles.filterActions}>
-            <button onClick={() => setApplyTick((n) => n + 1)}>Aplicar Filtros</button>
+            <button onClick={() => {
+              setDataInicio(pendingDataInicio);
+              setDataFim(pendingDataFim);
+              setTipoSelecionado(pendingTipo);
+              setApplyTick((n) => n + 1);
+            }}>Aplicar Filtros</button>
             <button onClick={() => {
               const hoje = new Date();
               const seteDiasAtras = new Date();
@@ -767,8 +783,13 @@ export default function Relatorios() {
                 const day = String(d.getDate()).padStart(2, '0');
                 return `${y}-${m}-${day}`;
               };
-              setDataInicio(toYMD(seteDiasAtras));
-              setDataFim(toYMD(hoje));
+              const inicioDefault = toYMD(seteDiasAtras);
+              const fimDefault = toYMD(hoje);
+              setPendingDataInicio(inicioDefault);
+              setPendingDataFim(fimDefault);
+              setPendingTipo('Todos');
+              setDataInicio(inicioDefault);
+              setDataFim(fimDefault);
               setTipoSelecionado('Todos');
               setApplyTick((n) => n + 1);
             }}>Limpar Filtros</button>
@@ -843,8 +864,8 @@ export default function Relatorios() {
                       <div className={styles.categoryInfo}>
                         <span className={styles.categoryName}>Medicamentos</span>
                         <div className={styles.progressBar}>
-                          <div 
-                            className={styles.progressFill} 
+                          <div
+                            className={styles.progressFill}
                             style={{ width: `${analytics.kpis.taxa_adesao_medicamentos || 0}%` }}
                           />
                         </div>
@@ -856,7 +877,7 @@ export default function Relatorios() {
                       <div className={styles.categoryInfo}>
                         <span className={styles.categoryName}>Rotinas</span>
                         <div className={styles.progressBar}>
-                          <div 
+                          <div
                             className={`${styles.progressFill} ${styles.progressSecondary}`}
                             style={{ width: `${analytics.kpis.taxa_adesao_rotinas || 0}%` }}
                           />
@@ -898,7 +919,14 @@ export default function Relatorios() {
 
           {/* Tabela de Eventos */}
           <div className={styles.reportContainer}>
-            <h2 className={styles.cardTitle}>Histórico Detalhado</h2>
+            <div className={styles.historyHeader}>
+              <h2 className={styles.cardTitle}>Histórico Detalhado</h2>
+              {eventos.length > 0 && (
+                <span className={styles.historyCount}>
+                  {eventos.length} evento{eventos.length !== 1 ? 's' : ''} encontrado{eventos.length !== 1 ? 's' : ''}
+                </span>
+              )}
+            </div>
             <div className={styles.tableWrapper}>
               <table className={styles.historyTable}>
                 <thead>
@@ -912,23 +940,25 @@ export default function Relatorios() {
                 </thead>
                 <tbody>
                   {eventos.length > 0
-                    ? eventos.map((evento) => (
-                      <tr key={evento.id}>
-                        <td>{formatarData(evento.data_prevista)}</td>
-                        <td>{formatarHora(evento.data_prevista)}</td>
-                        <td>
-                          <span className={styles.tipoBadge} data-tipo={evento.tipo.toLowerCase()}>
-                            {evento.tipo === 'Medicamento' ? '💊' : '📋'} {evento.tipo}
-                          </span>
-                        </td>
-                        <td className={styles.nomeCell}>{evento.nome}</td>
-                        <td>
-                          <span className={`${styles.statusBadge} ${getStatusClassName(evento.status)}`}>
-                            {evento.status}
-                          </span>
-                        </td>
-                      </tr>
-                    ))
+                    ? eventos
+                      .slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage)
+                      .map((evento) => (
+                        <tr key={evento.id}>
+                          <td>{formatarData(evento.data_prevista)}</td>
+                          <td>{formatarHora(evento.data_prevista)}</td>
+                          <td>
+                            <span className={styles.tipoBadge} data-tipo={evento.tipo.toLowerCase()}>
+                              {evento.tipo === 'Medicamento' ? '💊' : '📋'} {evento.tipo}
+                            </span>
+                          </td>
+                          <td className={styles.nomeCell}>{evento.nome}</td>
+                          <td>
+                            <span className={`${styles.statusBadge} ${getStatusClassName(evento.status)}`}>
+                              {evento.status}
+                            </span>
+                          </td>
+                        </tr>
+                      ))
                     : (
                       <tr>
                         <td colSpan={5} className={styles.emptyTable}>
@@ -939,6 +969,32 @@ export default function Relatorios() {
                 </tbody>
               </table>
             </div>
+            {/* Pagination Controls */}
+            {eventos.length > itemsPerPage && (
+              <div className={styles.pagination}>
+                <button
+                  className={styles.paginationButton}
+                  onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+                  disabled={currentPage === 1}
+                >
+                  <ChevronLeft size={18} />
+                  Anterior
+                </button>
+                <div className={styles.paginationInfo}>
+                  <span>Página</span>
+                  <span className={styles.pageNumber}>{currentPage}</span>
+                  <span>de {Math.ceil(eventos.length / itemsPerPage)}</span>
+                </div>
+                <button
+                  className={styles.paginationButton}
+                  onClick={() => setCurrentPage((p) => Math.min(Math.ceil(eventos.length / itemsPerPage), p + 1))}
+                  disabled={currentPage >= Math.ceil(eventos.length / itemsPerPage)}
+                >
+                  Próximo
+                  <ChevronRight size={18} />
+                </button>
+              </div>
+            )}
           </div>
         </div>
       </div>
