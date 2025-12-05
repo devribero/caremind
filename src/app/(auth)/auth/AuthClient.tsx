@@ -9,6 +9,7 @@ import styles from './page.module.css';
 import { useRouter } from 'next/navigation';
 import Image from 'next/image';
 import { Waves } from '@/components/shared/Waves';
+import { Eye, EyeOff } from 'lucide-react';
 
 export default function AuthClient() {
   const searchParams = useSearchParams();
@@ -24,6 +25,8 @@ export default function AuthClient() {
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const [accountType, setAccountType] = useState<'individual' | 'familiar'>('individual');
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
   const { signIn, signUp, user, loading: authLoading } = useAuth();
   const router = useRouter();
@@ -229,29 +232,49 @@ export default function AuthClient() {
                         <div className={styles.registerColumn}>
                           <div className={styles.inputGroup}>
                             <label htmlFor="password">Crie sua senha</label>
-                            <input
-                              id="password"
-                              type="password"
-                              value={password}
-                              onChange={(e) => setPassword(e.target.value)}
-                              className={styles.input}
-                              placeholder='Senha'
-                              autoComplete="new-password"
-                              required
-                            />
+                            <div className={styles.passwordWrapper}>
+                              <input
+                                id="password"
+                                type={showPassword ? 'text' : 'password'}
+                                value={password}
+                                onChange={(e) => setPassword(e.target.value)}
+                                className={styles.input}
+                                placeholder='Senha'
+                                autoComplete="new-password"
+                                required
+                              />
+                              <button
+                                type="button"
+                                className={styles.togglePassword}
+                                onClick={() => setShowPassword(!showPassword)}
+                                tabIndex={-1}
+                              >
+                                {showPassword ? <EyeOff /> : <Eye />}
+                              </button>
+                            </div>
                           </div>
                           <div className={styles.inputGroup}>
                             <label htmlFor="confirmPassword">Confirme sua senha</label>
-                            <input
-                              id="confirmPassword"
-                              type="password"
-                              value={confirmPassword}
-                              onChange={(e) => setConfirmPassword(e.target.value)}
-                              className={styles.input}
-                              placeholder='Confirme a senha'
-                              autoComplete="new-password"
-                              required
-                            />
+                            <div className={styles.passwordWrapper}>
+                              <input
+                                id="confirmPassword"
+                                type={showConfirmPassword ? 'text' : 'password'}
+                                value={confirmPassword}
+                                onChange={(e) => setConfirmPassword(e.target.value)}
+                                className={styles.input}
+                                placeholder='Confirme a senha'
+                                autoComplete="new-password"
+                                required
+                              />
+                              <button
+                                type="button"
+                                className={styles.togglePassword}
+                                onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                                tabIndex={-1}
+                              >
+                                {showConfirmPassword ? <EyeOff /> : <Eye />}
+                              </button>
+                            </div>
                           </div>
                         </div>
                       </div>
@@ -303,16 +326,26 @@ export default function AuthClient() {
 
                   <div className={styles.inputGroup}>
                     <label htmlFor="password">{isLogin ? 'Senha' : 'Crie sua senha'}</label>
-                    <input
-                      id="password"
-                      type="password"
-                      value={password}
-                      onChange={(e) => setPassword(e.target.value)}
-                      className={styles.input}
-                      placeholder='Senha'
-                      autoComplete="current-password"
-                      required
-                    />
+                    <div className={styles.passwordWrapper}>
+                      <input
+                        id="password"
+                        type={showPassword ? 'text' : 'password'}
+                        value={password}
+                        onChange={(e) => setPassword(e.target.value)}
+                        className={styles.input}
+                        placeholder='Senha'
+                        autoComplete="current-password"
+                        required
+                      />
+                      <button
+                        type="button"
+                        className={styles.togglePassword}
+                        onClick={() => setShowPassword(!showPassword)}
+                        tabIndex={-1}
+                      >
+                        {showPassword ? <EyeOff /> : <Eye />}
+                      </button>
+                    </div>
                   </div>
 
                   <div className={styles.forgotPassword}>

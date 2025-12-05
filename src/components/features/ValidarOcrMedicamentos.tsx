@@ -41,6 +41,17 @@ export function ValidarOcrMedicamentos({
   const [editingIndex, setEditingIndex] = useState<number | null>(null);
   const [editModalOpen, setEditModalOpen] = useState(false);
   const [imageExpanded, setImageExpanded] = useState(false);
+  const [imageError, setImageError] = useState(false);
+
+  useEffect(() => {
+    console.log('ValidarOcrMedicamentos montado. ImageUrl:', imageUrl);
+    if (!imageUrl) {
+      console.error('ImageUrl está vazia ou indefinida!');
+      setImageError(true);
+    } else {
+      setImageError(false);
+    }
+  }, [imageUrl]);
 
   const handleSaveMedicamento = async (
     nome: string,
@@ -87,7 +98,7 @@ export function ValidarOcrMedicamentos({
           .select('id')
           .eq('user_id', userId)
           .maybeSingle();
-        
+
         if (!perfil) {
           toast.error('Perfil não encontrado. Não é possível salvar os medicamentos.');
           setSaving(false);
@@ -215,7 +226,7 @@ export function ValidarOcrMedicamentos({
         {/* Imagem original - expansível */}
         {imageUrl && (
           <div className={styles.imageSection}>
-            <button 
+            <button
               className={styles.imageSectionHeader}
               onClick={() => setImageExpanded(!imageExpanded)}
               type="button"
@@ -224,13 +235,26 @@ export function ValidarOcrMedicamentos({
               <span className={styles.expandIcon}>{imageExpanded ? '▲' : '▼'}</span>
             </button>
             <div className={`${styles.imageContainer} ${imageExpanded ? styles.imageExpanded : ''}`}>
-              <img 
-                src={imageUrl} 
-                alt="Receita médica" 
-                className={styles.image}
-                onClick={() => window.open(imageUrl, '_blank')}
-                title="Clique para abrir em nova aba"
-              />
+              {imageError ? (
+                <div className={styles.imageError}>
+                  <p>Erro ao carregar imagem</p>
+                  <a href={imageUrl} target="_blank" rel="noopener noreferrer">Tentar abrir link direto</a>
+                </div>
+              ) : (
+                <img
+                  src={imageUrl}
+                  alt="Receita médica"
+                  className={styles.image}
+                  crossOrigin="anonymous"
+                  onClick={() => window.open(imageUrl, '_blank')}
+                  title="Clique para abrir em nova aba"
+                  onError={(e) => {
+                    console.error('Erro ao carregar imagem:', imageUrl, e);
+                    setImageError(true);
+                  }}
+                  onLoad={() => console.log('Imagem carregada com sucesso:', imageUrl)}
+                />
+              )}
             </div>
           </div>
         )}
@@ -240,7 +264,7 @@ export function ValidarOcrMedicamentos({
           <h3 className={styles.sectionTitle}>
             {medicamentos.length} medicamento(s) encontrado(s)
           </h3>
-          
+
           {medicamentos.length === 0 ? (
             <div className={styles.emptyState}>
               <p>Nenhum medicamento encontrado. Você pode cancelar e tentar novamente.</p>
