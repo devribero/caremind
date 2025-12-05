@@ -17,6 +17,7 @@ import { createClient } from '@/lib/supabase/client';
 import { toast } from '@/components/features/Toast';
 import { MedicamentosService } from '@/lib/supabase/services';
 import { listarEventosDoDia, atualizarStatusEvento, criarOuAtualizarEvento } from '@/lib/supabase/services/historicoEventos';
+import { ImageCompressor } from '@/lib/imageCompression';
 
 // Estilos
 import styles from './page.module.css';
@@ -407,17 +408,55 @@ export default function Remedios() {
       return;
     }
 
+    // Validar imagem para OCR
+    const validation = ImageCompressor.validateImageForOCR(file);
+    if (!validation.valid) {
+      toast.error(validation.message || 'Imagem inválida');
+      return;
+    }
+
     // Fechar modal de foto e mostrar overlay
     photoModal.close();
     setOcrOverlay({ isVisible: true, status: 'uploading' });
     setPhotoError(null);
     setPhotoUploading(true);
 
+    // Comprimir imagem para otimizar upload
+    try {
+      setPhotoStatus('Otimizando imagem para processamento...');
+      const compressed = await ImageCompressor.compressImage(file);
+      
+      // Mostrar info da compressão se houve redução significativa
+      if (compressed.compressionRatio > 1.2) {
+        const originalSize = ImageCompressor.formatFileSize(compressed.originalSize);
+        const compressedSize = ImageCompressor.formatFileSize(compressed.compressedSize);
+        setPhotoStatus(`Imagem otimizada: ${originalSize} → ${compressedSize}`);
+      } else {
+        setPhotoStatus('Imagem pronta para processamento...');
+      }
+
+      // Usar arquivo comprimido no upload
+      await processUpload(compressed.file);
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : 'Erro ao otimizar imagem';
+      toast.error(errorMessage);
+      setOcrOverlay({ isVisible: false, status: 'uploading' });
+      setPhotoUploading(false);
+    }
+  };
+
+  const processUpload = async (file: File) => {
     const supabase = createClient();
 
     try {
       // Validar se o perfil existe antes de criar o job
-      const userIdToUse = targetUserId || user.id;
+      const userIdToUse = targetUserId || user?.id;
+      if (!userIdToUse) {
+        setOcrOverlay({ isVisible: true, status: 'error', errorMessage: 'Usuário não identificado.' });
+        setPhotoUploading(false);
+        return;
+      }
+      
       const { data: perfil, error: perfilError } = await supabase
         .from('perfis')
         .select('id')
@@ -430,7 +469,7 @@ export default function Remedios() {
         return;
       }
 
-      const fileName = `${user.id}/${Date.now()}_${file.name}`;
+      const fileName = `${userIdToUse}/${Date.now()}_${file.name}`;
       const { error: uploadError } = await supabase.storage
         .from('receitas-medicas')
         .upload(fileName, file);
@@ -472,8 +511,8 @@ export default function Remedios() {
       if (inserted?.id) {
         const ocrId = Number(inserted.id);
         const start = Date.now();
-        const timeoutMs = 10 * 60 * 1000; // 10 minutos
-        const interval = 3000; // 3s para feedback mais rápido
+        const timeoutMs = 5 * 60 * 1000; // 5 minutos
+        const interval = 1500; // 1.5s
         
         const poll = async () => {
           try {
