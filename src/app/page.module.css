@@ -938,15 +938,47 @@
    RESPONSIVE (MOBILE DEFINITIVO)
    ========================================== */
 @media (max-width: 1024px) {
+  .heroSection {
+    min-height: auto;
+    padding: 7rem 0 3rem;
+    margin-top: 90px;
+  }
+
   .heroContainer {
     grid-template-columns: 1fr;
     text-align: center;
-    gap: 4rem;
+    gap: 3rem;
   }
 
   .heroContent {
     align-items: center;
+    order: 1;
   }
+
+  .heroImg {
+    display: none;
+  }
+
+  .heroVisual {
+    order: 2;
+  }
+
+  .heroTitle {
+    font-size: clamp(2.2rem, 4.5vw, 3rem);
+  }
+
+  .heroDescription {
+    font-size: 1.15rem;
+    max-width: 100%;
+    text-align: center;
+  }
+
+  .heroButton {
+    justify-content: center;
+    flex-wrap: wrap;
+  }
+
+  
 
   .mockupContainer {
     height: auto;
@@ -954,35 +986,85 @@
     gap: 2rem;
   }
 
+  .phoneMockup {
+    transform: rotate(0deg);
+  }
+
+  .mockupFrame {
+    width: 280px;
+  }
+
+  .featuresSection {
+    padding: 5rem 0 3rem;
+    border-radius: 40px 40px 0 0;
+  }
+
+  .sectionTitle {
+    font-size: clamp(2rem, 4vw, 2.8rem);
+    margin-bottom: 1rem;
+  }
+
+  .sectionSubtitle {
+    font-size: 1.15rem;
+    margin-bottom: 3rem;
+  }
+
   .featuresGrid {
     grid-template-columns: repeat(2, 1fr);
+    gap: 1.5rem;
+  }
+
+  .featureCard {
+    padding: 2rem 1.5rem;
+    border-radius: 20px;
+  }
+
+  .featureCard h3 {
+    font-size: 1.2rem;
+  }
+
+  .featureCard p {
+    font-size: 0.95rem;
   }
 
   .featuredCard {
     grid-column: span 2;
   }
 
-  .mockupsGrid {
-    grid-template-columns: repeat(2, 1fr);
-  }
-
-  .impactGrid {
-    grid-template-columns: 1fr;
-    gap: 4rem;
+  .ocrSection {
+    padding: 3rem 0 5rem;
   }
 
   .ocrGrid {
     grid-template-columns: 1fr;
     text-align: center;
-    gap: 4rem;
+    gap: 3rem;
   }
 
   .ocrContent {
+    align-items: center;
+    order: 1;
+  }
+
+  .ocrVisual {
+    order: 2;
+  }
+
+  .ocrTitle {
+    font-size: clamp(2rem, 4vw, 2.8rem);
+  }
+
+  .ocrDescription {
+    font-size: 1.1rem;
+  }
+
+  .ocrList {
     align-items: center;
   }
 
   .ocrList li {
     justify-content: center;
+    text-align: left;
   }
 
   .computerFrame {
@@ -990,6 +1072,62 @@
     max-width: 500px;
     transform: rotateX(0deg) rotateY(0deg);
     margin-top: 2rem;
+  }
+
+  .mockupsSection {
+    padding: 5rem 0;
+  }
+
+  .mockupsGrid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 2rem;
+  }
+
+  .mockupCard {
+    padding: 2rem 1.5rem;
+    border-radius: 24px;
+  }
+
+  .mockupCard h3 {
+    font-size: 1.2rem;
+    margin-top: 20px;
+  }
+
+  .mockupCard p {
+    font-size: 0.95rem;
+    margin-bottom: 20px;
+  }
+
+  .mockupVisual {
+    height: 320px;
+    margin-bottom: 3rem;
+  }
+
+  .mockupDevice {
+    width: 180px;
+  }
+
+  .mockupCard h3 {
+    font-size: 1.3rem;
+    margin-top: 20px;
+  }
+
+  .mockupCard p {
+    font-size: 1rem;
+    margin-bottom: 20px;
+  }
+
+  .impactSection {
+    padding: 5rem 0;
+  }
+
+  .impactGrid {
+    grid-template-columns: 1fr;
+    gap: 4rem;
+  }
+
+  .impactTitle {
+    text-align: center;
   }
 
   .impactStats {
@@ -1004,12 +1142,321 @@
     padding-top: 1rem;
     width: 100%;
   }
+
+  .faqSection {
+    padding: 5rem 0;
+  }
+
+  .faqGrid {
+    gap: 2rem;
+  }
+
+  .faqItem {
+    padding: 2rem;
+    border-radius: 16px;
+  }
+
+  .faqItem h3 {
+    font-size: 1.15rem;
+  }
+
+  .faqItem p {
+    font-size: 1rem;
+  }
+
+  .finalCTA {
+    padding: 6rem 0 8rem;
+  }
+
+  .ctaTitle {
+    font-size: clamp(2.2rem, 5vw, 3.5rem);
+  }
+
+  .ctaDescription {
+    font-size: 1.25rem;
+    margin-bottom: 3rem;
+  }
 }
 
 @media (max-width: 768px) {
   .heroSection {
-    padding: 8rem 0 4rem;
-    /* Aumentado padding-top para mobile */
+    padding: 6rem 0 3rem;
+    min-height: auto;
+  }
+
+  .heroContainer {
+    padding: 0 1.5rem;
+    gap: 2.5rem;
+  }
+
+  .heroTitle {
+    font-size: clamp(1.9rem, 6vw, 2.5rem);
+    line-height: 1.1;
+  }
+
+  .heroDescription {
+    font-size: 1.05rem;
+    line-height: 1.5;
+  }
+
+  .heroButton {
+    flex-direction: column;
+    width: 100%;
+    align-items: center;
+  }
+
+  .ctaButton {
+    width: 100%;
+    max-width: 320px;
+    font-size: 16px !important;
+    padding: 14px 18px !important;
+  }
+
+  .ctaNote {
+    font-size: 0.85rem;
+    text-align: center;
+  }
+
+  .mockupContainer {
+    height: auto;
+  }
+
+  .mockupFrame {
+    width: 240px;
+  }
+
+  .heroImg {
+    max-width: 100%;
+    height: auto;
+  }
+
+  .featuresSection {
+    padding: 4rem 0 2.5rem;
+    border-radius: 30px 30px 0 0;
+    margin-top: -30px;
+  }
+
+  .sectionTitle {
+    font-size: clamp(1.75rem, 5vw, 2.2rem);
+    padding: 0 0.5rem;
+  }
+
+  .sectionSubtitle {
+    font-size: 1.05rem;
+    padding: 0 0.5rem;
+    margin-bottom: 2.5rem;
+  }
+
+  .featuresGrid {
+    grid-template-columns: 1fr;
+    gap: 1.25rem;
+  }
+
+  .featureCard {
+    padding: 1.75rem 1.5rem;
+  }
+
+  .featureIconWrapper {
+    width: 56px;
+    height: 56px;
+    border-radius: 14px;
+    margin-bottom: 1.25rem;
+  }
+
+  .featureCard h3 {
+    font-size: 1.15rem;
+    margin-bottom: 0.75rem;
+  }
+
+  .featureCard p {
+    font-size: 0.95rem;
+    line-height: 1.5;
+  }
+
+  .featuredCard {
+    grid-column: span 1;
+    padding: 2rem;
+  }
+
+  .ocrSection {
+    padding: 2.5rem 0 4rem;
+  }
+
+  .ocrGrid {
+    gap: 2.5rem;
+  }
+
+  .featureBadge {
+    font-size: 0.8rem;
+    padding: 0.4rem 0.8rem;
+  }
+
+  .ocrTitle {
+    font-size: clamp(1.75rem, 5vw, 2.2rem);
+  }
+
+  .ocrDescription {
+    font-size: 1rem;
+    padding: 0 0.5rem;
+  }
+
+  .ocrList li {
+    font-size: 1rem;
+    flex-direction: row;
+    text-align: left;
+  }
+
+  .computerFrame {
+    width: 95%;
+    max-width: 400px;
+    border-width: 6px;
+  }
+
+  .mockupsSection {
+    padding: 4rem 0;
+  }
+
+  .mockupsGrid {
+    grid-template-columns: 1fr;
+    gap: 2.5rem;
+  }
+
+  .mockupCard {
+    padding: 2.5rem 2rem;
+  }
+
+  .mockupVisual {
+    height: 350px;
+    margin-bottom: 2rem;
+  }
+
+  .mockupDevice {
+    width: 200px;
+  }
+
+  .deviceFrame {
+    border-width: 5px;
+    border-radius: 26px;
+  }
+
+  .mockupCard h3 {
+    font-size: 1.35rem;
+  }
+
+  .mockupCard p {
+    font-size: 1.05rem;
+  }
+
+  .impactSection {
+    padding: 4rem 0;
+  }
+
+  .impactTitle {
+    font-size: clamp(2rem, 5vw, 2.5rem);
+  }
+
+  .impactStats {
+    grid-template-columns: 1fr;
+    gap: 1.5rem;
+  }
+
+  .statNumber {
+    font-size: 2rem;
+  }
+
+  .statLabel {
+    font-size: 0.9rem;
+  }
+
+  .testimonialColumn {
+    padding: 0 1rem;
+  }
+
+  .testimonialCard {
+    padding: 2rem;
+    border-radius: 24px;
+  }
+
+  .quoteIcon {
+    font-size: 3rem;
+    top: 1rem;
+    left: 1rem;
+  }
+
+  .testimonialText {
+    font-size: 1.1rem;
+    line-height: 1.6;
+    margin-bottom: 1.5rem;
+  }
+
+  .faqSection {
+    padding: 4rem 0;
+  }
+
+  .faqGrid {
+    grid-template-columns: 1fr;
+    gap: 1.25rem;
+    margin-top: 2.5rem;
+  }
+
+  .faqItem {
+    padding: 1.75rem;
+  }
+
+  .faqItem h3 {
+    font-size: 1.1rem;
+  }
+
+  .faqItem p {
+    font-size: 0.95rem;
+  }
+
+  .finalCTA {
+    padding: 5rem 0 6rem;
+  }
+
+  .ctaContent {
+    padding: 0 1.5rem;
+  }
+
+  .ctaTitle {
+    font-size: clamp(1.9rem, 6vw, 2.8rem);
+  }
+
+  .ctaDescription {
+    font-size: 1.1rem;
+    margin-bottom: 2.5rem;
+  }
+
+  .ctaButtonPrimary {
+    padding: 1.4rem 2.5rem !important;
+    font-size: 1.15rem !important;
+  }
+
+  .socialProofSection {
+    padding: 1.5rem 0;
+  }
+
+  .socialProofContainer {
+    grid-template-columns: 1fr;
+    gap: 1rem;
+  }
+
+  .socialCard {
+    padding: 1.5rem;
+    border-radius: 18px;
+  }
+
+  .socialNumber {
+    font-size: clamp(1.75rem, 4vw, 2.5rem);
+  }
+
+  .socialLabel {
+    font-size: 0.95rem;
+  }
+
+  .phoneMockup {
+    transform: rotate(0deg);
   }
 
   .heroRating {
@@ -1018,58 +1465,334 @@
     width: 100%;
     justify-content: center;
   }
+}
 
-  .featuresGrid {
-    grid-template-columns: 1fr;
+/* Mobile Phones */
+@media (max-width: 640px) {
+  .main {
+    overflow-x: hidden;
   }
 
-  .featuredCard {
-    grid-column: span 1;
-    padding: 2rem;
+  .container {
+    padding: 0 1.25rem;
   }
 
-  .mockupsGrid {
-    grid-template-columns: 1fr;
+  .heroSection {
+    padding: 5.5rem 0 2.5rem;
   }
 
-  .faqGrid {
-    grid-template-columns: 1fr;
+  .heroContainer {
+    padding: 0 1.25rem;
+    gap: 2rem;
   }
 
-  .impactStats {
-    grid-template-columns: 1fr;
-    gap: 1.5rem;
+  .heroTitle {
+    font-size: clamp(1.65rem, 7vw, 2.2rem);
+    letter-spacing: -0.03em;
   }
 
-  .socialProofContainer {
-    grid-template-columns: 1fr;
-    gap: 1rem;
+  .heroDescription {
+    font-size: 1rem;
   }
 
-  .phoneMockup {
-    transform: rotate(0deg);
+  .heroButton {
+    gap: 12px;
+  }
+
+  .ctaButton {
+    width: 100%;
+    max-width: 100%;
+    font-size: 15px !important;
+    padding: 12px 16px !important;
+    border-radius: 10px !important;
+  }
+
+  .ctaNote {
+    font-size: 0.8rem;
   }
 
   .mockupFrame {
-    width: 260px;
+    width: 200px;
   }
 
-  .testimonialCard {
-    padding: 2rem;
+  .featuresSection {
+    padding: 3rem 0 2rem;
+    border-radius: 24px 24px 0 0;
+    margin-top: -20px;
+  }
+
+  .sectionTitle {
+    font-size: clamp(1.5rem, 6vw, 1.9rem);
+  }
+
+  .sectionSubtitle {
+    font-size: 0.95rem;
+    margin-bottom: 2rem;
+  }
+
+  .featuresGrid {
+    gap: 1rem;
+  }
+
+  .featureCard {
+    padding: 1.5rem 1.25rem;
+    border-radius: 16px;
+  }
+
+  .featureIconWrapper {
+    width: 50px;
+    height: 50px;
+    border-radius: 12px;
+    margin-bottom: 1rem;
+  }
+
+  .featureIcon {
+    width: 22px;
+    height: 22px;
+  }
+
+  .featureCard h3 {
+    font-size: 1.1rem;
+    margin-bottom: 0.6rem;
+  }
+
+  .featureCard p {
+    font-size: 0.9rem;
+  }
+
+  .ocrSection {
+    padding: 2rem 0 3.5rem;
+  }
+
+  .ocrGrid {
+    gap: 2rem;
   }
 
   .ocrTitle {
+    font-size: clamp(1.5rem, 6vw, 1.9rem);
+  }
+
+  .ocrDescription {
+    font-size: 0.95rem;
+  }
+
+  .ocrList li {
+    font-size: 0.95rem;
+    gap: 0.75rem;
+  }
+
+  .checkIcon {
+    width: 20px;
+    height: 20px;
+    font-size: 0.7rem;
+  }
+
+  .computerFrame {
+    width: 100%;
+    max-width: 340px;
+    border-width: 5px;
+    border-radius: 10px;
+  }
+
+  .mockupsSection {
+    padding: 3rem 0;
+  }
+
+  .mockupsGrid {
+    gap: 2rem;
+  }
+
+  .mockupCard {
+    padding: 2rem 1.5rem;
+    border-radius: 20px;
+  }
+
+  .mockupVisual {
+    height: 300px;
+    margin-bottom: 1.5rem;
+  }
+
+  .mockupDevice {
+    width: 170px;
+  }
+
+  .deviceFrame {
+    border-width: 4px;
+    border-radius: 22px;
+  }
+
+  .mockupCard h3 {
+    font-size: 1.2rem;
+    margin-bottom: 0.75rem;
+  }
+
+  .mockupCard p {
+    font-size: 0.95rem;
+    padding: 0;
+  }
+
+  .impactSection {
+    padding: 3rem 0;
+  }
+
+  .impactContent {
+    gap: 2rem;
+  }
+
+  .impactTitle {
+    font-size: clamp(1.75rem, 6vw, 2.2rem);
+  }
+
+  .impactStats {
+    gap: 1.25rem;
+  }
+
+  .statItem {
+    padding-top: 0.75rem;
+    border-top-width: 2px;
+  }
+
+  .statNumber {
+    font-size: 1.75rem;
+  }
+
+  .statLabel {
+    font-size: 0.85rem;
+  }
+
+  .testimonialCard {
+    padding: 1.5rem;
+    border-radius: 20px;
+  }
+
+  .quoteIcon {
     font-size: 2.5rem;
+  }
+
+  .testimonialText {
+    font-size: 1rem;
+    line-height: 1.5;
+  }
+
+  .authorAvatar {
+    width: 45px;
+    height: 45px;
+  }
+
+  .authorName {
+    font-size: 1rem;
+  }
+
+  .authorRole {
+    font-size: 0.85rem;
+  }
+
+  .faqSection {
+    padding: 3rem 0;
+  }
+
+  .faqGrid {
+    gap: 1rem;
+    margin-top: 2rem;
+  }
+
+  .faqItem {
+    padding: 1.5rem;
+    border-radius: 14px;
+  }
+
+  .faqItem h3 {
+    font-size: 1.05rem;
+    margin-bottom: 0.75rem;
+  }
+
+  .faqItem p {
+    font-size: 0.9rem;
+    line-height: 1.5;
+  }
+
+  .finalCTA {
+    padding: 4rem 0 5rem;
+  }
+
+  .ctaContent {
+    padding: 0 1.25rem;
+  }
+
+  .ctaTitle {
+    font-size: clamp(1.65rem, 7vw, 2.3rem);
+    margin-bottom: 1rem;
+  }
+
+  .ctaDescription {
+    font-size: 1rem;
+    margin-bottom: 2rem;
+    max-width: 100%;
+  }
+
+  .ctaButtonPrimary {
+    width: 100%;
+    padding: 1.2rem 2rem !important;
+    font-size: 1.05rem !important;
+    border-radius: 14px !important;
   }
 }
 
-@media (max-width: 640px) {
-  .container {
-    padding: 0 1.5rem;
+/* Extra Small Phones */
+@media (max-width: 375px) {
+  .heroTitle {
+    font-size: 1.5rem;
   }
 
-  .ctaButton,
-  .ctaButtonPrimary {
-    width: 100%;
+  .heroDescription {
+    font-size: 0.95rem;
+  }
+
+  .sectionTitle {
+    font-size: 1.4rem;
+  }
+
+  .sectionSubtitle {
+    font-size: 0.9rem;
+  }
+
+  .featureCard {
+    padding: 1.25rem 1rem;
+  }
+
+  .featureCard h3 {
+    font-size: 1rem;
+  }
+
+  .featureCard p {
+    font-size: 0.85rem;
+  }
+
+  .ocrTitle {
+    font-size: 1.4rem;
+  }
+
+  .mockupVisual {
+    height: 260px;
+  }
+
+  .mockupDevice {
+    width: 150px;
+  }
+
+  .faqItem h3 {
+    font-size: 1rem;
+  }
+
+  .faqItem p {
+    font-size: 0.85rem;
+  }
+
+  .ctaTitle {
+    font-size: 1.5rem;
+  }
+
+  .ctaDescription {
+    font-size: 0.95rem;
   }
 }

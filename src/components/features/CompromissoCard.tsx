@@ -19,6 +19,7 @@ interface CompromissoCardProps {
   onEdit: () => void;
   onDelete: () => void;
   isDeleting?: boolean;
+  viewMode?: 'cards' | 'list';
 }
 
 const CompromissoCard: React.FC<CompromissoCardProps> = ({
@@ -26,7 +27,10 @@ const CompromissoCard: React.FC<CompromissoCardProps> = ({
   onEdit,
   onDelete,
   isDeleting = false,
+  viewMode = 'cards',
 }) => {
+  const isListView = viewMode === 'list';
+
   const formatarDataHora = (dataHora: string | null | undefined) => {
     if (!dataHora) return null;
     try {
@@ -38,7 +42,7 @@ const CompromissoCard: React.FC<CompromissoCardProps> = ({
   };
 
   return (
-    <div className={styles.card}>
+    <div className={`${styles.card} ${isListView ? styles.listItem : ''}`}>
       <div className={styles.card_header}>
         <h3 className={styles.card_title}>{compromisso.titulo}</h3>
         <div className={styles.card_actions}>

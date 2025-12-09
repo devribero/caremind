@@ -651,3 +651,11 @@
     justify-content: center;
   }
 }
+
+@media (max-width: 1024px) {
+  .pageHeader {
+    margin-top: 20px;
+    margin-bottom: 20px;
+  }
+}
+

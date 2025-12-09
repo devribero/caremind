@@ -10,6 +10,7 @@ import { AddEditCompromissoForm, type Compromisso } from '@/components/features/
 import CompromissoCard from '@/components/features/CompromissoCard';
 import CompromissosCalendar from '@/components/features/CompromissosCalendar';
 import { toast } from '@/components/features/Toast';
+import { ViewToggle, ViewMode } from '@/components/shared/ViewToggle';
 import styles from '../rotinas/page.module.css';
 import { Tables } from '@/types/supabase';
 
@@ -30,6 +31,7 @@ export default function CompromissosPage() {
   const [editingItem, setEditingItem] = useState<CompItem | null>(null);
   const [deleting, setDeleting] = useState<Record<string, boolean>>({});
   const [viewMode, setViewMode] = useState<'list' | 'calendar'>('list');
+  const [listViewMode, setListViewMode] = useState<ViewMode>('cards');
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);
 
   const selectedElderName = useMemo(() => {
@@ -42,7 +44,7 @@ export default function CompromissosPage() {
     const fetchItems = async () => {
       setLoading(true);
       setError(null);
-      
+
       try {
         if (isFamiliar && mostrarTodos) {
           // Buscar compromissos de todos os idosos vinculados
@@ -74,18 +76,18 @@ export default function CompromissosPage() {
       toast.info('Selecione um idoso no menu superior antes de adicionar compromissos.');
       return;
     }
-    
+
     // Garantir que campos obrigatórios estejam preenchidos e limpar strings vazias
     if (!data.titulo || !data.titulo.trim()) {
       toast.error('O título é obrigatório');
       return;
     }
-    
+
     if (!data.data_hora) {
       toast.error('A data e hora são obrigatórias');
       return;
     }
-    
+
     const payload: any = {
       ...data,
       titulo: data.titulo.trim(),
@@ -155,7 +157,7 @@ export default function CompromissosPage() {
       setDeleting(prev => ({ ...prev, [id]: false }));
     }
   };
-  
+
   const openEditModal = (item: CompItem) => {
     setEditingItem(item);
     setEditModalOpen(true);
@@ -181,7 +183,7 @@ export default function CompromissosPage() {
     }
 
     return (
-      <div className={styles.gridContainer}>
+      <div className={listViewMode === 'cards' ? styles.gridContainer : styles.listContainer}>
         {items
           .filter((c) => c && c.id)
           .slice()
@@ -193,6 +195,7 @@ export default function CompromissosPage() {
               onEdit={() => openEditModal(c)}
               onDelete={() => handleDelete(c.id)}
               isDeleting={deleting[c.id] ?? false}
+              viewMode={listViewMode}
             />
           ))}
       </div>
@@ -229,6 +232,9 @@ export default function CompromissosPage() {
                 📅 Calendário
               </button>
             </div>
+            {viewMode === 'list' && (
+              <ViewToggle viewMode={listViewMode} onViewChange={setListViewMode} />
+            )}
             <button className={styles.addButton} onClick={() => setAddModalOpen(true)}>
               <span className={styles.addIcon}>+</span>
               Adicionar Compromisso

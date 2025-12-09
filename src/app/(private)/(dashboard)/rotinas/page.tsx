@@ -17,6 +17,7 @@ import { toast } from '@/components/features/Toast';
 import { RotinasService } from '@/lib/supabase/services';
 import { listarEventosDoDia, atualizarStatusEvento, criarOuAtualizarEvento } from '@/lib/supabase/services/historicoEventos';
 import { Tables } from '@/types/supabase';
+import { ViewToggle, ViewMode } from '@/components/shared/ViewToggle';
 
 // Tipos
 type RotinaDB = Tables<'rotinas'>;
@@ -32,18 +33,19 @@ export default function Rotinas() {
   const isFamiliar = user?.user_metadata?.account_type === 'familiar';
   const targetUserId = isFamiliar ? idosoSelecionadoId : user?.id;
   const targetPerfilId = isFamiliar ? idosoSelecionadoId : profile?.id;
-  
+
   const [rotinas, setRotinas] = useState<Rotina[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [eventosDoDia, setEventosDoDia] = useState<Array<{ id: string; tipo_evento: string; evento_id: string; status: string }>>([]);
   const [marking, setMarking] = useState<Record<string, boolean>>({});
   const [deleting, setDeleting] = useState<Record<string, boolean>>({});
-  
-  // Estados para modais
+
+  // Estados para modais e visualização
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
+  const [viewMode, setViewMode] = useState<ViewMode>('cards');
   const [editingRotina, setEditingRotina] = useState<Rotina | null>(null);
-  
+
   const selectedElderName = useMemo(() => (
     listaIdososVinculados.find((i) => i.id === idosoSelecionadoId)?.nome || null
   ), [listaIdososVinculados, idosoSelecionadoId]);
@@ -52,10 +54,10 @@ export default function Rotinas() {
   useEffect(() => {
     const carregarDados = async () => {
       if (!user?.id) return;
-      
+
       setLoading(true);
       setError(null);
-      
+
       try {
         if (isFamiliar && !targetUserId) {
           setRotinas([]);
@@ -97,10 +99,10 @@ export default function Rotinas() {
   // Função de refresh local para recarregar rotinas
   const refreshRotinas = async () => {
     if (!user?.id) return;
-    
+
     setLoading(true);
     setError(null);
-    
+
     try {
       if (isFamiliar && !targetUserId) {
         setRotinas([]);
@@ -151,7 +153,7 @@ export default function Rotinas() {
       toast.error('Usuário não autenticado');
       return;
     }
-    
+
     if (isFamiliar && !targetUserId) {
       toast.error('Selecione um idoso no menu superior antes de adicionar rotinas.');
       return;
@@ -183,7 +185,7 @@ export default function Rotinas() {
           frequenciaLimpa.dias_da_semana = freqObj.dias_da_semana;
         }
       }
-      
+
       // Garantir que strings vazias sejam null
       await RotinasService.criarRotina({
         titulo: titulo?.trim() || null,
@@ -191,7 +193,7 @@ export default function Rotinas() {
         frequencia: frequenciaLimpa,
         user_id: targetUserId || user.id,
       });
-      
+
       toast.success('Rotina criada com sucesso');
       await refreshRotinas();
       setIsAddModalOpen(false);
@@ -230,13 +232,13 @@ export default function Rotinas() {
           frequenciaLimpa.dias_da_semana = freqObj.dias_da_semana;
         }
       }
-      
+
       await RotinasService.atualizarRotina(editingRotina.id, {
         titulo: titulo?.trim() || undefined,
         descricao: descricao?.trim() || undefined,
         frequencia: frequenciaLimpa,
       });
-      
+
       toast.success('Rotina atualizada com sucesso');
       await refreshRotinas();
       setEditingRotina(null);
@@ -254,7 +256,7 @@ export default function Rotinas() {
 
     const numId = typeof id === 'string' ? parseInt(id, 10) : id;
     setDeleting(prev => ({ ...prev, [numId]: true }));
-    
+
     try {
       await RotinasService.deletarRotina(numId);
       toast.success('Rotina excluída com sucesso');
@@ -277,7 +279,7 @@ export default function Rotinas() {
 
   const handleMarkRotinaDone = async (rotinaId: number) => {
     if (!targetPerfilId) return;
-    
+
     const ev = eventosDoDia.find(e => e.tipo_evento === 'rotina' && Number(e.evento_id) === rotinaId && e.status === 'pendente');
     if (!ev) {
       // Se não existe evento, cria um novo usando a função de criar/atualizar
@@ -293,21 +295,21 @@ export default function Rotinas() {
       }
       return;
     }
-    
+
     setMarking(prev => ({ ...prev, [rotinaId]: true }));
     const prevEventos = [...eventosDoDia];
-    
+
     try {
       // Atualiza o status do evento para confirmado usando a função genérica
       await atualizarStatusEvento(Number(ev.id), 'confirmado');
-      
+
       // Atualiza a UI
-      setEventosDoDia(prev => 
-        prev.map(e => 
+      setEventosDoDia(prev =>
+        prev.map(e =>
           e.id === ev.id ? { ...e, status: 'confirmado' } : e
         )
       );
-      
+
       // Recarrega dados para sincronizar
       await refreshRotinas();
     } catch (err) {
@@ -340,11 +342,11 @@ export default function Rotinas() {
       const { data: publicUrlData } = supabase.storage
         .from('receitas-medicas')
         .getPublicUrl(fileName);
-        
+
       if (!publicUrlData) {
         throw new Error('Não foi possível obter a URL pública da imagem');
       }
-      
+
       const imageUrl = publicUrlData.publicUrl;
       const { error: insertError } = await supabase
         .from('ocr_gerenciamento')
@@ -355,7 +357,7 @@ export default function Rotinas() {
         });
 
       if (insertError) throw insertError;
-      
+
       toast.success('Foto enviada! Processando receita...');
     } catch (error) {
       console.error('Erro ao fazer upload da foto:', error);
@@ -387,7 +389,7 @@ export default function Rotinas() {
     }
     if (rotinas.length > 0) {
       return (
-        <div className={styles.gridContainer}>
+        <div className={viewMode === 'cards' ? styles.gridContainer : styles.listContainer}>
           {rotinas.map((rotina) => (
             <RotinaCard
               key={rotina.id}
@@ -401,6 +403,7 @@ export default function Rotinas() {
               isMarking={!!marking[rotina.id]}
               isDeleting={!!deleting[rotina.id]}
               onMarkAsDone={() => handleMarkRotinaDone(rotina.id)}
+              viewMode={viewMode}
             />
           ))}
         </div>
@@ -423,13 +426,14 @@ export default function Rotinas() {
 
         {!loading && !error && !(isFamiliar && !targetUserId) && (
           <div className={styles.actionsContainer}>
-            <button 
-              className={styles.addButton} 
+            <button
+              className={styles.addButton}
               onClick={() => setIsAddModalOpen(true)}
             >
               <span className={styles.addIcon}>+</span>
               Adicionar Rotina
             </button>
+            <ViewToggle viewMode={viewMode} onViewChange={setViewMode} />
           </div>
         )}
         <section className={styles.content_info}>
@@ -437,13 +441,13 @@ export default function Rotinas() {
         </section>
       </div>
 
-      <Modal 
-        isOpen={isAddModalOpen} 
-        onClose={() => setIsAddModalOpen(false)} 
+      <Modal
+        isOpen={isAddModalOpen}
+        onClose={() => setIsAddModalOpen(false)}
         title={editingRotina ? 'Editar rotina' : 'Adicionar rotina'}
       >
-        <AddRotinaForm 
-          onSave={editingRotina ? handleUpdateRotina : handleSaveRotina} 
+        <AddRotinaForm
+          onSave={editingRotina ? handleUpdateRotina : handleSaveRotina}
           onCancel={() => {
             setIsAddModalOpen(false);
             setEditingRotina(null);

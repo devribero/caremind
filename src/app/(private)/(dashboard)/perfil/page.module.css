@@ -487,6 +487,11 @@
   .mainContent {
     padding: 16px 20px;
   }
+
+  .pageHeader{
+    margin-top: 20px;
+    margin-bottom: 20px;
+  }
   
   .profileHeader {
     padding: 20px 24px;

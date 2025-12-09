@@ -7,7 +7,7 @@
   justify-content: space-between;
   padding: 0 20px;
   background: #ffffff;
-  border-bottom: 1px solid rgba(0,0,0,0.06);
+  border-bottom: 1px solid rgba(0, 0, 0, 0.06);
   z-index: 20;
 }
 
@@ -28,7 +28,7 @@
   height: 36px;
   display: grid;
   place-items: center;
-  border: 1px solid rgba(0,0,0,0.06);
+  border: 1px solid rgba(0, 0, 0, 0.06);
   border-radius: 10px;
   background: #ffffff;
   cursor: pointer;
@@ -38,13 +38,14 @@
 .menuBtn {
   background: transparent;
   border: none;
-  color: #000000; /* icon color */
+  color: #000000;
+  /* icon color */
 }
 
 .separator {
   width: 1px;
   height: 20px;
-  background: rgba(0,0,0,0.08);
+  background: rgba(0, 0, 0, 0.08);
 }
 
 .userBadge {
@@ -68,7 +69,7 @@
 /* Seletor de idoso */
 .idosoSelect {
   padding: 8px 12px;
-  border: 1px solid rgba(0,0,0,0.1);
+  border: 1px solid rgba(0, 0, 0, 0.1);
   border-radius: 8px;
   background: #f9fafb;
   font-size: 14px;
@@ -90,10 +91,198 @@
   box-shadow: 0 0 0 3px rgba(4, 0, 186, 0.1);
 }
 
-@media (max-width: 640px) {
+/* ==========================================
+   RESPONSIVE - TABLETS
+   ========================================== */
+@media (max-width: 1024px) {
+  .header {
+    height: 56px;
+    padding: 0 16px;
+  }
+
+  .title {
+    font-size: 16px;
+  }
+
+  .actions {
+    gap: 10px;
+  }
+
+  .iconBtn {
+    width: 34px;
+    height: 34px;
+    border-radius: 8px;
+  }
+
   .idosoSelect {
-    min-width: 140px;
+    min-width: 160px;
     font-size: 13px;
     padding: 6px 10px;
+  }
+
+  .avatarCircle {
+    width: 26px;
+    height: 26px;
+    font-size: 11px;
+  }
+
+  .separator {
+    height: 18px;
+  }
+}
+
+/* ==========================================
+   RESPONSIVE - MOBILE
+   ========================================== */
+@media (max-width: 768px) {
+  .header {
+    height: 54px;
+    padding: 0 12px;
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    z-index: 40;
+    background: #ffffff;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  }
+
+  .title {
+    font-size: 15px;
+    max-width: 120px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .actions {
+    gap: 8px;
+  }
+
+  .iconBtn {
+    width: 32px;
+    height: 32px;
+    border-radius: 8px;
+  }
+
+  .menuBtn {
+    display: grid;
+  }
+
+  .idosoSelect {
+    min-width: 130px;
+    max-width: 150px;
+    font-size: 12px;
+    padding: 6px 8px;
+    border-radius: 6px;
+  }
+
+  .avatarCircle {
+    width: 26px;
+    height: 26px;
+    font-size: 10px;
+  }
+
+  .separator {
+    height: 16px;
+    margin: 0 2px;
+  }
+
+  .dropdownMenu {
+    right: 8px !important;
+    top: 48px !important;
+    min-width: 140px !important;
+  }
+
+  .dropdownItem {
+    padding: 8px 10px !important;
+    font-size: 14px !important;
+  }
+}
+
+/* ==========================================
+   RESPONSIVE - MOBILE PEQUENO
+   ========================================== */
+@media (max-width: 480px) {
+  .header {
+    height: 50px;
+    padding: 0 10px;
+  }
+
+  .title {
+    font-size: 14px;
+    max-width: 100px;
+  }
+
+  .actions {
+    gap: 6px;
+  }
+
+  .iconBtn {
+    width: 30px;
+    height: 30px;
+    border-radius: 6px;
+  }
+
+  .idosoSelect {
+    min-width: 100px;
+    max-width: 120px;
+    font-size: 11px;
+    padding: 5px 6px;
+  }
+
+  .avatarCircle {
+    width: 24px;
+    height: 24px;
+    font-size: 9px;
+  }
+
+  .separator {
+    display: none;
+  }
+
+  .dropdownMenu {
+    right: 6px !important;
+    top: 44px !important;
+    min-width: 120px !important;
+    border-radius: 8px !important;
+  }
+
+  .dropdownItem {
+    padding: 8px !important;
+    font-size: 13px !important;
+  }
+}
+
+/* ==========================================
+   RESPONSIVE - TELAS MUITO PEQUENAS
+   ========================================== */
+@media (max-width: 375px) {
+  .header {
+    height: 48px;
+    padding: 0 8px;
+  }
+
+  .title {
+    font-size: 13px;
+    max-width: 80px;
+  }
+
+  .iconBtn {
+    width: 28px;
+    height: 28px;
+  }
+
+  .idosoSelect {
+    min-width: 90px;
+    max-width: 100px;
+    font-size: 10px;
+    padding: 4px 5px;
+  }
+
+  .avatarCircle {
+    width: 22px;
+    height: 22px;
+    font-size: 8px;
   }
 }

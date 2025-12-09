@@ -13,7 +13,8 @@
 .headerLeft {
   display: flex;
   align-items: center;
-  gap: 20px; /* Espaço entre o botão e o logo */
+  gap: 20px;
+  /* Espaço entre o botão e o logo */
 }
 
 /* A position: relative é essencial para posicionar o menu dropdown */
@@ -69,7 +70,8 @@
   height: 0;
   border-left: 6px solid transparent;
   border-right: 6px solid transparent;
-  border-top: 6px solid #64748b; /* caret color */
+  border-top: 6px solid #64748b;
+  /* caret color */
   pointer-events: none;
 }
 
@@ -99,7 +101,7 @@
   background: #ffffff;
   border: 1px solid #e2e8f0;
   border-radius: 12px;
-  box-shadow: 0 12px 30px rgba(0,0,0,0.10);
+  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.10);
   width: 100%;
   max-height: 280px;
   overflow-y: auto;
@@ -151,7 +153,7 @@
 
 .pageActionBtn:hover {
   transform: translateY(-1px);
-  box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
 }
 
 .pageActionBtn.primary {
@@ -202,7 +204,8 @@
   padding: 8px 0;
 }
 
-.dropdownMenu a, .dropdownLogout {
+.dropdownMenu a,
+.dropdownLogout {
   font-size: 18px;
 }
 
@@ -236,7 +239,7 @@
 /* Estilos do Menu Hambúrguer                  */
 /* ============================================= */
 .hamburger {
-  display: flex; 
+  display: flex;
   flex-direction: column;
   gap: 4px;
   cursor: pointer;
@@ -249,7 +252,8 @@
 .hamburger span {
   width: 28px;
   height: 3px;
-  background-color: #0400BA; /* Cor primária do seu projeto */
+  background-color: #0400BA;
+  /* Cor primária do seu projeto */
   transition: all 0.3s ease-in-out;
   border-radius: 2px;
   transform-origin: center;
@@ -259,9 +263,11 @@
 .hamburger.active span:nth-child(1) {
   transform: translateY(7px) rotate(45deg);
 }
+
 .hamburger.active span:nth-child(2) {
   opacity: 0;
 }
+
 .hamburger.active span:nth-child(3) {
   transform: translateY(-7px) rotate(-45deg);
 }
@@ -271,11 +277,11 @@
   .header {
     padding: 14px 20px;
   }
-  
+
   .welcomeText {
     font-size: 18px;
   }
-  
+
   .dropdownMenu {
     width: 160px;
   }
@@ -285,33 +291,47 @@
 @media (max-width: 768px) {
   .header {
     padding: 12px 16px;
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    z-index: 40;
+    background-color: #ffffff;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
   }
+
+  .elderWrap {
+    display: none;
+  }
+
   .elderSelect {
     min-width: 160px;
   }
+
   .pageActions {
     gap: 8px;
   }
-  
+
   .welcomeText {
     font-size: 16px;
-    display: none; /* Oculta o texto de boas-vindas em telas pequenas */
+    display: none;
+    /* Oculta o texto de boas-vindas em telas pequenas */
   }
-  
+
   .actions {
     padding: 6px;
   }
-  
+
   .dropdownMenu {
     width: 140px;
     right: -10px;
   }
-  
+
   .dropdownItem {
     padding: 8px 16px;
     font-size: 14px;
   }
-  
+
   .hamburger span {
     width: 24px;
     height: 2.5px;
@@ -323,25 +343,25 @@
   .header {
     padding: 10px 12px;
   }
-  
+
   .headerLeft {
     gap: 10px;
   }
-  
+
   .actions {
     padding: 4px;
   }
-  
+
   .dropdownMenu {
     width: 120px;
     right: -15px;
   }
-  
+
   .dropdownItem {
     padding: 6px 12px;
     font-size: 13px;
   }
-  
+
   .hamburger span {
     width: 22px;
     height: 2px;
@@ -353,12 +373,12 @@
   .header {
     padding: 8px 10px;
   }
-  
+
   .dropdownMenu {
     width: 110px;
     right: -20px;
   }
-  
+
   .dropdownItem {
     padding: 5px 10px;
     font-size: 12px;
@@ -379,7 +399,7 @@
   color: #0400BA;
 }
 
-.profilePicture{
+.profilePicture {
   border-radius: 50%;
   object-fit: cover;
   border: 2px solid #0400BA;

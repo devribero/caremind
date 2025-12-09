@@ -1,0 +1,103 @@
+.viewToggle {
+    display: flex;
+    gap: 4px;
+    background: #f3f4f6;
+    padding: 4px;
+    border-radius: 10px;
+}
+
+.viewButton {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 8px 14px;
+    border: none;
+    background: transparent;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 0.875rem;
+    font-weight: 500;
+    color: #6b7280;
+    transition: all 0.2s ease;
+}
+
+.viewButton:hover {
+    background: #e5e7eb;
+    color: #374151;
+}
+
+.viewButton.active {
+    background: #0400BA;
+    color: white;
+    box-shadow: 0 2px 4px rgba(4, 0, 186, 0.25);
+}
+
+.viewButton.active:hover {
+    background: #0300a0;
+}
+
+.buttonText {
+    font-weight: 600;
+}
+
+/* ==========================================
+   RESPONSIVE - TABLETS
+   ========================================== */
+@media (max-width: 1024px) {
+    .viewButton {
+        padding: 7px 12px;
+    }
+}
+
+/* ==========================================
+   RESPONSIVE - MOBILE
+   ========================================== */
+@media (max-width: 768px) {
+    .viewToggle {
+        padding: 3px;
+        border-radius: 8px;
+    }
+
+    .viewButton {
+        padding: 6px 10px;
+        font-size: 0.8125rem;
+        border-radius: 6px;
+    }
+
+    .viewButton svg {
+        width: 16px;
+        height: 16px;
+    }
+}
+
+/* ==========================================
+   RESPONSIVE - SMALL MOBILE
+   ========================================== */
+@media (max-width: 480px) {
+    .viewButton {
+        padding: 6px 8px;
+        gap: 4px;
+    }
+
+    .buttonText {
+        display: none;
+    }
+
+    .viewButton svg {
+        width: 18px;
+        height: 18px;
+    }
+}
+
+/* ==========================================
+   RESPONSIVE - EXTRA SMALL
+   ========================================== */
+@media (max-width: 375px) {
+    .viewToggle {
+        padding: 2px;
+    }
+
+    .viewButton {
+        padding: 5px 7px;
+    }
+}

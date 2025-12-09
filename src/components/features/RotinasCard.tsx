@@ -56,7 +56,7 @@ function formatarFrequencia(freq?: string | Frequencia): string | null {
     default:
       return 'Frequência personalizada';
   }
-} 
+}
 
 // --- ATUALIZADO: Define as props que o componente vai receber ---
 interface RotinaCardProps {
@@ -67,12 +67,15 @@ interface RotinaCardProps {
   hasPendingToday?: boolean;
   isMarking?: boolean;
   isDeleting?: boolean;
+  viewMode?: 'cards' | 'list';
 }
 
-const RotinaCard: React.FC<RotinaCardProps> = ({ rotina, onEdit, onDelete, onMarkAsDone, hasPendingToday, isMarking, isDeleting }) => {
+const RotinaCard: React.FC<RotinaCardProps> = ({ rotina, onEdit, onDelete, onMarkAsDone, hasPendingToday, isMarking, isDeleting, viewMode = 'cards' }) => {
   const frequenciaTexto = formatarFrequencia(rotina.frequencia);
+  const isListView = viewMode === 'list';
+
   return (
-    <div className={styles.card}>
+    <div className={`${styles.card} ${isListView ? styles.listItem : ''}`}>
       {/* --- ATUALIZADO: Adicionado cabeçalho para título e ações --- */}
       <div className={styles.card_header}>
         <h3 className={styles.card_title}>{rotina.titulo}</h3>

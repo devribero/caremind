@@ -23,9 +23,85 @@
   z-index: 3;
 }
 
+/* ==========================================
+   RESPONSIVE - TABLETS
+   ========================================== */
 @media (max-width: 1024px) {
   .mainArea {
-    margin-left: 280px;
-    width: calc(100% - 280px);
+    margin-left: 240px;
+    width: calc(100% - 240px);
+  }
+
+  .contentArea {
+    padding: 16px;
+  }
+}
+
+/* ==========================================
+   RESPONSIVE - MOBILE (Sidebar oculto)
+   ========================================== */
+@media (max-width: 768px) {
+  .shell {
+    flex-direction: column;
+  }
+
+  .mainArea {
+    margin-left: 0 !important;
+    width: 100%;
+    padding-top: 54px;
+    /* altura do header fixo */
+  }
+
+  .contentArea {
+    padding: 12px;
+  }
+}
+
+/* ==========================================
+   RESPONSIVE - MOBILE PEQUENO
+   ========================================== */
+@media (max-width: 480px) {
+  .mainArea {
+    padding-top: 50px;
+  }
+
+  .contentArea {
+    padding: 10px;
+  }
+}
+
+/* ==========================================
+   RESPONSIVE - TELAS MUITO PEQUENAS
+   ========================================== */
+@media (max-width: 375px) {
+  .mainArea {
+    padding-top: 48px;
+  }
+
+  .contentArea {
+    padding: 8px;
+  }
+}
+
+/* Overlay para fechar o sidebar no mobile */
+.overlay {
+  display: none;
+}
+
+@media (max-width: 768px) {
+  .overlay {
+    display: block;
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.5);
+    z-index: 25;
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.3s ease, visibility 0.3s ease;
+  }
+
+  .overlayVisible {
+    opacity: 1;
+    visibility: visible;
   }
 }

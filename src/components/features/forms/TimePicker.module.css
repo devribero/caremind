@@ -88,6 +88,7 @@
     opacity: 0;
     transform: translateY(-10px);
   }
+
   to {
     opacity: 1;
     transform: translateY(0);
@@ -222,31 +223,183 @@
   transform: translateY(0);
 }
 
-/* Responsivo */
-@media (max-width: 480px) {
+/* ==========================================
+   RESPONSIVE - TABLETS
+   ========================================== */
+@media (max-width: 1024px) {
+  .timePickerButton {
+    padding: 13px 14px;
+  }
+
   .timePickerContent {
-    padding: 20px 16px;
-    gap: 12px;
+    padding: 22px;
+    gap: 14px;
   }
 
   .timeInput {
-    width: 60px;
-    font-size: 1.25rem;
+    width: 65px;
+    padding: 10px;
+    font-size: 1.35rem;
+  }
+}
+
+/* ==========================================
+   RESPONSIVE - MOBILE
+   ========================================== */
+@media (max-width: 768px) {
+  .timePickerButton {
+    padding: 12px 14px;
+    font-size: 0.95rem;
+  }
+
+  .timePickerContent {
+    padding: 20px;
+    gap: 12px;
+  }
+
+  .timeSection {
+    gap: 10px;
+  }
+
+  .timeInput {
+    width: 62px;
+    font-size: 1.3rem;
     padding: 10px;
   }
 
   .timeButton {
-    width: 36px;
-    height: 32px;
+    width: 38px;
+    height: 34px;
   }
 
   .timeSeparator {
-    font-size: 1.5rem;
-    margin-top: 20px;
+    font-size: 1.75rem;
+    margin-top: 22px;
   }
 
   .timeLabel {
     font-size: 0.8125rem;
   }
+
+  .timePickerFooter {
+    padding: 14px;
+  }
+
+  .confirmButton {
+    padding: 10px 18px;
+    font-size: 0.9rem;
+  }
 }
 
+/* ==========================================
+   RESPONSIVE - SMALL MOBILE
+   ========================================== */
+@media (max-width: 480px) {
+  .timePickerButton {
+    padding: 11px 12px;
+    font-size: 0.9rem;
+    border-radius: 8px;
+  }
+
+  .clockIcon {
+    width: 18px;
+    height: 18px;
+  }
+
+  .timePickerDropdown {
+    border-radius: 10px;
+  }
+
+  .timePickerContent {
+    padding: 18px 14px;
+    gap: 10px;
+  }
+
+  .timeSection {
+    gap: 8px;
+  }
+
+  .timeInput {
+    width: 58px;
+    font-size: 1.2rem;
+    padding: 8px;
+    border-radius: 8px;
+  }
+
+  .timeButton {
+    width: 34px;
+    height: 30px;
+    border-radius: 6px;
+  }
+
+  .timeSeparator {
+    font-size: 1.5rem;
+    margin-top: 18px;
+  }
+
+  .timeLabel {
+    font-size: 0.75rem;
+    letter-spacing: 0.3px;
+  }
+
+  .timePickerFooter {
+    padding: 12px;
+  }
+
+  .confirmButton {
+    padding: 9px 16px;
+    font-size: 0.875rem;
+    border-radius: 6px;
+  }
+}
+
+/* ==========================================
+   RESPONSIVE - EXTRA SMALL
+   ========================================== */
+@media (max-width: 360px) {
+  .timePickerButton {
+    padding: 10px;
+    font-size: 0.85rem;
+    gap: 8px;
+  }
+
+  .clockIcon {
+    width: 16px;
+    height: 16px;
+  }
+
+  .timePickerContent {
+    padding: 14px 10px;
+    gap: 8px;
+  }
+
+  .timeInput {
+    width: 50px;
+    font-size: 1.1rem;
+    padding: 6px;
+  }
+
+  .timeButton {
+    width: 30px;
+    height: 28px;
+  }
+
+  .timeSeparator {
+    font-size: 1.25rem;
+    margin-top: 14px;
+  }
+
+  .timeLabel {
+    font-size: 0.7rem;
+  }
+
+  .timePickerFooter {
+    padding: 10px;
+  }
+
+  .confirmButton {
+    padding: 8px 14px;
+    font-size: 0.8rem;
+    width: 100%;
+  }
+}

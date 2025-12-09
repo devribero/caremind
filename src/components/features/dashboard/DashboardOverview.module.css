@@ -5,8 +5,8 @@
 }
 
 .banner {
-  background: linear-gradient(135deg, rgba(4,0,185,0.12), rgba(4,0,185,0.04));
-  border: 1px solid rgba(4,0,185,0.14);
+  background: linear-gradient(135deg, rgba(4, 0, 185, 0.12), rgba(4, 0, 185, 0.04));
+  border: 1px solid rgba(4, 0, 185, 0.14);
   padding: 20px;
   border-radius: 16px;
 }
@@ -32,7 +32,7 @@
 
 .card {
   background: #ffffff;
-  border: 1px solid rgba(0,0,0,0.06);
+  border: 1px solid rgba(0, 0, 0, 0.06);
   border-radius: 12px;
   padding: 14px;
 }
@@ -58,7 +58,7 @@
 
 .panel {
   background: #ffffff;
-  border: 1px solid rgba(0,0,0,0.06);
+  border: 1px solid rgba(0, 0, 0, 0.06);
   border-radius: 12px;
   padding: 16px;
 }
@@ -75,22 +75,193 @@
   display: grid;
   place-items: center;
   color: #475569;
-  background: repeating-linear-gradient(
-    45deg,
-    #f8fafc,
-    #f8fafc 10px,
-    #f1f5f9 10px,
-    #f1f5f9 20px
-  );
+  background: repeating-linear-gradient(45deg,
+      #f8fafc,
+      #f8fafc 10px,
+      #f1f5f9 10px,
+      #f1f5f9 20px);
   border-radius: 8px;
-  border: 1px dashed rgba(0,0,0,0.08);
+  border: 1px dashed rgba(0, 0, 0, 0.08);
 }
 
+/* ========== RESPONSIVE - TABLETS ========== */
 @media (max-width: 1024px) {
   .kpis {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
+
   .grid {
     grid-template-columns: 1fr;
+  }
+
+  .banner {
+    padding: 18px;
+    border-radius: 14px;
+  }
+
+  .bannerTitle {
+    font-size: 20px;
+  }
+
+  .panel {
+    padding: 14px;
+    border-radius: 10px;
+  }
+
+  .panelTitle {
+    font-size: 15px;
+    margin-bottom: 8px;
+  }
+}
+
+/* ========== RESPONSIVE - MOBILE ========== */
+@media (max-width: 768px) {
+  .wrapper {
+    gap: 12px;
+  }
+
+  .banner {
+    padding: 16px;
+    border-radius: 12px;
+  }
+
+  .bannerTitle {
+    font-size: 18px;
+  }
+
+  .bannerSubtitle {
+    font-size: 13px;
+  }
+
+  .kpis {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 10px;
+  }
+
+  .card {
+    padding: 12px;
+    border-radius: 10px;
+  }
+
+  .cardTitle {
+    font-size: 11px;
+  }
+
+  .cardValue {
+    font-size: 16px;
+    margin-top: 4px;
+  }
+
+  .grid {
+    gap: 10px;
+  }
+
+  .panel {
+    padding: 12px;
+    border-radius: 10px;
+  }
+
+  .panelTitle {
+    font-size: 14px;
+    margin-bottom: 8px;
+  }
+
+  .placeholder {
+    height: 120px;
+    border-radius: 6px;
+  }
+}
+
+/* ========== RESPONSIVE - SMALL MOBILE ========== */
+@media (max-width: 480px) {
+  .wrapper {
+    gap: 10px;
+  }
+
+  .banner {
+    padding: 14px;
+    border-radius: 10px;
+  }
+
+  .bannerTitle {
+    font-size: 16px;
+  }
+
+  .bannerSubtitle {
+    font-size: 12px;
+  }
+
+  .kpis {
+    gap: 8px;
+  }
+
+  .card {
+    padding: 10px;
+    border-radius: 8px;
+  }
+
+  .cardTitle {
+    font-size: 10px;
+  }
+
+  .cardValue {
+    font-size: 14px;
+    margin-top: 3px;
+  }
+
+  .panel {
+    padding: 10px;
+    border-radius: 8px;
+  }
+
+  .panelTitle {
+    font-size: 13px;
+  }
+
+  .placeholder {
+    height: 100px;
+  }
+}
+
+/* ========== RESPONSIVE - EXTRA SMALL ========== */
+@media (max-width: 375px) {
+  .wrapper {
+    gap: 8px;
+  }
+
+  .banner {
+    padding: 12px;
+  }
+
+  .bannerTitle {
+    font-size: 15px;
+  }
+
+  .kpis {
+    gap: 6px;
+  }
+
+  .card {
+    padding: 8px;
+  }
+
+  .cardTitle {
+    font-size: 9px;
+  }
+
+  .cardValue {
+    font-size: 13px;
+  }
+
+  .panel {
+    padding: 8px;
+  }
+
+  .panelTitle {
+    font-size: 12px;
+  }
+
+  .placeholder {
+    height: 80px;
   }
 }

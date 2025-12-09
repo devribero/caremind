@@ -5,7 +5,8 @@
   flex-direction: column;
   min-height: 100vh;
   background-color: transparent;
-  font-family: "Poppins", sans-serif; /* alterado para Poppins */
+  font-family: "Poppins", sans-serif;
+  /* alterado para Poppins */
 }
 
 .content {
@@ -47,9 +48,11 @@
 
 
 .headerContainer {
-  position: sticky; /* ou fixed, dependendo do seu design */
+  position: sticky;
+  /* ou fixed, dependendo do seu design */
   top: 0;
-  z-index: 950; /* Z-index alto, mas abaixo do sidebar */
+  z-index: 950;
+  /* Z-index alto, mas abaixo do sidebar */
   width: 100%;
   transition: margin-left 0.3s ease-in-out, width 0.3s ease-in-out;
 }
@@ -58,7 +61,8 @@
 .headerPushed {
   /* IMPORTANTE: O valor aqui DEVE SER IGUAL à largura do seu sidebar! */
   margin-left: 280px;
-  width: calc(100% - 280px); /* Ajusta a largura para preencher o espaço restante */
+  width: calc(100% - 280px);
+  /* Ajusta a largura para preencher o espaço restante */
 }
 
 /* ======================================================= */
@@ -71,7 +75,7 @@
 }
 
 .contentPushed {
-  margin-left: 280px; 
+  margin-left: 280px;
 }
 
 /* Responsive design */
@@ -80,21 +84,21 @@
     padding: 15px;
     border-radius: 0 0 20px 20px;
   }
-  
+
   .headerContent {
     flex-direction: column;
     gap: 15px;
     text-align: center;
   }
-  
+
   .title {
     font-size: 2rem;
   }
-  
+
   .welcomeText {
     font-size: 1rem;
   }
-  
+
   .content {
     padding: 0 15px;
   }
@@ -105,11 +109,11 @@
     padding: 12px;
     border-radius: 0 0 15px 15px;
   }
-  
+
   .title {
     font-size: 1.75rem;
   }
-  
+
   .logoutButton {
     padding: 10px 20px;
     font-size: 14px;
@@ -123,25 +127,51 @@
   width: 100%;
 }
 
+/* ==========================================
+   CONTAINER DE LISTA
+   ========================================== */
+.listContainer {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  width: 100%;
+}
+
+@media (max-width: 768px) {
+  .listContainer {
+    gap: 0.5rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .listContainer {
+    gap: 0.5rem;
+  }
+}
+
 .loadingText,
 .errorText,
 .emptyState {
   width: 100%;
   text-align: center;
   padding: 2rem;
-  background-color: #f9fafb; /* Um cinza bem claro */
+  background-color: #f9fafb;
+  /* Um cinza bem claro */
   border-radius: 8px;
   margin-top: 1rem;
 }
 
 .errorText {
-  color: #dc2626; /* Um tom de vermelho */
-  background-color: #fef2f2; /* Um vermelho bem claro */
+  color: #dc2626;
+  /* Um tom de vermelho */
+  background-color: #fef2f2;
+  /* Um vermelho bem claro */
   border: 1px solid #fecaca;
 }
 
 .emptyState p {
-  color: #6b7280; /* Cinza */
+  color: #6b7280;
+  /* Cinza */
   font-size: 1.1rem;
 }
 
@@ -154,45 +184,52 @@
 /* Remova os estilos .addCardButton, .addCardContent e coloque estes no lugar */
 
 .actionsContainer {
-  margin-bottom: 1.5rem; /* Espaço entre o botão e a lista de cards */
+  margin-bottom: 1.5rem;
+  /* Espaço entre o botão e a lista de cards */
   display: flex;
   gap: 1rem;
 }
 
 .addButton {
-  background-color: #0400BA; /* Azul do CareMind */
+  background-color: #0400BA;
+  /* Azul do CareMind */
   color: white;
   font-size: 0.95rem;
   border: none;
-  border-radius: 9px; /* Totalmente arredondado */
+  border-radius: 9px;
+  /* Totalmente arredondado */
   padding: 0.6rem 1.25rem;
   display: inline-flex;
   align-items: center;
-  gap: 0.5rem; /* Espaço entre o ícone e o texto */
+  gap: 0.5rem;
+  /* Espaço entre o ícone e o texto */
   cursor: pointer;
   transition: background-color 0.2s ease, transform 0.1s ease;
   box-shadow: 0 4px 14px 0 rgb(0 118 255 / 39%);
 }
 
 .addButton:hover {
-  background-color: #1d4ed8; /* Azul um pouco mais escuro */
+  background-color: #1d4ed8;
+  /* Azul um pouco mais escuro */
 }
 
 .addButton:active {
-    transform: scale(0.98); /* Efeito de clique */
+  transform: scale(0.98);
+  /* Efeito de clique */
 }
 
 .addIcon {
   font-size: 1.4rem;
-  font-weight: 300; /* Deixa o '+' mais fino */
+  font-weight: 300;
+  /* Deixa o '+' mais fino */
   line-height: 1;
 }
 
 /* Estilo para o estado vazio, se quiser ajustar */
 .emptyState p {
-    text-align: center;
-    color: #6b7280;
-    margin: 0;
+  text-align: center;
+  color: #6b7280;
+  margin: 0;
 }
 
 /* Estilos para o modal de foto */

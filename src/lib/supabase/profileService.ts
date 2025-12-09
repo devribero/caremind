@@ -137,8 +137,14 @@ export class ProfileService {
       .single();
 
     if (error) {
-      console.error('Erro ao salvar perfil:', error);
-      throw new Error('Falha ao salvar perfil. Tente novamente.');
+      console.error('Erro ao salvar perfil:', {
+        message: error.message,
+        code: error.code,
+        details: error.details,
+        hint: error.hint,
+        fullError: JSON.stringify(error, null, 2)
+      });
+      throw new Error(`Falha ao salvar perfil: ${error.message || 'Erro desconhecido'}`);
     }
 
     return data as ProfilePreview;

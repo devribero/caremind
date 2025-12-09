@@ -601,93 +601,494 @@
   box-shadow: 0 2px 6px rgba(16, 185, 129, 0.1);
 }
 
-/* ========== RESPONSIVE ========== */
+/* ========== RESPONSIVE - TABLETS ========== */
+@media (max-width: 1024px) {
+  .dashboard {
+    padding: 20px;
+  }
+
+  .greeting h1 {
+    font-size: 2rem;
+  }
+
+  .heroCard {
+    padding: 20px;
+    gap: 16px;
+  }
+
+  .heroIcon {
+    width: 56px;
+    height: 56px;
+    border-radius: 14px;
+  }
+
+  .heroContent h2 {
+    font-size: 1.15rem;
+  }
+
+  .agendaSection {
+    padding: 20px;
+    border-radius: 16px;
+  }
+}
+
+/* ========== RESPONSIVE - MOBILE ========== */
 @media (max-width: 768px) {
   .dashboard {
-    padding: 16px;
+    padding: 12px;
   }
 
   .header {
     flex-direction: column;
-    align-items: flex-start;
+    align-items: stretch;
+    gap: 12px;
+    margin-bottom: 26px;
+    margin-top: 30px
+  }
+
+  .greeting {
+    text-align: left;
+  }
+
+  .greeting h1 {
+    font-size: 1.5rem;
+    line-height: 1.2;
+  }
+
+  .greeting h1 span {
+    display: inline;
+  }
+
+  .greeting p {
+    font-size: 0.9rem;
+    margin-top: 4px;
   }
 
   .dateNav {
     width: 100%;
     justify-content: space-between;
+    padding: 4px;
+    border-radius: 10px;
+  }
+
+  .dateNavBtn {
+    width: 32px;
+    height: 32px;
+    border-radius: 6px;
+  }
+
+  .dateLabel {
+    font-size: 0.9rem;
+    padding: 6px 12px;
+    min-width: auto;
+    flex: 1;
+  }
+
+  /* Hero Section Mobile */
+  .heroSection {
+    margin-bottom: 16px;
   }
 
   .heroCard {
     flex-direction: column;
     text-align: center;
-    padding: 20px;
-  }
-
-  .heroAction {
-    width: 100%;
-  }
-
-  .alertList li {
-    font-size: 0.8rem;
-  }
-
-  .statsRow {
-    justify-content: center;
-  }
-
-  .addButtons {
-    margin-left: 0;
-    width: 100%;
-    justify-content: center;
-  }
-
-  .agendaHeader {
-    flex-direction: column;
-    align-items: flex-start;
-  }
-
-  .filterTabs {
-    width: 100%;
-  }
-
-  .filterTabs button {
-    flex: 1;
-    justify-content: center;
-    padding: 8px 8px;
-    font-size: 0.8rem;
-  }
-
-  .timelineCard {
-    flex-wrap: wrap;
-  }
-
-  .cardAction {
-    width: 100%;
-    text-align: center;
-  }
-}
-
-@media (max-width: 480px) {
-  .greeting h1 {
-    font-size: 1.5rem;
+    padding: 16px;
+    gap: 12px;
+    border-radius: 14px;
   }
 
   .heroIcon {
     width: 48px;
     height: 48px;
+    border-radius: 12px;
+  }
+
+  .heroContent {
+    width: 100%;
+  }
+
+  .heroLabel {
+    font-size: 0.7rem;
   }
 
   .heroContent h2 {
     font-size: 1.1rem;
+    margin-bottom: 4px;
+  }
+
+  .heroContent p {
+    font-size: 0.85rem;
+    justify-content: center;
+    flex-wrap: wrap;
+  }
+
+  .heroAction {
+    width: 100%;
+    padding: 10px 20px;
+    font-size: 0.85rem;
+    border-radius: 8px;
+  }
+
+  .alertList {
+    margin-top: 10px;
+    gap: 8px;
+  }
+
+  .alertList li {
+    font-size: 0.8rem;
+    flex-wrap: wrap;
+    justify-content: center;
+    text-align: center;
+    gap: 4px;
+  }
+
+  .alertTime {
+    margin-left: 0;
+    margin-top: 2px;
+    width: 100%;
+    text-align: center;
+  }
+
+  /* Stats Row Mobile */
+  .statsRow {
+    justify-content: flex-start;
+    gap: 8px;
+    margin-bottom: 16px;
   }
 
   .statBadge {
-    font-size: 0.8rem;
     padding: 6px 10px;
+    border-radius: 16px;
+    font-size: 0.8rem;
+  }
+
+  .addButtons {
+    margin-left: 0;
+    width: 100%;
+    justify-content: flex-start;
+    margin-top: 8px;
+  }
+
+  .addButtons button {
+    padding: 6px 10px;
+    font-size: 0.8rem;
+    border-radius: 6px;
+  }
+
+  /* Agenda Section Mobile */
+  .agendaSection {
+    padding: 16px;
+    border-radius: 16px;
+    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.04);
+  }
+
+  .agendaHeader {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 12px;
+    margin-bottom: 16px;
+  }
+
+  .agendaHeader h3 {
+    font-size: 1rem;
+    margin-bottom: 0;
+  }
+
+  .filterTabs {
+    width: 100%;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+    padding: 3px;
+    border-radius: 8px;
+    gap: 2px;
+  }
+
+  .filterTabs::-webkit-scrollbar {
+    display: none;
+  }
+
+  .filterTabs button {
+    flex: 0 0 auto;
+    padding: 6px 10px;
+    font-size: 0.75rem;
+    border-radius: 6px;
+    white-space: nowrap;
+  }
+
+  .filterTabs button svg {
+    width: 14px;
+    height: 14px;
+  }
+
+  /* Timeline Mobile */
+  .timeline {
+    gap: 0;
+  }
+
+  .timeDivider {
+    padding: 10px 0 6px 0;
+  }
+
+  .timeDivider span {
+    font-size: 0.75rem;
+    padding: 3px 10px;
+    border-radius: 5px;
+  }
+
+  .timelineItem {
+    padding-left: 20px;
+    min-height: 60px;
+  }
+
+  .timelineLine {
+    left: 6px;
+  }
+
+  .timelineDot {
+    width: 14px;
+    height: 14px;
+    top: 8px;
+  }
+
+  .timelineCard {
+    flex-wrap: wrap;
+    padding: 10px 12px;
+    border-radius: 10px;
+    gap: 10px;
   }
 
   .cardIcon {
     width: 36px;
     height: 36px;
+    border-radius: 8px;
+  }
+
+  .cardContent {
+    flex: 1;
+    min-width: calc(100% - 100px);
+  }
+
+  .cardType {
+    font-size: 0.65rem;
+  }
+
+  .cardContent h4 {
+    font-size: 0.85rem;
+  }
+
+  .cardAction {
+    width: 100%;
+    text-align: center;
+    padding: 8px 14px;
+    font-size: 0.8rem;
+    border-radius: 6px;
+  }
+
+  .cardCheckButton {
+    padding: 8px;
+    min-width: 36px;
+    min-height: 36px;
+    border-radius: 8px;
+  }
+
+  /* Empty State Mobile */
+  .emptyState {
+    padding: 32px 16px;
+  }
+
+  .emptyState h4 {
+    font-size: 1rem;
+  }
+
+  .emptyState p {
+    font-size: 0.85rem;
+  }
+}
+
+/* ========== RESPONSIVE - SMALL MOBILE ========== */
+@media (max-width: 480px) {
+  .dashboard {
+    padding: 10px 8px;
+  }
+
+  .header {
+    gap: 10px;
+    margin-bottom: 12px;
+  }
+
+  .greeting h1 {
+    font-size: 1.35rem;
+  }
+
+  .greeting p {
+    font-size: 0.85rem;
+  }
+
+  .dateNav {
+    padding: 3px;
+  }
+
+  .dateNavBtn {
+    width: 30px;
+    height: 30px;
+  }
+
+  .dateLabel {
+    font-size: 0.85rem;
+    padding: 5px 8px;
+  }
+
+  .heroCard {
+    padding: 14px;
+    gap: 10px;
+  }
+
+  .heroIcon {
+    width: 44px;
+    height: 44px;
+  }
+
+  .heroContent h2 {
+    font-size: 1rem;
+  }
+
+  .heroContent p {
+    font-size: 0.8rem;
+  }
+
+  .alertList li {
+    font-size: 0.75rem;
+  }
+
+  .statBadge {
+    font-size: 0.75rem;
+    padding: 5px 8px;
+    border-radius: 14px;
+  }
+
+  .addButtons button {
+    padding: 5px 8px;
+    font-size: 0.75rem;
+  }
+
+  .agendaSection {
+    padding: 12px;
+    border-radius: 14px;
+  }
+
+  .agendaHeader h3 {
+    font-size: 0.95rem;
+  }
+
+  .filterTabs button {
+    padding: 5px 8px;
+    font-size: 0.7rem;
+  }
+
+  .timelineItem {
+    padding-left: 18px;
+  }
+
+  .timelineDot {
+    width: 12px;
+    height: 12px;
+    left: 0;
+  }
+
+  .timelineLine {
+    left: 5px;
+  }
+
+  .timelineCard {
+    padding: 8px 10px;
+    gap: 8px;
+  }
+
+  .cardIcon {
+    width: 32px;
+    height: 32px;
+    border-radius: 6px;
+  }
+
+  .cardType {
+    font-size: 0.6rem;
+  }
+
+  .cardContent h4 {
+    font-size: 0.8rem;
+  }
+
+  .cardAction {
+    padding: 7px 12px;
+    font-size: 0.75rem;
+  }
+
+  .cardCheckButton {
+    padding: 6px;
+    min-width: 32px;
+    min-height: 32px;
+    border-radius: 6px;
+  }
+}
+
+/* ========== RESPONSIVE - EXTRA SMALL ========== */
+@media (max-width: 375px) {
+  .dashboard {
+    padding: 8px 6px;
+  }
+
+  .greeting h1 {
+    font-size: 1.2rem;
+  }
+
+  .greeting p {
+    font-size: 0.8rem;
+  }
+
+  .heroCard {
+    padding: 12px;
+  }
+
+  .heroIcon {
+    width: 40px;
+    height: 40px;
+  }
+
+  .heroContent h2 {
+    font-size: 0.95rem;
+  }
+
+  .statBadge {
+    font-size: 0.7rem;
+    padding: 4px 6px;
+  }
+
+  .agendaSection {
+    padding: 10px;
+    border-radius: 12px;
+  }
+
+  .filterTabs button {
+    padding: 4px 6px;
+    font-size: 0.65rem;
+  }
+
+  .timelineCard {
+    padding: 6px 8px;
+  }
+
+  .cardIcon {
+    width: 28px;
+    height: 28px;
+  }
+
+  .cardContent h4 {
+    font-size: 0.75rem;
+  }
+
+  .cardAction {
+    padding: 6px 10px;
+    font-size: 0.7rem;
   }
 }

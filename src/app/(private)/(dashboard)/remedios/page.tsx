@@ -18,6 +18,7 @@ import { toast } from '@/components/features/Toast';
 import { MedicamentosService } from '@/lib/supabase/services';
 import { listarEventosDoDia, atualizarStatusEvento, criarOuAtualizarEvento } from '@/lib/supabase/services/historicoEventos';
 import { ImageCompressor } from '@/lib/imageCompression';
+import { ViewToggle, ViewMode } from '@/components/shared/ViewToggle';
 
 // Estilos
 import styles from './page.module.css';
@@ -56,6 +57,7 @@ export default function Remedios() {
   const [addModalOpen, setAddModalOpen] = useState(false);
   const [editModalOpen, setEditModalOpen] = useState(false);
   const [editingMedicamento, setEditingMedicamento] = useState<Medicamento | null>(null);
+  const [viewMode, setViewMode] = useState<ViewMode>('cards');
 
   const [photoModal, setPhotoModal] = useState({
     isOpen: false,
@@ -238,12 +240,12 @@ export default function Remedios() {
       await refreshMedicamentos(); // Recarrega para garantir sincronização
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Erro ao criar medicamento';
-      
+
       // Verificar se é erro específico de ambiguidade ou evento_id
-      if (errorMessage.includes('data_prevista') && errorMessage.includes('ambiguous') || 
-          errorMessage.includes('evento_id') && errorMessage.includes('null value')) {
+      if (errorMessage.includes('data_prevista') && errorMessage.includes('ambiguous') ||
+        errorMessage.includes('evento_id') && errorMessage.includes('null value')) {
         const userFriendlyMessage = 'Ocorreu um erro ao criar medicamento. Isso é um problema de configuração do banco de dados que já foi identificado. O sistema tentará automaticamente usar um método alternativo. Por favor:\n\n1. Tente novamente\n2. Se o erro persistir, contate o suporte técnico\n3. O problema será corrigido em breve';
-        
+
         toast.error('Erro ao criar medicamento - tentando método alternativo');
         alert(userFriendlyMessage);
       } else {
@@ -347,12 +349,12 @@ export default function Remedios() {
 
   const handleMarkMedicamentoDone = async (medId: number) => {
     if (!targetProfileId) return;
-    
+
     const ev = eventosDoDia.find(e => e.tipo_evento === 'medicamento' && e.evento_id === medId && e.status === 'pendente');
-    
+
     setMarking(prev => ({ ...prev, [medId]: true }));
     const prevEventos = eventosDoDia;
-    
+
     // Atualização otimista
     setEventosDoDia(prev => {
       if (ev) {
@@ -360,7 +362,7 @@ export default function Remedios() {
       }
       return prev;
     });
-    
+
     try {
       if (!ev) {
         // Se não existe evento, cria um novo usando a função de criar/atualizar
@@ -369,10 +371,10 @@ export default function Remedios() {
         // Atualiza o evento existente
         await atualizarStatusEvento(ev.id, 'confirmado');
       }
-      
+
       // Recarrega os medicamentos para atualizar a quantidade
       await refreshMedicamentos();
-      
+
       // Recarrega eventos do dia para sincronizar
       if (targetProfileId) {
         const hoje = new Date();
@@ -386,7 +388,7 @@ export default function Remedios() {
           }))
         );
       }
-      
+
       toast.success('Medicamento marcado como tomado');
     } catch (err) {
       setEventosDoDia(prevEventos);
@@ -425,7 +427,7 @@ export default function Remedios() {
     try {
       setPhotoStatus('Otimizando imagem para processamento...');
       const compressed = await ImageCompressor.compressImage(file);
-      
+
       // Mostrar info da compressão se houve redução significativa
       if (compressed.compressionRatio > 1.2) {
         const originalSize = ImageCompressor.formatFileSize(compressed.originalSize);
@@ -456,7 +458,7 @@ export default function Remedios() {
         setPhotoUploading(false);
         return;
       }
-      
+
       const { data: perfil, error: perfilError } = await supabase
         .from('perfis')
         .select('id')
@@ -480,7 +482,7 @@ export default function Remedios() {
       }
 
       setOcrOverlay({ isVisible: true, status: 'processing' });
-      
+
       const { data: signedUrlData, error: signedUrlError } = await supabase.storage
         .from('receitas-medicas')
         .createSignedUrl(fileName, 3600); // URL válida por 1 hora
@@ -514,7 +516,7 @@ export default function Remedios() {
         const start = Date.now();
         const timeoutMs = 5 * 60 * 1000; // 5 minutos
         const interval = 1500; // 1.5s
-        
+
         const poll = async () => {
           try {
             const { data, error } = await supabase
@@ -522,7 +524,7 @@ export default function Remedios() {
               .select('status, result_json, image_url')
               .eq('id', ocrId)
               .single();
-              
+
             if (error) {
               if (Date.now() - start < timeoutMs) {
                 setTimeout(poll, interval);
@@ -531,9 +533,9 @@ export default function Remedios() {
               }
               return;
             }
-            
+
             const status = (data as any)?.status;
-            
+
             // Aguardando validação: abrir tela de validação
             if (status === 'AGUARDANDO_VALIDACAO') {
               const resultJson = (data as any)?.result_json;
@@ -541,11 +543,11 @@ export default function Remedios() {
               const imgUrl = (data as any)?.image_url || '';
 
               setOcrOverlay({ isVisible: true, status: 'validating' });
-              
+
               // Pequeno delay para mostrar o status antes de abrir modal
               setTimeout(() => {
                 setOcrOverlay({ isVisible: false, status: 'uploading' });
-                
+
                 if (medicamentos.length > 0 && imgUrl) {
                   setValidacaoModal({
                     isOpen: true,
@@ -559,7 +561,7 @@ export default function Remedios() {
               }, 800);
               return;
             }
-            
+
             // Sucesso: PROCESSADO ou PROCESSADO_PARCIALMENTE
             if (status === 'PROCESSADO' || status === 'PROCESSADO_PARCIALMENTE') {
               setOcrOverlay({ isVisible: true, status: 'success' });
@@ -569,19 +571,19 @@ export default function Remedios() {
               }, 1500);
               return;
             }
-            
+
             // Erros
             if (status === 'ERRO_PROCESSAMENTO' || status === 'ERRO_DATABASE') {
               const errMsg = 'Não foi possível encontrar medicamento na receita.';
               setOcrOverlay({ isVisible: true, status: 'error', errorMessage: errMsg });
               return;
             }
-            
+
             if (Date.now() - start >= timeoutMs) {
               setOcrOverlay({ isVisible: true, status: 'error', errorMessage: 'Tempo esgotado aguardando processamento da receita.' });
               return;
             }
-            
+
             setTimeout(poll, interval);
           } catch (e) {
             if (Date.now() - start < timeoutMs) {
@@ -592,7 +594,7 @@ export default function Remedios() {
             }
           }
         };
-        
+
         setTimeout(poll, interval);
       }
     } catch (e) {
@@ -620,7 +622,7 @@ export default function Remedios() {
     }
     if (medicamentos.length > 0) {
       return (
-        <div className={styles.gridContainer}>
+        <div className={viewMode === 'cards' ? styles.gridContainer : styles.listContainer}>
           {medicamentos.map((medicamento) => (
             <MedicamentoCard
               key={medicamento.id}
@@ -630,6 +632,7 @@ export default function Remedios() {
               hasPendingToday={hasPendingForMedicamento(medicamento.id)}
               isMarking={!!marking[medicamento.id]}
               onMarkAsDone={() => handleMarkMedicamentoDone(medicamento.id)}
+              viewMode={viewMode}
             />
           ))}
         </div>
@@ -662,6 +665,7 @@ export default function Remedios() {
               <span className={styles.addIcon}>+</span>
               Adicionar por Foto
             </button>
+            <ViewToggle viewMode={viewMode} onViewChange={setViewMode} />
           </div>
         )}
 

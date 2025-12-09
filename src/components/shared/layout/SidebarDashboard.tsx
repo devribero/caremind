@@ -9,7 +9,7 @@ import { IoHomeOutline, IoBarChartOutline, IoClipboardOutline, IoMedkitOutline, 
 import { Plug } from "lucide-react";
 import styles from "./SidebarDashboard.module.css";
 
-export default function SidebarDashboard({ collapsed }: { collapsed: boolean }) {
+export default function SidebarDashboard({ collapsed, mobileOpen = false }: { collapsed: boolean; mobileOpen?: boolean }) {
   const { user, signOut } = useAuth();
   const { profile } = useProfileContext();
   const pathname = usePathname();
@@ -59,7 +59,7 @@ export default function SidebarDashboard({ collapsed }: { collapsed: boolean }) 
   };
 
   return (
-    <aside className={`${styles.sidebar} ${collapsed ? styles.collapsed : ""}`}>
+    <aside className={`${styles.sidebar} ${collapsed ? styles.collapsed : ""} ${mobileOpen ? styles.mobileOpen : ""}`}>
       <div className={styles.topArea}>
         <div className={styles.logoRow}>
           {!collapsed && <a href="/" className={styles.logoText}>Caremind</a>}

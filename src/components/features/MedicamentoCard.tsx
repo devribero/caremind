@@ -12,6 +12,7 @@ interface MedicamentoCardProps {
   hasPendingToday?: boolean;
   isDeleting?: boolean;
   isMarking?: boolean;
+  viewMode?: 'cards' | 'list';
 }
 
 const MedicamentoCard: React.FC<MedicamentoCardProps> = ({
@@ -22,7 +23,9 @@ const MedicamentoCard: React.FC<MedicamentoCardProps> = ({
   hasPendingToday = false,
   isDeleting = false,
   isMarking = false,
+  viewMode = 'cards',
 }) => {
+  const isListView = viewMode === 'list';
   const formatarFrequencia = (frequencia: Medicamento['frequencia']) => {
     if (!frequencia) return 'Sem frequência definida';
 
@@ -43,7 +46,7 @@ const MedicamentoCard: React.FC<MedicamentoCardProps> = ({
   const frequenciaTexto = formatarFrequencia(medicamento.frequencia);
 
   return (
-    <div className={styles.card}>
+    <div className={`${styles.card} ${isListView ? styles.listItem : ''}`}>
       <div className={styles.card_header}>
         <h3 className={styles.card_title}>{medicamento.nome}</h3>
         <div className={styles.card_actions}>
