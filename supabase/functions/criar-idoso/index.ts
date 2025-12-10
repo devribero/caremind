@@ -257,6 +257,7 @@ Deno.serve(async (req) => {
         perfilIdoso = existingPerfil
 
         // Se o perfil existe mas está sem nome, com nome padrão, ou tipo incorreto, atualizar
+        // Se o perfil existe mas está sem nome, com nome padrão, ou tipo incorreto, atualizar
         const nomeInvalido = !existingPerfil.nome ||
           existingPerfil.nome.trim() === '' ||
           existingPerfil.nome.trim().toLowerCase() === 'sem nome' ||
@@ -328,6 +329,7 @@ Deno.serve(async (req) => {
               perfilIdosoId = existingPerfil.id
               perfilIdoso = existingPerfil
 
+              // Atualizar o nome e tipo se estiverem vazios ou diferentes
               // Atualizar o nome e tipo se estiverem vazios, com nome padrão, ou tipo diferente
               const nomeInvalido2 = !existingPerfil.nome ||
                 existingPerfil.nome.trim() === '' ||
