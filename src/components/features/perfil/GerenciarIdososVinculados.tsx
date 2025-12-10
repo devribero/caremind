@@ -29,7 +29,7 @@ function GerenciarIdososVinculadosImpl(_props: {}, ref: React.Ref<GerenciarIdoso
   const [idosos, setIdosos] = useState<IdosoItem[]>([]);
   const [loading, setLoading] = useState(false);
   const [editingIdoso, setEditingIdoso] = useState<IdosoItem | null>(null);
-  
+
   // Visualização: grid ou lista (salva no localStorage)
   const [viewMode, setViewMode] = useState<ViewMode>(() => {
     if (typeof window !== 'undefined') {
@@ -47,7 +47,7 @@ function GerenciarIdososVinculadosImpl(_props: {}, ref: React.Ref<GerenciarIdoso
 
     setLoading(true);
     try {
-      const vinculos = await listarIdososVinculados(user.id);
+      const vinculos = await listarIdososVinculados(profile.id);
       const normalized: IdosoItem[] = vinculos.map((vinculo) => ({
         id_idoso: vinculo.id_idoso,
         nome: vinculo.idoso?.nome || null,
@@ -136,10 +136,10 @@ function GerenciarIdososVinculadosImpl(_props: {}, ref: React.Ref<GerenciarIdoso
             title="Visualização em grade"
           >
             <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
-              <rect x="3" y="3" width="5" height="5" rx="1" stroke="currentColor" strokeWidth="1.5" fill="none"/>
-              <rect x="12" y="3" width="5" height="5" rx="1" stroke="currentColor" strokeWidth="1.5" fill="none"/>
-              <rect x="3" y="12" width="5" height="5" rx="1" stroke="currentColor" strokeWidth="1.5" fill="none"/>
-              <rect x="12" y="12" width="5" height="5" rx="1" stroke="currentColor" strokeWidth="1.5" fill="none"/>
+              <rect x="3" y="3" width="5" height="5" rx="1" stroke="currentColor" strokeWidth="1.5" fill="none" />
+              <rect x="12" y="3" width="5" height="5" rx="1" stroke="currentColor" strokeWidth="1.5" fill="none" />
+              <rect x="3" y="12" width="5" height="5" rx="1" stroke="currentColor" strokeWidth="1.5" fill="none" />
+              <rect x="12" y="12" width="5" height="5" rx="1" stroke="currentColor" strokeWidth="1.5" fill="none" />
             </svg>
           </button>
           <button
@@ -149,14 +149,14 @@ function GerenciarIdososVinculadosImpl(_props: {}, ref: React.Ref<GerenciarIdoso
             title="Visualização em lista"
           >
             <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
-              <rect x="3" y="4" width="14" height="2" rx="1" fill="currentColor"/>
-              <rect x="3" y="9" width="14" height="2" rx="1" fill="currentColor"/>
-              <rect x="3" y="14" width="14" height="2" rx="1" fill="currentColor"/>
+              <rect x="3" y="4" width="14" height="2" rx="1" fill="currentColor" />
+              <rect x="3" y="9" width="14" height="2" rx="1" fill="currentColor" />
+              <rect x="3" y="14" width="14" height="2" rx="1" fill="currentColor" />
             </svg>
           </button>
         </div>
       </div>
-      
+
       {loading ? (
         <div style={{ padding: 24, textAlign: 'center', color: '#6b7280' }}>Carregando...</div>
       ) : idosos.length === 0 ? (
@@ -166,11 +166,11 @@ function GerenciarIdososVinculadosImpl(_props: {}, ref: React.Ref<GerenciarIdoso
           {idosos.map((i) => (
             <div key={i.id_idoso} className={styles.card}>
               <div className={styles.cardImage}>
-                <Image 
-                  src={i.foto_usuario || '/icons/foto_padrao.png'} 
-                  alt={i.nome || 'Idoso'} 
-                  width={80} 
-                  height={80} 
+                <Image
+                  src={i.foto_usuario || '/icons/foto_padrao.png'}
+                  alt={i.nome || 'Idoso'}
+                  width={80}
+                  height={80}
                   style={{ borderRadius: '50%', objectFit: 'cover', width: '100%', height: '100%' }}
                 />
               </div>
@@ -196,8 +196,8 @@ function GerenciarIdososVinculadosImpl(_props: {}, ref: React.Ref<GerenciarIdoso
                 >
                   Editar
                 </button>
-                <button 
-                  onClick={() => handleDesvincular(i.id_idoso)} 
+                <button
+                  onClick={() => handleDesvincular(i.id_idoso)}
                   className={styles.btnDesvincular}
                 >
                   Desvincular
@@ -211,11 +211,11 @@ function GerenciarIdososVinculadosImpl(_props: {}, ref: React.Ref<GerenciarIdoso
           {idosos.map((i) => (
             <div key={i.id_idoso} className={styles.listItem}>
               <div className={styles.listImage}>
-                <Image 
-                  src={i.foto_usuario || '/icons/foto_padrao.png'} 
-                  alt={i.nome || 'Idoso'} 
-                  width={56} 
-                  height={56} 
+                <Image
+                  src={i.foto_usuario || '/icons/foto_padrao.png'}
+                  alt={i.nome || 'Idoso'}
+                  width={56}
+                  height={56}
                   style={{ borderRadius: '50%', objectFit: 'cover', width: '100%', height: '100%' }}
                 />
               </div>
@@ -243,8 +243,8 @@ function GerenciarIdososVinculadosImpl(_props: {}, ref: React.Ref<GerenciarIdoso
                 >
                   Editar
                 </button>
-                <button 
-                  onClick={() => handleDesvincular(i.id_idoso)} 
+                <button
+                  onClick={() => handleDesvincular(i.id_idoso)}
                   className={styles.btnDesvincular}
                 >
                   Desvincular
@@ -260,11 +260,11 @@ function GerenciarIdososVinculadosImpl(_props: {}, ref: React.Ref<GerenciarIdoso
         initialData={
           editingIdoso
             ? {
-                nome: editingIdoso.nome || '',
-                telefone: editingIdoso.telefone || '',
-                data_nascimento: editingIdoso.data_nascimento || '',
-                foto_usuario: editingIdoso.foto_usuario || '',
-              }
+              nome: editingIdoso.nome || '',
+              telefone: editingIdoso.telefone || '',
+              data_nascimento: editingIdoso.data_nascimento || '',
+              foto_usuario: editingIdoso.foto_usuario || '',
+            }
             : undefined
         }
         onClose={() => setEditingIdoso(null)}

@@ -21,7 +21,7 @@ Deno.serve(async (req) => {
     // Obter variáveis de ambiente
     const supabaseUrl = Deno.env.get('SUPABASE_URL') ?? ''
     const supabaseServiceRoleKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
-    
+
     if (!supabaseUrl || !supabaseServiceRoleKey) {
       throw new Error('Variáveis de ambiente não configuradas')
     }
@@ -59,7 +59,7 @@ Deno.serve(async (req) => {
 
     // Identificar o familiar que está fazendo a solicitação
     const { data: { user }, error: userError } = await supabaseUserClient.auth.getUser()
-    
+
     if (userError || !user) {
       return new Response(
         JSON.stringify({ error: 'Usuário não autenticado ou token inválido' }),
@@ -122,7 +122,7 @@ Deno.serve(async (req) => {
     // Normalizar dados
     const nomeNormalizado = nome_idoso.trim()
     const emailNormalizado = email_idoso.trim().toLowerCase()
-    
+
     console.log('Dados normalizados:', {
       nomeNormalizado,
       emailNormalizado,
@@ -138,7 +138,7 @@ Deno.serve(async (req) => {
       email: emailNormalizado,
       nome: nomeNormalizado
     })
-    
+
     const { data: authUser, error: createUserError } = await supabaseAdmin.auth.admin.createUser({
       email: emailNormalizado,
       password: senha_idoso,
@@ -151,14 +151,14 @@ Deno.serve(async (req) => {
 
     if (createUserError) {
       // Se o erro for de email duplicado, buscar o usuário existente
-      if (createUserError.message?.includes('already registered') || 
-          createUserError.message?.includes('already exists') ||
-          createUserError.message?.includes('User already registered')) {
-        
+      if (createUserError.message?.includes('already registered') ||
+        createUserError.message?.includes('already exists') ||
+        createUserError.message?.includes('User already registered')) {
+
         // Buscar usuário existente pelo email
         const { data: existingUsers } = await supabaseAdmin.auth.admin.listUsers()
         const existingUser = existingUsers?.users?.find(u => u.email?.toLowerCase() === emailNormalizado)
-        
+
         if (!existingUser) {
           console.error('Erro ao criar usuário e não foi possível encontrar usuário existente:', createUserError)
           return new Response(
@@ -168,7 +168,7 @@ Deno.serve(async (req) => {
         }
 
         novoUserIdoso = existingUser.id
-        
+
         // Verificar se já existe perfil para este usuário
         const { data: existingPerfil } = await supabaseAdmin
           .from('perfis')
@@ -179,7 +179,7 @@ Deno.serve(async (req) => {
         if (existingPerfil) {
           // Perfil já existe - retornar erro informando que o idoso já está cadastrado
           return new Response(
-            JSON.stringify({ 
+            JSON.stringify({
               error: 'Este email já está cadastrado. O idoso já possui um perfil no sistema.',
               existing_idoso: {
                 id: existingPerfil.id,
@@ -194,14 +194,14 @@ Deno.serve(async (req) => {
         // Usuário existe mas não tem perfil - criar apenas o perfil
         // O id do perfil deve ser o mesmo do user_id (como no profileService.ts)
         perfilIdosoId = novoUserIdoso
-        
+
         console.log('Criando perfil para usuário existente:', {
           id: perfilIdosoId,
           user_id: novoUserIdoso,
           nome: nomeNormalizado,
           tipo: 'idoso'
         })
-        
+
         const { data: newPerfil, error: createPerfilError } = await supabaseAdmin
           .from('perfis')
           .insert({
@@ -255,21 +255,42 @@ Deno.serve(async (req) => {
         console.log('Perfil já existe (possível trigger ou race condition):', existingPerfil)
         perfilIdosoId = existingPerfil.id
         perfilIdoso = existingPerfil
-        
-        // Se o perfil existe mas está sem nome ou tipo incorreto, atualizar
-        if (!existingPerfil.nome || existingPerfil.nome.trim() === '' || existingPerfil.tipo !== 'idoso') {
+
+        // Se o perfil existe mas está sem nome, com nome padrão, ou tipo incorreto, atualizar
+        const nomeInvalido = !existingPerfil.nome ||
+          existingPerfil.nome.trim() === '' ||
+          existingPerfil.nome.trim().toLowerCase() === 'sem nome' ||
+          existingPerfil.nome.trim() === 'Usuário'
+
+        if (nomeInvalido || existingPerfil.tipo !== 'idoso') {
           console.log('Atualizando nome e tipo do perfil existente que estava vazio ou incorreto')
-          const { data: updatedPerfil } = await supabaseAdmin
+          const { data: updatedPerfil, error: updateError } = await supabaseAdmin
             .from('perfis')
-            .update({ 
-              nome: nomeNormalizado, 
-              tipo: 'idoso' 
+            .update({
+              nome: nomeNormalizado,
+              tipo: 'idoso'
             })
             .eq('id', perfilIdosoId)
             .select()
             .single()
+
+          if (updateError) {
+            console.error('Erro ao atualizar perfil existente:', updateError)
+            return new Response(
+              JSON.stringify({ error: `Erro ao atualizar perfil: ${updateError.message}` }),
+              { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+            )
+          }
+
           if (updatedPerfil) {
             perfilIdoso = updatedPerfil
+            console.log('Perfil atualizado com sucesso:', perfilIdoso)
+          } else {
+            console.error('Perfil não foi retornado após atualização')
+            return new Response(
+              JSON.stringify({ error: 'Erro ao atualizar perfil: dados não retornados' }),
+              { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+            )
           }
         }
       } else {
@@ -279,7 +300,7 @@ Deno.serve(async (req) => {
           nome: nomeNormalizado,
           tipo: 'idoso'
         })
-        
+
         const { data: newPerfil, error: createPerfilError } = await supabaseAdmin
           .from('perfis')
           .insert({
@@ -301,26 +322,49 @@ Deno.serve(async (req) => {
               .select()
               .eq('user_id', novoUserIdoso)
               .single()
-            
+
             if (existingPerfil) {
               console.log('Perfil já existe, usando existente:', existingPerfil)
               perfilIdosoId = existingPerfil.id
               perfilIdoso = existingPerfil
-              
-              // Atualizar o nome e tipo se estiverem vazios ou diferentes
-              if (!existingPerfil.nome || existingPerfil.nome.trim() === '' || existingPerfil.tipo !== 'idoso') {
+
+              // Atualizar o nome e tipo se estiverem vazios, com nome padrão, ou tipo diferente
+              const nomeInvalido2 = !existingPerfil.nome ||
+                existingPerfil.nome.trim() === '' ||
+                existingPerfil.nome.trim().toLowerCase() === 'sem nome' ||
+                existingPerfil.nome.trim() === 'Usuário'
+
+              if (nomeInvalido2 || existingPerfil.tipo !== 'idoso') {
                 console.log('Atualizando nome e tipo do perfil existente')
-                const { data: updatedPerfil } = await supabaseAdmin
+                const { data: updatedPerfil, error: updateError2 } = await supabaseAdmin
                   .from('perfis')
-                  .update({ 
+                  .update({
                     nome: nomeNormalizado,
                     tipo: 'idoso'
                   })
                   .eq('id', perfilIdosoId)
                   .select()
                   .single()
+
+                if (updateError2) {
+                  console.error('Erro ao atualizar perfil existente (segundo bloco):', updateError2)
+                  await supabaseAdmin.auth.admin.deleteUser(novoUserIdoso)
+                  return new Response(
+                    JSON.stringify({ error: `Erro ao atualizar perfil: ${updateError2.message}` }),
+                    { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+                  )
+                }
+
                 if (updatedPerfil) {
                   perfilIdoso = updatedPerfil
+                  console.log('Perfil atualizado com sucesso (segundo bloco):', perfilIdoso)
+                } else {
+                  console.error('Perfil não foi retornado após atualização (segundo bloco)')
+                  await supabaseAdmin.auth.admin.deleteUser(novoUserIdoso)
+                  return new Response(
+                    JSON.stringify({ error: 'Erro ao atualizar perfil: dados não retornados' }),
+                    { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+                  )
                 }
               }
             } else {
@@ -365,7 +409,7 @@ Deno.serve(async (req) => {
       // Se falhar ao criar o vínculo, tenta limpar usuário e perfil criados
       await supabaseAdmin.from('perfis').delete().eq('id', perfilIdosoId)
       await supabaseAdmin.auth.admin.deleteUser(novoUserIdoso)
-      
+
       console.error('Erro ao criar vínculo:', createVinculoError)
       return new Response(
         JSON.stringify({ error: `Erro ao criar vínculo: ${createVinculoError?.message || 'Erro desconhecido'}` }),
@@ -391,7 +435,7 @@ Deno.serve(async (req) => {
 
     // Sucesso: retornar resposta positiva
     return new Response(
-      JSON.stringify({ 
+      JSON.stringify({
         success: true,
         message: 'Idoso criado e vinculado com sucesso',
         idoso: {
@@ -401,21 +445,21 @@ Deno.serve(async (req) => {
           email: emailNormalizado,
         }
       }),
-      { 
-        status: 200, 
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
+      {
+        status: 200,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' }
       }
     )
 
   } catch (error) {
     console.error('Erro na função criar-idoso:', error)
     return new Response(
-      JSON.stringify({ 
-        error: error instanceof Error ? error.message : 'Erro interno do servidor' 
+      JSON.stringify({
+        error: error instanceof Error ? error.message : 'Erro interno do servidor'
       }),
-      { 
-        status: 500, 
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
+      {
+        status: 500,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' }
       }
     )
   }

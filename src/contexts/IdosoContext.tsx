@@ -35,7 +35,7 @@ export function IdosoProvider({ children }: { children: ReactNode }) {
   const [selecionado, setSelecionado] = useState<string | null>(null);
 
   const refresh = useCallback(async () => {
-    if (!user?.id) {
+    if (!user?.id || !profile?.id) {
       setLista([]);
       setSelecionado(null);
       return;
@@ -47,18 +47,18 @@ export function IdosoProvider({ children }: { children: ReactNode }) {
       setSelecionado(null);
       return;
     }
-    
+
     setLoading(true);
     try {
-      const idososVinculados = await listarIdososVinculados(user.id);
-      
+      const idososVinculados = await listarIdososVinculados(profile.id);
+
       const mapped: IdosoResumo[] = idososVinculados.map((vinculo) => ({
         id: vinculo.id_idoso,
         nome: vinculo.idoso?.nome || 'Idoso',
       }));
-      
+
       setLista(mapped);
-      
+
       // Mantém seleção se ainda existir; caso contrário, usa persistido ou seleciona primeiro
       const persisted = typeof window !== 'undefined' ? (localStorage.getItem('idosoSelecionadoId') || null) : null;
       setSelecionado((prev) => {
@@ -73,7 +73,7 @@ export function IdosoProvider({ children }: { children: ReactNode }) {
     } finally {
       setLoading(false);
     }
-  }, [user, profile?.tipo]);
+  }, [user, profile?.id, profile?.tipo]);
 
   useEffect(() => {
     refresh();
